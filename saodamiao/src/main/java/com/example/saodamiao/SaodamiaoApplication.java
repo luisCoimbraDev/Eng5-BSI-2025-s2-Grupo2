@@ -9,8 +9,6 @@ public class SaodamiaoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SaodamiaoApplication.class, args);
-        if(Singleton.Retorna() != null)
-            System.out.println("start");
     }
 
 }
