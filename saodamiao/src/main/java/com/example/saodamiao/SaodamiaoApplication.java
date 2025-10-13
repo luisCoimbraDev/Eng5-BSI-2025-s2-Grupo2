@@ -1,5 +1,6 @@
 package com.example.saodamiao;
 
+import com.example.saodamiao.Singleton.Singleton;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,7 +9,8 @@ public class SaodamiaoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SaodamiaoApplication.class, args);
-        System.out.println("SaodamiaoApplication started");
+        if(Singleton.Retorna() != null)
+            System.out.println("start");
     }
 
 }
