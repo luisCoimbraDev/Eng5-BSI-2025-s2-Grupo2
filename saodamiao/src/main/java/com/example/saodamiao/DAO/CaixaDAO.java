@@ -1,33 +1,46 @@
 package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.CaixaModel;
-import com.example.saodamiao.Singleton.ConexaoBD;
+import com.example.saodamiao.Singleton.Conexao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class CaixaDAO {
-    public CaixaModel buscarCaixa() throws SQLException{
-        String sql = "SELECT * FROM caixa LIMIT 1";
-        Connection conn = ConexaoBD.getInstacia().getConexao();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery();
 
-        if(rs.next())
-        {
-            return new CaixaModel(rs.getInt(rs.toString()));
-        }
-        return null;
+public class CaixaDAO {
+
+    private Conexao con;
+
+    public CaixaDAO() {
+        con = new Conexao();
+        // Ajuste os parâmetros conforme o seu ambiente:
+        con.conectar("jdbc:postgresql://localhost/", "bazar", "postgres", "1234");
     }
 
-    public void atualizarCaixa(CaixaModel caixa) throws SQLException{
-        String sql = "UPDATE caixa SET valor_atual = ? WHERE id = ?";
-        Connection conn = ConexaoBD.getInstacia().getConexao();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setDouble(1, caixa.getValorAbertura());
-        stmt.setInt(2, caixa.getIdCaixa());
-        stmt.executeUpdate();
+    public CaixaModel buscarCaixaAberto() {
+        CaixaModel caixa = null;
+        String sql = "SELECT * FROM caixa WHERE datafechamento IS NULL ORDER BY dataabertura DESC LIMIT 1";
+        try {
+            ResultSet rs = con.consultar(sql);
+            if (rs != null && rs.next()) {
+                caixa = new CaixaModel(
+                        rs.getInt("idcaixa"),
+                        rs.getDate("dataabertura"),
+                        rs.getDouble("valorabertura"),
+                        rs.getInt("loginabertura"),
+                        rs.getDate("datafechamento"),
+                        rs.getDouble("valorfechamento"),
+                        rs.getInt("loginfechamento")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao buscar caixa aberto: " + e.getMessage());
+        }
+        return caixa;
+    }
+
+    public boolean atualizarValorCaixa(double novoValor, int idCaixa) {
+        String sql = "UPDATE caixa SET valorfechamento = " + novoValor + " WHERE idcaixa = " + idCaixa;
+        return con.manipular(sql);
     }
 }
