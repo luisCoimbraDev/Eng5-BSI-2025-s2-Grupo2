@@ -44,15 +44,25 @@
     <style>
         html, body { height: 100%; margin: 0; padding: 0; background-color: #f7f9fc; }
         .wrapper { min-height: 100vh; }
+        /* coluna flex para empurrar o footer para baixo */
         .main-panel { min-height: 100vh; display: flex; flex-direction: column; }
-        .main-panel > .container-fluid, .main-panel > .content, .main-panel > .page-inner { flex: 1 0 auto; }
-        .footer { flex-shrink: 0; background: #ffffff; border-top: 1px solid #eaeaea; padding: 15px 30px; width: 100%; }
+        .main-panel > .container-fluid,
+        .main-panel > .content,
+        .main-panel > .page-inner { flex: 1 0 auto; }
+        /* footer colado no fim da coluna */
+        .footer {
+            margin-top: auto;
+            background: #ffffff;
+            border-top: 1px solid #eaeaea;
+            padding: 15px 30px;
+            width: 100%;
+            position: static;
+        }
         .nav.nav-collapse a i { width: 18px; text-align: center; }
     </style>
 </head>
 <body>
 <div class="wrapper">
-    <!-- Sidebar -->
     <!-- Sidebar -->
     <div class="sidebar" data-background-color="dark">
         <div class="sidebar-logo">
@@ -443,7 +453,6 @@
 </div> <!-- /.wrapper -->
 
 <!-- Core JS -->
-<!--   Core JS Files   -->
 <script src="../js/core/jquery-3.7.1.min.js"></script>
 <script src="../js/core/popper.min.js"></script>
 <script src="../js/core/bootstrap.min.js"></script>
