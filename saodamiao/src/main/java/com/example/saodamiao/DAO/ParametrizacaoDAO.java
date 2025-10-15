@@ -17,7 +17,7 @@ public class ParametrizacaoDAO implements IDAO<Parametrizacao>{
     }
     @Override
     public boolean gravar(Parametrizacao entidade) {
-        String Par = "SELECT * FROM parametrizacao WHERE idParametrizacao = "+entidade.getPar_cnpj();
+        String Par = "SELECT * FROM parametrizacao WHERE par_razao_social = "+entidade.getPar_razao_social();
         ResultSet rs = Singleton.Retorna().consultar(Par);
         try{
             if(rs.next() || !rs.next()){

@@ -17,14 +17,20 @@ import java.util.List;
 public class ParametrizacaoControl {
 
     @GetMapping(value = "/home")
-    ResponseEntity<Object> getAll(){
+    ResponseEntity<Object> ParametrizacaoHome(){
 
         Parametrizacao parametrizacao = new Parametrizacao();
         List<Parametrizacao> list = parametrizacao.getParametrizacaoDAO().pegarListaToda();
-
         if(!list.isEmpty()){
             return ResponseEntity.ok().body(list);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping(value = "/CadBeneficiarios")
+    ResponseEntity<Object> CadBeneficiarios(){
+
+
+        return ResponseEntity.ok().body("oal");
     }
 }
