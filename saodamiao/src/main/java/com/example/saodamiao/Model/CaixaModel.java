@@ -1,5 +1,7 @@
 package com.example.saodamiao.Model;
 
+import com.example.saodamiao.DAO.CaixaDAO;
+
 import java.util.Date;
 
 
@@ -11,6 +13,8 @@ public class CaixaModel {
     private Date dataFechamento;
     private Double valorFechamento;
     private int loginFechamento;
+
+    private CaixaDAO caixa;
 
     public CaixaModel(int idCaixa, Date dataAbertura, Double valorAbertura, int loginAbertura, Date dataFechamento, Double valorFechamento, int loginFechamento) {
         this.idCaixa = idCaixa;
@@ -81,6 +85,10 @@ public class CaixaModel {
         this.loginFechamento = loginFechamento;
     }
 
+    public Boolean atualizarCaixa(int qtde, int idCaixa){
+        caixa = new CaixaDAO();
+        return caixa.atualizarValorCaixa(qtde, idCaixa);
+    }
     @Override
     public String toString() {
         return "CaixaModel{" +
