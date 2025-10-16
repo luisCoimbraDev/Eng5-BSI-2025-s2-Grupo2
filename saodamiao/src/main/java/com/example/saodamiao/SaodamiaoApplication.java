@@ -1,6 +1,6 @@
 package com.example.saodamiao;
 
-import com.example.saodamiao.Singleton.Singleton;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

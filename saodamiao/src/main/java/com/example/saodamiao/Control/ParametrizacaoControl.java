@@ -20,6 +20,7 @@ public class ParametrizacaoControl {
     ResponseEntity<Object> getAll(){
 
         Parametrizacao parametrizacao = new Parametrizacao();
+
         List<Parametrizacao> list = parametrizacao.getParametrizacaoDAO().pegarListaToda();
 
         if(!list.isEmpty()){
