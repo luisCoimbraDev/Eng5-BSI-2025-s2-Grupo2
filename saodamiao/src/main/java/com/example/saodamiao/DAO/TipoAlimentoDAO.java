@@ -12,8 +12,8 @@ import java.util.List;
 
 public class TipoAlimentoDAO implements IDAO<TipoAlimento>{
     public TipoAlimentoDAO() {
-
     }
+
     @Override
     public boolean gravar(TipoAlimento entidade) {
         String SQL = "INSERT INTO TIPO_ALIMENTO (TPA_DESC) VALUES ('#2');";
