@@ -15,6 +15,8 @@
 
     <!-- Fonts and icons -->
     <script src=../js/plugin/webfont/webfont.min.js"></script>
+    <!-- Js para parametrizacao -->
+    <script src= "../js/Parametrizacao.js"></script>
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -42,18 +44,22 @@
     <link rel="stylesheet" href="../css/demo.css" />
   </head>
   <body>
+      <script>
+          document.addEventListener('DOMContentLoaded', carregarParametrizacao);
+      </script>
     <div class="wrapper">
       <!-- Sidebar -->
       <div class="sidebar" data-background-color="dark">
         <div class="sidebar-logo">
           <!-- Logo Header -->
-          <div class="logo-header" data-background-color="dark">
-            <a href="index.html" class="logo">
+            <div class="logo-header" style="background-color: #363F63">
+            <a href="index.html">
               <img
-                src="../img/kaiadmin/logo_light.svg"
+                id="img-logo"
                 alt="navbar brand"
                 class="navbar-brand"
-                height="20"
+                height="80"
+                width="110"
               />
             </a>
             <div class="nav-toggle">
@@ -359,11 +365,13 @@
             class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom"
           >
             <div class="container-fluid">
+                <h1 id="nome-ong" ></h1>
               <nav
                 class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex"
               >
               </nav>
               <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
                 <li class="nav-item topbar-user dropdown hidden-caret">
                   <a
                     class="dropdown-toggle profile-pic"

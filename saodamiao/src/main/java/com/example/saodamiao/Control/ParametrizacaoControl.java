@@ -20,17 +20,15 @@ public class ParametrizacaoControl {
     ResponseEntity<Object> ParametrizacaoHome(){
 
         Parametrizacao parametrizacao = new Parametrizacao();
-        List<Parametrizacao> list = parametrizacao.getParametrizacaoDAO().pegarListaToda();
-        if(!list.isEmpty()){
-            return ResponseEntity.ok().body(list);
+        Parametrizacao info = parametrizacao.getParametrizacaoDAO().pegarParametro();
+        if(info != null){
+            return ResponseEntity.ok().body(info);
         }
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping(value = "/CadBeneficiarios")
-    ResponseEntity<Object> CadBeneficiarios(){
-
-
-        return ResponseEntity.ok().body("oal");
+    @GetMapping(value = "/CadParametrizacao")
+    String CadParametrizacao(){
+        return //"../resources/templates/Pages/cadastro-Parametrizacao.html";
     }
 }
