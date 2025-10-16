@@ -21,19 +21,14 @@
                 ],
                 urls: ["../css/fonts.min.css"],
             },
-            active: function () {
-                sessionStorage.fonts = true;
-            },
+            active: function () { sessionStorage.fonts = true; },
         });
     </script>
 
     <!-- Font Awesome -->
-    <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"
-    />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="../css/bootstrap.min.css" />
@@ -44,12 +39,12 @@
     <style>
         html, body { height: 100%; margin: 0; padding: 0; background-color: #f7f9fc; }
         .wrapper { min-height: 100vh; }
-        /* coluna flex para empurrar o footer para baixo */
+
+        /* Painel principal como coluna para empurrar o footer */
         .main-panel { min-height: 100vh; display: flex; flex-direction: column; }
-        .main-panel > .container-fluid,
-        .main-panel > .content,
-        .main-panel > .page-inner { flex: 1 0 auto; }
-        /* footer colado no fim da coluna */
+        .main-panel > #app-content { flex: 1 0 auto; }
+
+        /* Rodapé colado no final */
         .footer {
             margin-top: auto;
             background: #ffffff;
@@ -58,7 +53,30 @@
             width: 100%;
             position: static;
         }
+
+        /* Centralização absoluta do conteúdo dinâmico quando a classe é aplicada (Clientes.js) */
+        #app-content.center-content{
+            display: flex;
+            align-items: center;     /* centro vertical */
+            justify-content: center; /* centro horizontal */
+            padding: 2rem 1rem;
+        }
+        /* Contêiner do(s) alerta(s) de erro no canto superior-direito */
+        .form-errors {
+            position: fixed;
+            right: 24px;
+            top: 84px;        /* ajuste se seu navbar for maior/menor */
+            z-index: 1080;
+            width: min(420px, calc(100% - 48px));
+        }
+        /* Largura máx. do bloco que o Clientes.js injeta */
+        .form-shell{ width: min(920px, 100%); }
+
         .nav.nav-collapse a i { width: 18px; text-align: center; }
+
+        @media (max-width: 480px){
+            #app-content.center-content{ padding: 1rem 0.75rem; }
+        }
     </style>
 </head>
 <body>
@@ -87,7 +105,7 @@
                         <h4 class="text-section">Menu</h4>
                     </li>
 
-                    <!-- ===== Pessoas ===== -->
+                    <!-- Pessoas -->
                     <li class="nav-item">
                         <a data-bs-toggle="collapse" href="#pessoas">
                             <i class="fas fa-users"></i>
@@ -96,8 +114,6 @@
                         </a>
                         <div class="collapse" id="pessoas">
                             <ul class="nav nav-collapse">
-
-                                <!-- Funcionários (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#pessoas-funcionarios">
                                         <i class="fas fa-id-badge me-2"></i><span class="sub-item">Funcionários</span>
@@ -112,8 +128,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Beneficiários (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#pessoas-beneficiarios">
                                         <i class="fas fa-user me-2"></i><span class="sub-item">Beneficiários</span>
@@ -128,8 +142,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Colaboradores (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#pessoas-colaboradores">
                                         <i class="fas fa-user-cog me-2"></i><span class="sub-item">Colaboradores</span>
@@ -144,8 +156,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Voluntários (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#pessoas-voluntarios">
                                         <i class="fas fa-hands-helping me-2"></i><span class="sub-item">Voluntários</span>
@@ -160,8 +170,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Gestores (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#pessoas-gestores">
                                         <i class="fas fa-user-tie me-2"></i><span class="sub-item">Gestores</span>
@@ -176,8 +184,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Permissões (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#pessoas-permissoes">
                                         <i class="fas fa-lock me-2"></i><span class="sub-item">Permissões</span>
@@ -192,12 +198,11 @@
                                         </ul>
                                     </div>
                                 </li>
-
                             </ul>
                         </div>
                     </li>
 
-                    <!-- ===== Cestas Básicas ===== -->
+                    <!-- Cestas Básicas -->
                     <li class="nav-item">
                         <a data-bs-toggle="collapse" href="#cestas-basicas">
                             <i class="fas fa-shopping-basket"></i>
@@ -206,8 +211,6 @@
                         </a>
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
-
-                                <!-- Tipos de Cesta (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#cestas-tipos">
                                         <i class="fas fa-layer-group me-2"></i><span class="sub-item">Tipos de Cesta</span>
@@ -222,8 +225,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Itens da Cesta (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#cestas-itens">
                                         <i class="fas fa-boxes me-2"></i><span class="sub-item">Itens da Cesta</span>
@@ -238,8 +239,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Alimentos (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#cestas-alimentos">
                                         <i class="fas fa-apple-alt me-2"></i><span class="sub-item">Alimentos</span>
@@ -254,8 +253,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Tipos de Alimento (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#cestas-tipos-alimento">
                                         <i class="fas fa-th-large me-2"></i><span class="sub-item">Tipos de Alimento</span>
@@ -270,8 +267,6 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Agendamentos de Entrega (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#cestas-agendamentos">
                                         <i class="fas fa-calendar-check me-2"></i><span class="sub-item">Agendamentos de Entrega</span>
@@ -286,19 +281,16 @@
                                         </ul>
                                     </div>
                                 </li>
-
-                                <!-- Inspeções (link simples) -->
                                 <li>
                                     <a href="inspecao_alimento/index.html">
                                         <i class="fas fa-search-plus me-2"></i><span class="sub-item">Inspeções de Alimento</span>
                                     </a>
                                 </li>
-
                             </ul>
                         </div>
                     </li>
 
-                    <!-- ===== Bazar ===== -->
+                    <!-- Bazar -->
                     <li class="nav-item">
                         <a data-bs-toggle="collapse" href="#bazar">
                             <i class="fas fa-store"></i>
@@ -311,7 +303,6 @@
                                 <li><a href="bazar/caixa/abrir.html"><i class="fas fa-money-bill-wave me-2"></i><span class="sub-item">Abrir Caixa</span></a></li>
                                 <li><a href="bazar/caixa/fechar.html"><i class="fas fa-lock me-2"></i><span class="sub-item">Fechar Caixa</span></a></li>
 
-                                <!-- Clientes do Bazar (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#bazar-clientes">
                                         <i class="fas fa-users me-2"></i><span class="sub-item">Clientes do Bazar</span>
@@ -319,7 +310,8 @@
                                     </a>
                                     <div class="collapse" id="bazar-clientes">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="clientes_bazar/create.html"><span class="sub-item">Cadastrar</span></a></li>
+                                            <!-- ESTE LINK DISPARA A INJEÇÃO PELO Clientes.js -->
+                                            <li><a href="#" onclick="return BazarClientes.mount();"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="clientes_bazar/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="clientes_bazar/edit.html"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="clientes_bazar/delete.html"><span class="sub-item">Excluir</span></a></li>
@@ -327,7 +319,6 @@
                                     </div>
                                 </li>
 
-                                <!-- Tipo de Bazar (CRUD) -->
                                 <li>
                                     <a data-bs-toggle="collapse" href="#bazar-tipo">
                                         <i class="fas fa-tags me-2"></i><span class="sub-item">Tipo de Bazar</span>
@@ -346,7 +337,7 @@
                         </div>
                     </li>
 
-                    <!-- ===== Entradas de Doações (links diretos) ===== -->
+                    <!-- Entradas de Doações -->
                     <li class="nav-item">
                         <a data-bs-toggle="collapse" href="#entradas-doacoes">
                             <i class="fas fa-gift"></i>
@@ -425,9 +416,9 @@
             <!-- End Navbar -->
         </div>
 
-        <!-- Conteúdo -->
-        <div class="container-fluid my-4">
-            <!-- Seu conteúdo aqui -->
+        <!-- CONTEÚDO DINÂMICO (Clientes.js vai centralizar e injetar aqui) -->
+        <div id="app-content" class="container-fluid my-4">
+            <div class="text-muted">Selecione uma opção no menu.</div>
         </div>
 
         <footer class="footer">
@@ -443,10 +434,7 @@
                     2024, made with <i class="fa fa-heart heart text-danger"></i> by
                     <a href="http://www.themekita.com">ThemeKita</a>
                 </div>
-                <div>
-                    Distributed by
-                    <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.
-                </div>
+                <div>Distributed by <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.</div>
             </div>
         </footer>
     </div> <!-- /.main-panel -->
@@ -462,5 +450,8 @@
 <script src="../js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
 <script src="../js/plugin/sweetalert/sweetalert.min.js"></script>
 <script src="../js/kaiadmin.min.js"></script>
+
+<!-- Seu JS externo que injeta o formulário -->
+<script src="../js/Clientes.js" defer></script>
 </body>
 </html>
