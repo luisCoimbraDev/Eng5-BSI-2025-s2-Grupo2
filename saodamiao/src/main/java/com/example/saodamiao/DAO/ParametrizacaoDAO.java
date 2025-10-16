@@ -49,7 +49,7 @@ public class ParametrizacaoDAO implements IDAO<Parametrizacao>{
             return Singleton.Retorna().manipular(sql);
     }
     @Override
-    public boolean alterar(Parametrizacao entidade) {
+    public boolean alterar(Parametrizacao entidade, int id) {
         return false;
     }
     @Override
