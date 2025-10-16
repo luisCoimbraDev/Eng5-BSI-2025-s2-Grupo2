@@ -3,6 +3,7 @@ package com.example.saodamiao.Control;
 
 import com.example.saodamiao.DTO.TipoAlimentoDTO;
 import com.example.saodamiao.Model.TipoAlimento;
+import com.example.saodamiao.Singleton.Erro;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,11 +18,8 @@ public class TipoAlimentoControl {
         TipoAlimento t1 = new TipoAlimento();
         t1.setNome(tipoAlimento.getNome());
         if(t1.getTipoAlimentoDAO().gravar(t1)){
-            System.out.println("Tipo Alimento gravado com sucesso");
+            return ResponseEntity.ok().body(t1);
         }
-        else{
-            System.out.println("Tipo Alimento gravado com erro");
-        }
-        return ResponseEntity.ok(tipoAlimento);
+        return ResponseEntity.badRequest().body(new Erro("Erro ao inserir TipoAlimento no banco de dados"));
     }
 }
