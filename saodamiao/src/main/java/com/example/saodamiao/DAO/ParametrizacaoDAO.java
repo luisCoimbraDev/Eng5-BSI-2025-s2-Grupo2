@@ -92,10 +92,13 @@ public class ParametrizacaoDAO implements IDAO<Parametrizacao>{
     public Parametrizacao pegarParametro() {
 
         Parametrizacao par = new Parametrizacao();
-        String sql = "SELECT * FROM parametrizacao where par_cnpj = '1'";
+        String sql = "SELECT * FROM parametrizacao ORDER BY par_cnpj ;";
         ResultSet rs = Singleton.Retorna().consultar(sql);
-        try{
-            if(rs.next())
+        try {
+            if (!rs.next()) {
+                return null;
+            }
+            else
             {
                 par = new Parametrizacao(rs.getString("par_cnpj"),
                         rs.getString("par_razao_social"),

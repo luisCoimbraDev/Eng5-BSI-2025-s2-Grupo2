@@ -22,6 +22,9 @@ public class ParametrizacaoControl {
         if(list != null){
             return ResponseEntity.ok().body(list);
         }
+        if(list == null){
+
+        }
         return ResponseEntity.notFound().build();
     }
 }
