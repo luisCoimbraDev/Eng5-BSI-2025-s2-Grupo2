@@ -16,8 +16,8 @@ public class AlimentoDAO implements IDAO<Alimento> {
 
     @Override
     public boolean gravar(Alimento entidade) { // tornar o nome unico o banco tambem
-        String SQL = "INSERT INTO alimentos (nome, tipo_alimento_tpa_id) values (#2,#3)";
-        SQL =SQL.replace("#2", entidade.getNome());
+        String SQL = "INSERT INTO alimentos (nome, tipo_alimento_tpa_id) values ('#2',#3)";
+        SQL =SQL.replace("#2", entidade.getNome().toLowerCase());
        SQL =SQL.replace("#3", String.valueOf(entidade.getTipo_alimento_id()));
 
 
@@ -28,8 +28,8 @@ public class AlimentoDAO implements IDAO<Alimento> {
 
     @Override
     public boolean alterar(Alimento entidade, int id) {
-        String SQL = ("UPDATE FROM alimentos SET nome = #2, tipo_alimento_tpa_id = #3 where id = "+id +"");
-        SQL = SQL.replace("#2", entidade.getNome());
+        String SQL = ("UPDATE FROM alimentos SET nome = '#2', tipo_alimento_tpa_id = #3 where id = "+id +"");
+        SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
         SQL = SQL.replace("#3", String.valueOf(entidade.getTipo_alimento_id()));
         try {
             ResultSet rs =  Singleton.Retorna().consultar(SQL);
@@ -42,8 +42,8 @@ public class AlimentoDAO implements IDAO<Alimento> {
 
     @Override
     public boolean apagar(Alimento entidade) {
-        String SQL = "DELETE FROM alimentos WHERE nome = #2";
-        SQL = SQL.replace("#2", entidade.getNome());
+        String SQL = "DELETE FROM alimentos WHERE nome = '#2'";
+        SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
 
         try{
             ResultSet rs = Singleton.Retorna().consultar(SQL);
@@ -73,9 +73,9 @@ public class AlimentoDAO implements IDAO<Alimento> {
     }
 
     public Alimento ResgatarAlimento(String nome){
-        String SQL = "SELECT * FROM alimentos WHERE nome = #2";
+        String SQL = "SELECT * FROM alimentos WHERE nome = '#2'";
         Alimento alimento = null;
-        SQL = SQL.replace("#2", nome);
+        SQL = SQL.replace("#2", nome.toLowerCase());
         try{
             ResultSet rs = Singleton.Retorna().consultar(SQL);
             if(rs.next()){

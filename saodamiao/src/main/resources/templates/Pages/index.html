@@ -8,6 +8,7 @@
     <link rel="icon" href="../img/favicon.ico" type="image/x-icon" />
 
     <script src="../js/Parametrizacao.js"> </script>
+
     <!-- Fonts and icons -->
     <script src="../js/plugin/webfont/webfont.min.js"></script>
     <script>
@@ -253,7 +254,7 @@
                                     </a>
                                     <div class="collapse" id="cestas-alimentos">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="alimentos/create.html"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a id="cadastro-alimento" href="#"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="alimentos/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="alimentos/edit.html"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="alimentos/delete.html"><span class="sub-item">Excluir</span></a></li>
@@ -267,10 +268,10 @@
                                     </a>
                                     <div class="collapse" id="cestas-tipos-alimento">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="alimentos/tipos/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="alimentos/tipos/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="alimentos/tipos/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="alimentos/tipos/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#"><span class="sub-item">Editar</span></a></li>
+                                            <li><a href="#"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -425,9 +426,9 @@
         </div>
 
         <!-- CONTEÚDO DINÂMICO (Clientes.js vai centralizar e injetar aqui) -->
-        <div id="app-content" class="container-fluid my-4">
+        <main id="app-content" class="container-fluid my-4">
             <div class="text-muted">Selecione uma opção no menu.</div>
-        </div>
+        </main>
 
         <footer class="footer">
             <div class="container-fluid d-flex justify-content-between">
@@ -460,6 +461,8 @@
 <script src="../js/kaiadmin.min.js"></script>
 
 <!-- Seu JS externo que injeta o formulário -->
-<script src="../js/Clientes.js" defer></script>
+    <script src="../js/Clientes.js" defer></script>
+    <script defer src="../js/Alimento.js" ></script>
+
 </body>
 </html>
