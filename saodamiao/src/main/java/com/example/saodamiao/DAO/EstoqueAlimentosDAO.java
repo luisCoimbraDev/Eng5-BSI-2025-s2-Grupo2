@@ -1,24 +1,22 @@
 package com.example.saodamiao.DAO;
 
-import com.example.saodamiao.Model.CaixaModel;
+
+import com.example.saodamiao.Model.EstoqueAlimentos;
 import com.example.saodamiao.Singleton.Conexao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-
-public class CaixaDAO {
-
+public class EstoqueAlimentosDAO {
     private Conexao con;
 
-    public CaixaDAO() {
+    public EstoqueAlimentosDAO(){
         con = new Conexao();
-        // Ajuste os parâmetros conforme o seu ambiente:
         con.conectar("jdbc:postgresql://localhost/", "bazar", "postgres", "1234");
     }
 
-    public boolean atualizarValorCaixa(double novoValor, int idCaixa) {
-        String sql = "UPDATE caixa SET valorfechamento = " + novoValor + " WHERE idcaixa = " + idCaixa;
+    public boolean atualizarEstoqueAlimentos(int qtde, int id){
+        String sql = "UPDATE estoque_alimento SET esa_qtde = " + qtde + " WHERE alimentos_idalimentos = " + id;
         return con.manipular(sql);
     }
 }

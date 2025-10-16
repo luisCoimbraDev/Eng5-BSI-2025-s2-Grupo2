@@ -1,6 +1,7 @@
 class Parametrizacao {
 
     constructor(data) {
+
         this.cnpj = data.par_cnpj;
         this.social = data.par_razao_social;
         this.fantasia = data.par_nome_fantasia;
