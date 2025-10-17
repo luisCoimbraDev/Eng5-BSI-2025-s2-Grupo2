@@ -1,67 +1,66 @@
-// ../js/pages/clientes-bazar.js
 (function () {
     const CONTENT_ID = 'app-content';
     const ROUTE = 'clientes-bazar-create';
 
     const TEMPLATE = `
-    <div class="form-shell">
-      <div class="mb-3">
-        <h3 class="mb-0"><i class="fas fa-users me-2"></i>Bazar • Clientes • Cadastrar</h3>
+  <div class="form-shell">
+    <div class="mb-3">
+      <h3 class="mb-0"><i class="fas fa-users me-2"></i>Bazar • Clientes • Cadastrar</h3>
+    </div>
+
+    <!-- Contêiner de alertas flutuantes -->
+    <div id="formErrors" class="form-errors"></div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form id="formClienteBazar" name="cliente" class="needs-validation" novalidate>
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome completo</label>
+            <input type="text" class="form-control form-control-lg" id="nome" name="nome" maxlength="40" required>
+            <div class="invalid-feedback">Informe o nome (2 a 40 caracteres).</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="cpf" class="form-label">CPF</label>
+            <input type="text" class="form-control form-control-lg" id="cpf" name="cpf" maxlength="14" required placeholder="000.000.000-00">
+            <div class="invalid-feedback">Informe um CPF válido.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="telefone" class="form-label">Telefone</label>
+            <input type="text" class="form-control form-control-lg" id="telefone" name="telefone" maxlength="15" required placeholder="(00) 00000-0000">
+            <div class="invalid-feedback">Informe um telefone válido no formato (00) 00000-0000.</div>
+          </div>
+
+          <div class="mb-2">
+            <label for="email" class="form-label">E-mail</label>
+            <input type="email" class="form-control form-control-lg" id="email" name="email" maxlength="40" required>
+            <div class="invalid-feedback">Informe um e-mail válido.</div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4 justify-content-center">
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-save me-2"></i>Salvar
+            </button>
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="fas fa-eraser me-2"></i>Limpar
+            </button>
+          </div>
+        </form>
       </div>
-
-      <!-- Contêiner de alertas flutuantes -->
-      <div id="formErrors" class="form-errors"></div>
-
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <form id="formClienteBazar" class="needs-validation" novalidate>
-            <div class="mb-3">
-              <label for="nome" class="form-label">Nome completo</label>
-              <input type="text" class="form-control form-control-lg" id="nome" name="nome" maxlength="40" required>
-              <div class="invalid-feedback">Informe o nome (2 a 40 caracteres).</div>
-            </div>
-
-            <div class="mb-3">
-              <label for="cpf" class="form-label">CPF</label>
-              <input type="text" class="form-control form-control-lg" id="cpf" name="cpf" maxlength="14" required placeholder="000.000.000-00">
-              <div class="invalid-feedback">Informe um CPF válido.</div>
-            </div>
-
-            <div class="mb-3">
-              <label for="telefone" class="form-label">Telefone</label>
-              <input type="text" class="form-control form-control-lg" id="telefone" name="telefone" maxlength="15" required placeholder="(00) 00000-0000">
-              <div class="invalid-feedback">Informe um telefone válido no formato (00) 00000-0000.</div>
-            </div>
-
-            <div class="mb-2">
-              <label for="email" class="form-label">E-mail</label>
-              <input type="email" class="form-control form-control-lg" id="email" name="email" maxlength="40" required>
-              <div class="invalid-feedback">Informe um e-mail válido.</div>
-            </div>
-
-            <div class="d-flex gap-2 mt-4 justify-content-center">
-              <button type="submit" class="btn btn-success">
-                <i class="fas fa-save me-2"></i>Salvar
-              </button>
-              <button type="reset" class="btn btn-outline-secondary">
-                <i class="fas fa-eraser me-2"></i>Limpar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>`;
+    </div>
+  </div>`;
 
     /** Monta o formulário centralizado */
     function mountForm () {
         const content = document.getElementById(CONTENT_ID);
         if (!content) return;
 
-        content.classList.add('center-content'); // centraliza
+        content.classList.add('center-content');
         content.innerHTML = TEMPLATE;
 
         initMasksAndValidation();
-        document.body.classList.remove('sidebar_minimize'); // opcional: fecha menu no mobile
+        document.body.classList.remove('sidebar_minimize'); // opcional
     }
 
     /** (Opcional) desmonta */
@@ -72,8 +71,7 @@
         content.innerHTML = `<div class="text-muted">${message}</div>`;
     }
 
-    // ========= Helpers de validação =========
-
+    // ========= Helpers =========
     function onlyDigits (s) { return (s || '').replace(/\D/g, ''); }
 
     // CPF: valida dígitos verificadores
@@ -97,13 +95,11 @@
     }
 
     function isValidPhone (value) {
-        // Aceita (00) 0000-0000 ou (00) 00000-0000
-        return /^\(\d{2}\)\s?\d{4,5}-\d{4}$/.test(value.trim());
+        return /^\(\d{2}\)\s?\d{4,5}-\d{4}$/.test((value || '').trim());
     }
 
     function isValidEmail (value) {
-        // simples e robusto o suficiente para UI
-        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
+        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((value || '').trim());
     }
 
     function setValid (input) {
@@ -121,7 +117,6 @@
         const box = document.getElementById('formErrors');
         if (!box) return;
 
-        // Evita empilhar mensagens idênticas (por campo)
         const key = idKey ? `err-${idKey}` : `err-${Date.now()}`;
         if (idKey && document.getElementById(key)) return;
 
@@ -138,13 +133,51 @@
     `;
         box.appendChild(alert);
 
-        // some depois de 4s
         setTimeout(() => {
             alert.classList.remove('show');
             alert.addEventListener('transitionend', () => alert.remove(), { once: true });
         }, 4000);
     }
+    // ===== Envio real (fetch) =====
+    // Envio real (fetch)
+    function cadCliente() {
+        const formUser = document.forms.cliente;
+        const nome = formUser.nome.value.trim();
+        const cpf = onlyDigits(formUser.cpf.value.trim());  // Remove formatação
+        const telefone = onlyDigits(formUser.telefone.value.trim());  // Remove formatação
+        const email = formUser.email.value.trim();
 
+        const payload = { nome, cpf, telefone, email };
+
+        fetch("http://localhost:8080/apis/clientes/inserir", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+            .then(async (response) => {
+                if (!response.ok) {
+                    const text = await response.text().catch(() => "");
+                    throw new Error(`HTTP ${response.status} ${text}`);
+                }
+                return response.json();
+            })
+            .then((result) => {
+                console.log("Cliente inserido com sucesso:", result);
+                if (typeof swal === 'function') swal('Sucesso!', 'Cliente cadastrado com sucesso', 'success');
+                formUser.reset();
+                [formUser.nome, formUser.cpf, formUser.telefone, formUser.email]
+                    .forEach(el => el.classList.remove('is-valid', 'is-invalid'));
+                document.getElementById('formClienteBazar').classList.remove('was-validated');
+            })
+            .catch((error) => {
+                console.error("Erro ao inserir cliente:", error);
+                showError('Falha ao salvar o cliente. Tente novamente.');
+            });
+    }
+// Função para limpar caracteres não numéricos
+    function onlyDigits(s) {
+        return (s || '').replace(/\D/g, '');
+    }
     /** Máscaras + validação em tempo real + submit */
     function initMasksAndValidation () {
         const form = document.getElementById('formClienteBazar');
@@ -172,7 +205,7 @@
             else tel.value = v;
         });
 
-        // ===== Validações em tempo real (input/blur) =====
+        // ===== Validações em tempo real =====
         nome.addEventListener('input', () => {
             const ok = nome.value.trim().length >= 2 && nome.value.trim().length <= 40;
             ok ? setValid(nome) : setInvalid(nome);
@@ -204,8 +237,10 @@
             if (!isValidEmail(email.value)) showError('E-mail inválido.', 'email');
         });
 
-        // ===== Submit =====
+        // ===== Submit (valida e envia) =====
         form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
             const errors = [];
 
             if (!(nome.value.trim().length >= 2 && nome.value.trim().length <= 40)) {
@@ -222,29 +257,19 @@
             }
 
             if (errors.length) {
-                event.preventDefault();
-                event.stopPropagation();
-                // Mostra um resumo (pode mostrar vários alerts, 1 por erro)
                 errors.forEach((msg, i) => showError(msg, `submit-${i}`));
                 form.classList.add('was-validated');
                 return;
             }
 
-            // OK: submeter (simulado)
-            event.preventDefault();
-            const data = Object.fromEntries(new FormData(form).entries());
-            console.log('Cliente salvo (simulado):', data);
-            if (typeof swal === 'function') {
-                swal('Sucesso!', 'Cliente cadastrado com sucesso', 'success');
-            }
-            form.reset();
-            [nome, cpf, tel, email].forEach(el => el.classList.remove('is-valid', 'is-invalid'));
-            form.classList.remove('was-validated');
+            // ✅ Envia de verdade
+            cadCliente();
         }, false);
 
         // Reset limpa feedback visual
         form.addEventListener('reset', () => {
             [nome, cpf, tel, email].forEach(el => el.classList.remove('is-valid', 'is-invalid'));
+            form.classList.remove('was-validated');
         });
     }
 
@@ -261,8 +286,7 @@
     } else {
         bindRoutes();
     }
-    window.BazarClientes = {
-        mount: mountForm,
-        unmount: unmountForm
-    };
+
+    // Exposição opcional
+    window.BazarClientes = { mount: mountForm, unmount: unmountForm };
 })();

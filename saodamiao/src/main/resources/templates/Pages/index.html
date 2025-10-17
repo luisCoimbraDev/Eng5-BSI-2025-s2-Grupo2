@@ -131,8 +131,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="funcionarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="funcionarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="funcionarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="funcionarios/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -145,8 +143,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="beneficiarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="beneficiarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="beneficiarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="beneficiarios/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -159,8 +155,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="colaboradores/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="colaboradores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="colaboradores/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="colaboradores/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -173,8 +167,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="voluntarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="voluntarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="voluntarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="voluntarios/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -187,8 +179,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="gestores/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="gestores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="gestores/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="gestores/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -201,8 +191,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="permissoes/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="permissoes/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="permissoes/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="permissoes/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -220,6 +208,11 @@
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
                                 <li>
+                                    <a href="inspecao_alimento/index.html">
+                                        <i class="fas fa-shopping-basket me-2"></i><span class="sub-item">Possíveis Cestas</span>
+                                    </a>
+                                </li>
+                                <li>
                                     <a data-bs-toggle="collapse" href="#cestas-tipos">
                                         <i class="fas fa-layer-group me-2"></i><span class="sub-item">Tipos de Cesta</span>
                                         <span class="caret"></span>
@@ -228,8 +221,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="cestas_basicas/tipos/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="cestas_basicas/tipos/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="cestas_basicas/tipos/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="cestas_basicas/tipos/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -242,8 +233,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="cestas_basicas/itens_cesta/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="cestas_basicas/itens_cesta/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="cestas_basicas/itens_cesta/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="cestas_basicas/itens_cesta/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -255,9 +244,7 @@
                                     <div class="collapse" id="cestas-alimentos">
                                         <ul class="nav nav-collapse subnav">
                                             <li><a id="cadastro-alimento" href="#"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="alimentos/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="alimentos/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="alimentos/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a id ="consultar-alimento" href="#"><span class="sub-item">Listar / Consultar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -268,10 +255,8 @@
                                     </a>
                                     <div class="collapse" id="cestas-tipos-alimento">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="#"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="#"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="#"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="#"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="alimentos/tipos/create.html"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="alimentos/tipos/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -284,8 +269,6 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="agendamentos_entrega/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="agendamentos_entrega/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="agendamentos_entrega/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="agendamentos_entrega/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -321,8 +304,6 @@
                                             <!-- ESTE LINK DISPARA A INJEÇÃO PELO Clientes.js -->
                                             <li><a href="#" onclick="return BazarClientes.mount();"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="clientes_bazar/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="clientes_bazar/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="clientes_bazar/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -336,10 +317,13 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="bazar/tipo/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="bazar/tipo/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="bazar/tipo/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="bazar/tipo/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
+                                </li>
+                                <li>
+                                    <a href="inspecao_alimento/index.html">
+                                        <i class="fas fa-search-plus me-2"></i><span class="sub-item">Inspeções de Bazar</span>
+                                    </a>
                                 </li>
                             </ul>
                         </div>
