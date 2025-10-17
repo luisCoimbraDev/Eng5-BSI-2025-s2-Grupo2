@@ -1,6 +1,7 @@
 package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.Alimento;
+import com.example.saodamiao.Singleton.Conexao;
 import com.example.saodamiao.Singleton.Singleton;
 
 import java.sql.ResultSet;
@@ -15,24 +16,23 @@ public class AlimentoDAO implements IDAO<Alimento> {
     }
 
     @Override
-    public boolean gravar(Alimento entidade) { // tornar o nome unico o banco tambem
+    public boolean gravar(Alimento entidade, Conexao conexao)  { // tornar o nome unico o banco tambem
         String SQL = "INSERT INTO alimentos (nome, tipo_alimento_tpa_id) values ('#2',#3)";
         SQL =SQL.replace("#2", entidade.getNome().toLowerCase());
-       SQL =SQL.replace("#3", String.valueOf(entidade.getTipo_alimento_id()));
+        SQL =SQL.replace("#3", String.valueOf(entidade.getTipo_alimento_id()));
 
-
-        return Singleton.Retorna().manipular(SQL);
+        return conexao.manipular(SQL);
 
     }
 
 
     @Override
-    public boolean alterar(Alimento entidade, int id) {
+    public boolean alterar(Alimento entidade, int id, Conexao conexao) {
         String SQL = ("UPDATE FROM alimentos SET nome = '#2', tipo_alimento_tpa_id = #3 where id = "+id +"");
         SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
         SQL = SQL.replace("#3", String.valueOf(entidade.getTipo_alimento_id()));
         try {
-            ResultSet rs =  Singleton.Retorna().consultar(SQL);
+            ResultSet rs =  conexao.consultar(SQL);
             return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -41,12 +41,12 @@ public class AlimentoDAO implements IDAO<Alimento> {
     }
 
     @Override
-    public boolean apagar(Alimento entidade) {
+    public boolean apagar(Alimento entidade, Conexao conexao) {
         String SQL = "DELETE FROM alimentos WHERE nome = '#2'";
         SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
 
         try{
-            ResultSet rs = Singleton.Retorna().consultar(SQL);
+            ResultSet rs = conexao.consultar(SQL);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -56,11 +56,11 @@ public class AlimentoDAO implements IDAO<Alimento> {
     }
 
     @Override
-    public List<Alimento> pegarListaToda()  {
+    public List<Alimento> pegarListaToda(Conexao conexao) {
         List<Alimento> alimentos = new ArrayList<>();
         String SQL = "SELECT * FROM alimentos";
         try{
-            ResultSet rs = Singleton.Retorna().consultar(SQL);
+            ResultSet rs = conexao.consultar(SQL);
             while (rs.next()){
                 Alimento alimento = new Alimento(rs.getInt("idAlimentos"),rs.getString("nome"), rs.getInt("TIPO_ALIMENTO_TPA_ID"));
                 alimentos.add(alimento);
@@ -72,12 +72,12 @@ public class AlimentoDAO implements IDAO<Alimento> {
         return alimentos;
     }
 
-    public Alimento ResgatarAlimento(String nome){
+    public Alimento ResgatarAlimento(String nome, Conexao conexao)  {
         String SQL = "SELECT * FROM alimentos WHERE nome = '#2'";
         Alimento alimento = null;
         SQL = SQL.replace("#2", nome.toLowerCase());
         try{
-            ResultSet rs = Singleton.Retorna().consultar(SQL);
+            ResultSet rs = conexao.consultar(SQL);
             if(rs.next()){
                 alimento = new Alimento();
                 alimento.setId(rs.getInt("idAlimentos"));

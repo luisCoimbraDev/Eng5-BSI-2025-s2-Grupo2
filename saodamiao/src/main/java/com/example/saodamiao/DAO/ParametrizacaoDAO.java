@@ -1,6 +1,7 @@
 package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.Parametrizacao;
+import com.example.saodamiao.Singleton.Conexao;
 import com.example.saodamiao.Singleton.Singleton;
 
 import java.io.Serializable;
@@ -17,7 +18,7 @@ public class ParametrizacaoDAO implements IDAO<Parametrizacao>{
         this.att = "";
     }
     @Override
-    public boolean gravar(Parametrizacao entidade) {
+    public boolean gravar(Parametrizacao entidade, Conexao conexao) {
         String Par = "SELECT * FROM parametrizacao WHERE par_razao_social = "+entidade.getPar_razao_social();
         ResultSet rs = Singleton.Retorna().consultar(Par);
         try{
@@ -50,15 +51,15 @@ public class ParametrizacaoDAO implements IDAO<Parametrizacao>{
             return Singleton.Retorna().manipular(sql);
     }
     @Override
-    public boolean alterar(Parametrizacao entidade, int id) {
+    public boolean alterar(Parametrizacao entidade, int id, Conexao conexao) {
         return false;
     }
     @Override
-    public boolean apagar(Parametrizacao entidade) {
+    public boolean apagar(Parametrizacao entidade, Conexao conexao) {
         return false;
     }
     @Override
-    public List<Parametrizacao> pegarListaToda() {
+    public List<Parametrizacao> pegarListaToda(Conexao conexao) {
 
         List<Parametrizacao> lista = new ArrayList<>();
         String sql = "SELECT * FROM parametrizacao";
