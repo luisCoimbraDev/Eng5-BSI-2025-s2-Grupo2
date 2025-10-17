@@ -11,21 +11,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AlimentoDTO {
     private String nome;
-    private int quantidade;
     private String tipo_alimento;
 
 
-    public void toDTO(Alimento alimento, int quantidade, TipoAlimento tipo_alimento){
+    public void toDTO(Alimento alimento, TipoAlimento tipo_alimento){
         this.nome = alimento.getNome();
-        this.quantidade = quantidade;
         this.tipo_alimento = tipo_alimento.getNome();
     }
 
-    public  Alimento toAlimento(String tipo_alimento){
-        Alimento alimento = new Alimento();
-        alimento.setNome(this.nome);
+    public  Alimento toAlimento(){
         TipoAlimento tipoAlimento = new TipoAlimento();
-        //vincular o tipo do alimento aqui
+        tipoAlimento = tipoAlimento.getTipoAlimentoDAO().ResgatarTipo(tipo_alimento);
+
+        Alimento alimento = new Alimento(this.nome,tipoAlimento.getId());
+
         return alimento;
     }
 }

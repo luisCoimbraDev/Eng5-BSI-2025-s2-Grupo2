@@ -17,7 +17,7 @@ public class TipoAlimentoDAO implements IDAO<TipoAlimento>{
     @Override
     public boolean gravar(TipoAlimento entidade) {
         String SQL = "INSERT INTO TIPO_ALIMENTO (TPA_DESC) VALUES ('#2');";
-        SQL = SQL.replace("#2", ""+entidade.getNome());
+        SQL = SQL.replace("#2", ""+entidade.getNome().toLowerCase());
 
         return Singleton.Retorna().manipular(SQL);
     }
@@ -52,8 +52,8 @@ public class TipoAlimentoDAO implements IDAO<TipoAlimento>{
 
     public TipoAlimento ResgatarTipo(String nome){ // atributo unico o nome
         TipoAlimento entidade = null;
-        String SQL = "select * from TIPO_ALIMENTO where TPA_DESC = #2;";
-        SQL = SQL.replace("#2", nome);
+        String SQL = "select * from TIPO_ALIMENTO where TPA_DESC = '#2';";
+        SQL = SQL.replace("#2", nome.toLowerCase());
         try{
             ResultSet rs = Singleton.Retorna().consultar(SQL);
             if(rs.next()){
