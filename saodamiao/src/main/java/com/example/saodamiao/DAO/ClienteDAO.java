@@ -1,6 +1,7 @@
 package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.Cliente;
+import com.example.saodamiao.Singleton.Conexao;
 import com.example.saodamiao.Singleton.Singleton;
 
 import java.sql.ResultSet;
@@ -11,7 +12,7 @@ import java.util.List;
 public class ClienteDAO implements IDAO<Cliente> {
 
     @Override
-    public boolean gravar(Cliente entidade) {
+    public boolean gravar(Cliente entidade, Conexao conexao) {
         String sql = """
                 INSERT INTO CLIENTE(IDCLIENTE, NOME, CPF, TELEFONE, EMAIL)
                 VALUES(NEXTVAL('seq_cliente'), '#2', '#3', '#4', '#5');
@@ -24,7 +25,7 @@ public class ClienteDAO implements IDAO<Cliente> {
     }
 
     @Override
-    public boolean alterar(Cliente entidade, int id) {
+    public boolean alterar(Cliente entidade, int id, Conexao conexao) {
         String sql = """
                 UPDATE CLIENTE
                 SET NOME = '#1',
@@ -40,7 +41,7 @@ public class ClienteDAO implements IDAO<Cliente> {
         return Singleton.Retorna().manipular(sql);
     }
 
-    public Cliente PegarCliente(String CPF) {
+    public Cliente PegarCliente(String CPF, Conexao conexao) {
         Cliente cliente = null;
         String sql = "SELECT * FROM CLIENTE WHERE CPF = '" + CPF + "'";
         ResultSet rs = Singleton.Retorna().consultar(sql);
@@ -63,12 +64,12 @@ public class ClienteDAO implements IDAO<Cliente> {
     }
 
     @Override
-    public boolean apagar(Cliente entidade) {
+    public boolean apagar(Cliente entidade, Conexao conexao) {
         return Singleton.Retorna().manipular("DELETE FROM CLIENTE WHERE CPF = '" + entidade.getCpf() + "'");
     }
 
     @Override
-    public List<Cliente> pegarListaToda() {
+    public List<Cliente> pegarListaToda(Conexao conexao) {
         List<Cliente> clientes = new ArrayList<>();
         String sql = "SELECT * FROM CLIENTE";
         ResultSet rs = Singleton.Retorna().consultar(sql);
