@@ -1,4 +1,3 @@
-// ../js/pages/clientes-bazar.js
 (function () {
     const CONTENT_ID = 'app-content';
     const ROUTE = 'clientes-bazar-create';
@@ -139,13 +138,13 @@
             alert.addEventListener('transitionend', () => alert.remove(), { once: true });
         }, 4000);
     }
-
     // ===== Envio real (fetch) =====
+    // Envio real (fetch)
     function cadCliente() {
         const formUser = document.forms.cliente;
         const nome = formUser.nome.value.trim();
-        const cpf = formUser.cpf.value.trim();        // envia formatado: 000.000.000-00
-        const telefone = formUser.telefone.value.trim();
+        const cpf = onlyDigits(formUser.cpf.value.trim());  // Remove formatação
+        const telefone = onlyDigits(formUser.telefone.value.trim());  // Remove formatação
         const email = formUser.email.value.trim();
 
         const payload = { nome, cpf, telefone, email };
@@ -175,7 +174,10 @@
                 showError('Falha ao salvar o cliente. Tente novamente.');
             });
     }
-
+// Função para limpar caracteres não numéricos
+    function onlyDigits(s) {
+        return (s || '').replace(/\D/g, '');
+    }
     /** Máscaras + validação em tempo real + submit */
     function initMasksAndValidation () {
         const form = document.getElementById('formClienteBazar');

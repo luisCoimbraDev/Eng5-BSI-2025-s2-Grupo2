@@ -14,7 +14,7 @@ public class ClienteDAO implements IDAO<Cliente> {
     public boolean gravar(Cliente entidade) {
         String sql = """
                 INSERT INTO CLIENTE(IDCLIENTE, NOME, CPF, TELEFONE, EMAIL)
-                VALUES(NEXTVAL('SEQ_CLIENTE'), '#2', '#3', '#4', '#5');
+                VALUES(NEXTVAL('seq_cliente'), '#2', '#3', '#4', '#5');
                 """;
         sql = sql.replace("#2", entidade.getNome());
         sql = sql.replace("#3", entidade.getCpf());

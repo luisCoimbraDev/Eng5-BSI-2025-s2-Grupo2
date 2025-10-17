@@ -12,8 +12,11 @@ public class ClienteControl {
 
     @PostMapping(value = "/inserir")
     public ResponseEntity<Object> InsereAlimento(@RequestBody Cliente cliente){
-        if(cliente.getClienteDAO().gravar(cliente))
-            return ResponseEntity.ok(cliente);
+        if(cliente.isCPF(cliente.getCpf()))
+            if(cliente.getClienteDAO().gravar(cliente))
+                return ResponseEntity.ok(cliente);
+        else
+            return ResponseEntity.badRequest().body("CPF Inválido!!");
         return ResponseEntity.badRequest().body("Falha ao inserir o Cliente!!");
     }
 

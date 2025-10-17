@@ -1,6 +1,7 @@
 package com.example.saodamiao.Model;
 
 import com.example.saodamiao.DAO.ClienteDAO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.InputMismatchException;
@@ -11,6 +12,7 @@ public class Cliente {
     private String cpf;
     private String telefone;
     private String email;
+    @JsonIgnore
     private ClienteDAO clienteDAO;
 
     public Cliente(String nome, String cpf, String telefone, String email, int id) {
