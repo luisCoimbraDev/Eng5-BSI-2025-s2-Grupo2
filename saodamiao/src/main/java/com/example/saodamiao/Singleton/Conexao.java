@@ -30,7 +30,11 @@ public class Conexao {
         return erro;
     }
     public boolean getEstadoConexao() {
-        return (connect!=null);
+        try {
+            return connect.isClosed();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
     public boolean manipular(String sql) // inserir, alterar,excluir
     {
@@ -115,14 +119,7 @@ public class Conexao {
 
     }
 
-    public boolean CloseConnection(){
-        try {
-            connect.close();
-            return true;
-        } catch (SQLException e) {
-            erro="Erro: "+e.getMessage();
-            return false;
-        }
-    }
+
+
 }
 

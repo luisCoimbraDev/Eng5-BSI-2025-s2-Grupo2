@@ -26,20 +26,23 @@ public class AlimentoControl {
 
         if(!alimento.getAlimentoDAO().gravar(alimento, Singleton.Retorna())) {
             Singleton.Retorna().Rollback(); // apenas para finalizar a transação
-            Singleton.Retorna().CloseConnection();
             return ResponseEntity.badRequest().body(new Erro("Problema ao gravar no banco de dados"));
         }
         Singleton.Retorna().Commit();
-        Singleton.Retorna().CloseConnection();
         return ResponseEntity.ok(alimentoDTO);
     }
+
     @PutMapping(value = "/atualizar")
     public ResponseEntity<Object> AtualizarAlimento(@RequestBody AlimentoDTO alimentoDTO){
+
+
         return null;
     }
 
     @DeleteMapping(value = "/deletar")
     public ResponseEntity<Object> DeletarAlimento(@RequestBody AlimentoDTO alimentoDTO){
+        Singleton.Retorna().StartTransaction();
+
         return null;
     }
 
