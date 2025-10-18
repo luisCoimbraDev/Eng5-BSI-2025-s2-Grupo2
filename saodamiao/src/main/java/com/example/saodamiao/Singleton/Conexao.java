@@ -17,7 +17,6 @@ public class Conexao {
         try {
             String url = local + banco; // "jdbc:postgresql://localhost/"+banco;
             connect = DriverManager.getConnection(url, usuario, senha);
-            // >>> garante estado limpo (fora de transação)
             connect.setAutoCommit(true);
             conectado = true;
         } catch (SQLException sqlex) {
@@ -41,7 +40,7 @@ public class Conexao {
     // inserir, alterar, excluir
     public boolean manipular(String sql) {
         boolean executou = false;
-        try (Statement statement = connect.createStatement()) {   // <<< fecha statement
+        try (Statement statement = connect.createStatement()) {   // fecha statement
             int result = statement.executeUpdate(sql);
             if (result >= 1) executou = true;
         } catch (SQLException sqlex) {
@@ -54,7 +53,7 @@ public class Conexao {
         ResultSet rs = null;
         try {
             Statement statement = connect.createStatement();
-            statement.closeOnCompletion();                        // <<< fecha quando rs fechar
+            statement.closeOnCompletion();                        // fecha quando rs fechar
             rs = statement.executeQuery(sql);
         } catch (SQLException sqlex) {
             erro = "Erro: " + sqlex.toString();
@@ -85,24 +84,21 @@ public class Conexao {
             erro = "Erro: " + sqlex.toString();
             return false;
         } finally {
-            // <<< deixa pronto para a próxima requisição
+
             try { connect.setAutoCommit(true); } catch (SQLException ignore) {}
         }
     }
 
     public boolean StartTransaction() {
         try {
-            // <<< se já tiver transação aberta, limpa primeiro
+
             if (!connect.getAutoCommit()) {
                 try { connect.rollback(); } catch (SQLException ignore) {}
                 connect.setAutoCommit(true);
             }
 
-            // <<< define isolamento SEM transação aberta
             connect.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-
-            // <<< só depois começa a transação
-            connect.setAutoCommit(false);
+            connect.setAutoCommit(false); // inicia transação
             return true;
         } catch (SQLException sqlex) {
             erro = "Erro: " + sqlex.toString();
@@ -118,7 +114,6 @@ public class Conexao {
             erro = "Erro: " + e.getMessage();
             return false;
         } finally {
-            // <<< volta para fora de transação
             try { connect.setAutoCommit(true); } catch (SQLException ignore) {}
         }
     }
