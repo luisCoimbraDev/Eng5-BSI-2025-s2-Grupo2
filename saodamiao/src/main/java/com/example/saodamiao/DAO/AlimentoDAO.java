@@ -32,8 +32,8 @@ public class AlimentoDAO implements IDAO<Alimento> {
         SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
         SQL = SQL.replace("#3", String.valueOf(entidade.getTipo_alimento_id()));
         try {
-            ResultSet rs =  conexao.consultar(SQL);
-            return true;
+            return conexao.manipular(SQL);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -46,13 +46,13 @@ public class AlimentoDAO implements IDAO<Alimento> {
         SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
 
         try{
-            ResultSet rs = conexao.consultar(SQL);
+            return conexao.manipular(SQL);
         }
         catch (Exception e){
             e.printStackTrace();
             return false;
         }
-        return true;
+
     }
 
     @Override
@@ -65,6 +65,7 @@ public class AlimentoDAO implements IDAO<Alimento> {
                 Alimento alimento = new Alimento(rs.getInt("idAlimentos"),rs.getString("nome"), rs.getInt("TIPO_ALIMENTO_TPA_ID"));
                 alimentos.add(alimento);
             }
+            rs.close();
 
         }catch (Exception e){
             e.printStackTrace();
@@ -84,6 +85,7 @@ public class AlimentoDAO implements IDAO<Alimento> {
                 alimento.setNome(rs.getString("nome"));
                 alimento.setTipo_alimento_id(rs.getInt("tipo_alimento_tpa_id"));
             }
+            rs.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

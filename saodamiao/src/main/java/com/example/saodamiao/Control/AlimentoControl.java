@@ -25,7 +25,8 @@ public class AlimentoControl {
             return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
 
         if(!alimento.getAlimentoDAO().gravar(alimento, Singleton.Retorna())) {
-            Singleton.Retorna().Rollback(); // apenas para finalizar a transação
+            Singleton.Retorna().Rollback();
+
             return ResponseEntity.badRequest().body(new Erro("Problema ao gravar no banco de dados"));
         }
         Singleton.Retorna().Commit();

@@ -18,7 +18,7 @@ public class Conexao {
             String url = local+banco; //"jdbc:postgresql://localhost/"+banco;
             connect = DriverManager.getConnection( url, usuario,senha);
             conectado=true;
-
+            connect.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         }
         catch ( SQLException sqlex )
         { erro="Impossivel conectar com a base de dados: " + sqlex.toString(); }
@@ -99,7 +99,6 @@ public class Conexao {
     public boolean StartTransaction(){
         try{
             connect.setAutoCommit(false);
-            connect.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             return true;
         }
         catch(SQLException sqlex){
