@@ -263,7 +263,7 @@
                     const msg = (isJson && data && (data.mensagem || data.message))
                         ? (data.mensagem || data.message)
                         : (typeof data === 'string' ? data : '');
-                    throw new Error(`HTTP ${response.status} ${msg}`.trim());
+                    throw new Error(`${msg}`.trim());
                 }
                 return data;
             })
@@ -277,7 +277,7 @@
             })
             .catch((error) => {
                 console.error("Erro ao inserir cliente:", error);
-                showError(`Falha ao salvar o cliente. ${error.message || ''}`);
+                showError(`${error.message || ''}`);
             });
     }
 
@@ -307,7 +307,7 @@
                     const msg = (isJson && data && (data.mensagem || data.message))
                         ? (data.mensagem || data.message)
                         : (typeof data === 'string' ? data : '');
-                    throw new Error(`HTTP ${response.status} ${msg}`.trim());
+                    throw new Error(`${msg}`.trim());
                 }
                 return data;
             })
