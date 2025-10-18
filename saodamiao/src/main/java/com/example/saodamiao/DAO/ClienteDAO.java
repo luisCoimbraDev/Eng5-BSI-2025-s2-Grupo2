@@ -21,30 +21,34 @@ public class ClienteDAO implements IDAO<Cliente> {
         sql = sql.replace("#3", entidade.getCpf());
         sql = sql.replace("#4", entidade.getTelefone());
         sql = sql.replace("#5", entidade.getEmail());
-        return Singleton.Retorna().manipular(sql);
+        return conexao.manipular(sql);
     }
 
     @Override
     public boolean alterar(Cliente entidade, int id, Conexao conexao) {
+        return false;
+    }
+
+    public boolean alterar(Cliente entidade, String cpf,Conexao conexao) {
         String sql = """
                 UPDATE CLIENTE
                 SET NOME = '#1',
                     CPF = '#2',
                     TELEFONE = '#3',
-                    EMAIL = '#4' WHERE IDCLIENTE = #5;
+                    EMAIL = '#4' WHERE CPF = '#5';
                 """;
         sql = sql.replace("#1", entidade.getNome());
         sql = sql.replace("#2", entidade.getCpf());
         sql = sql.replace("#3", entidade.getTelefone());
         sql = sql.replace("#4", entidade.getEmail());
-        sql = sql.replace("#5", "" + id);
-        return Singleton.Retorna().manipular(sql);
+        sql = sql.replace("#5", "" + cpf);
+        return conexao.manipular(sql);
     }
 
     public Cliente PegarCliente(String CPF, Conexao conexao) {
         Cliente cliente = null;
         String sql = "SELECT * FROM CLIENTE WHERE CPF = '" + CPF + "'";
-        ResultSet rs = Singleton.Retorna().consultar(sql);
+        ResultSet rs = conexao.consultar(sql);
 
         try {
             if (rs.next()) {
@@ -65,14 +69,14 @@ public class ClienteDAO implements IDAO<Cliente> {
 
     @Override
     public boolean apagar(Cliente entidade, Conexao conexao) {
-        return Singleton.Retorna().manipular("DELETE FROM CLIENTE WHERE CPF = '" + entidade.getCpf() + "'");
+        return conexao.manipular("DELETE FROM CLIENTE WHERE CPF = '" + entidade.getCpf() + "'");
     }
 
     @Override
     public List<Cliente> pegarListaToda(Conexao conexao) {
         List<Cliente> clientes = new ArrayList<>();
         String sql = "SELECT * FROM CLIENTE";
-        ResultSet rs = Singleton.Retorna().consultar(sql);
+        ResultSet rs = conexao.consultar(sql);
         try {
             while (rs.next())
             {
