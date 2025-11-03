@@ -1,5 +1,4 @@
 (function () {
-    /*** AJUSTE AQUI SE PRECISAR ***/
     const CONTENT_ID   = 'app-content';
     const API_INSERT   = 'http://localhost:8080/beneficiarios/cadastro';
     const API_UPDATE = 'http://localhost:8080/beneficiarios/alterar';
@@ -7,6 +6,7 @@
     let currentMode = 'create';
     let cpfOriginal = null;
 
+    // template cadastro beneficiarios
     const TEMPLATE = `
     <div class="form-shell">
         <br><br>
@@ -176,7 +176,7 @@
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dto.email)) msgs.push('E-mail inválido.');
             if (msgs.length) { showErrors(msgs); return; }
 
-            // monta URL/método conforme modo
+
             let url, method;
             if (currentMode === 'edit') {
                 if (!cpfOriginal) { showErrors(['Não foi possível identificar o CPF original para edição.']); return; }
@@ -469,7 +469,7 @@
             // título/botão (mantenho seu texto)
             const title = document.getElementById('formTitle');
             const btn   = document.getElementById('submitBtn');
-            if (title) title.innerHTML = `<i class="fas fa-user-edit me-2"></i>Bazar • Clientes • Editar`;
+            if (title) title.innerHTML = `<i class="fas fa-user-edit me-2"></i>Beneficiario • Editar`;
             if (btn)   btn.innerHTML   = `<i class="fas fa-save me-2"></i>Salvar alterações`;
 
             // campos

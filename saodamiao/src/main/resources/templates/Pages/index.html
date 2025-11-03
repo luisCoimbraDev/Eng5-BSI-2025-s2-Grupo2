@@ -170,10 +170,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-voluntarios">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="voluntarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="voluntarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="voluntarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="voluntarios/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudVoluntario.mount()" class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span  onclick="return CrudVoluntario.mountList()" class="sub-item">Listar / Consultar / Editar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -473,5 +471,6 @@
     <script defer src="../js/Alimento.js" ></script>
     <script defer src="../js/AlimentoConsulta.js" ></script>
     <script src=" ../js/Beneficiarios.js" defer></script>
+    <script src=" ../js/Voluntarios.js" defer></script>
 </body>
 </html>
