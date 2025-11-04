@@ -3,7 +3,6 @@ package com.example.saodamiao.DTO;
 import java.sql.Date;
 
 public class ColaboradorDTO {
-    private int idColaborador;
     private String nome;
     private String cpf;
     private Date mat;
@@ -31,15 +30,6 @@ public class ColaboradorDTO {
     public void setDtMat(Date dtMat) {
         this.dtMat = dtMat;
     }
-
-    public int getIdColaborador() {
-        return idColaborador;
-    }
-
-    public void setIdColaborador(int idColaborador) {
-        this.idColaborador = idColaborador;
-    }
-
     public String getNome() {
         return nome;
     }

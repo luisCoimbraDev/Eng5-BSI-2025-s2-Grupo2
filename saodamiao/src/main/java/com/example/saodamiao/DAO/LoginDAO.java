@@ -36,7 +36,7 @@ public class LoginDAO {
 
     public Login buscarPorLogin(String username, Conexao conexao) {
         Login loginEncontrado = null;
-        String sql = "SELECT * FROM login WHERE log_username = ?";
+        String sql = "SELECT * FROM login WHERE log_username = '"+ username +"'";
 
         try {
             ResultSet rs = conexao.consultar(sql);

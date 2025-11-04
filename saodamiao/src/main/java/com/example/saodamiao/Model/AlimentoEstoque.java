@@ -11,9 +11,9 @@ public class AlimentoEstoque {
     private LocalDate validade;
     private int quantidade;
 
+    AlimentoEstoqueDAO alimento;
     public Boolean atualizarEstoque(int id_alimento,int quantidade){
         try{
-            AlimentoEstoqueDAO alimento = new AlimentoEstoqueDAO();
             return alimento.AtualizaQtde(id_alimento, quantidade);
         } catch (Exception e) {
             e.printStackTrace();

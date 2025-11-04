@@ -36,7 +36,7 @@ public class PermissoesDAO {
                 "FROM colaborador c\n" +
                 "INNER JOIN permissao_usuario pu ON c.idcolaborador = pu.colaborador_idcolaborador\n" +
                 "INNER JOIN permissao p ON pu.permissao_idpermissao = p.idpermissao\n" +
-                "WHERE c.idcolaborador = ;"+ id;
+                "WHERE c.idcolaborador = "+ id;
         List<String> tipoPermissoesColaborador = new ArrayList<>();
         try{
             ResultSet rs = conexao.consultar(sql);

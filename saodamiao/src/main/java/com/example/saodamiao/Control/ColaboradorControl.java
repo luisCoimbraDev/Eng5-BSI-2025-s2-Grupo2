@@ -12,9 +12,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("/colaborador")
+@RestController()
+@RequestMapping("/colaborador")
 public class ColaboradorControl {
 
     Colaborador colaborador;
@@ -30,7 +32,6 @@ public class ColaboradorControl {
         Conexao conexao = Singleton.Retorna();
         // 3. HASHEIE A SENHA ANTES DE SALVAR
         String senhaHasheada = passwordEncoder.encode(novoColaborador.getLoginSenha());
-
         // 4. Verifique a criação de ambos usando o DAO
         if(colaborador.CriarColaborador(novoColaborador, conexao) && loginDAO.CriarLogin(novoColaborador.getLoginUserName(), novoColaborador.getIdColaborador(), senhaHasheada, "S", conexao))
         {

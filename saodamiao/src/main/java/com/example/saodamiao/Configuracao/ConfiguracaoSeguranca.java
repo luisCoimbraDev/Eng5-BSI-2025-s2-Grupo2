@@ -29,30 +29,26 @@ public class ConfiguracaoSeguranca {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(Customizer.withDefaults()) // Isto usa o seu Bean lá de baixo, está OK
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        //ROTAS PÚBLICAS
-                        //Permite acesso total a estas rotas específicas
+
+                        // --- INÍCIO DA CORREÇÃO ---
+                        // 1. PERMITA TODAS AS REQUISIÇÕES 'OPTIONS' (PREFLIGHT)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // --- FIM DA CORREÇÃO ---
+
+                        // 2. SUAS ROTAS PÚBLICAS
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
-                        //ROTAS DE "AÇÃO" (exigem permissão específica)
-                        //Exige que o "crachá" do usuário contenha a string exata "VENDA_BAZAR"
-                        .requestMatchers("/vendas/**").hasAuthority(PermissaoConstantes.VENDA_BAZAR)
-
-                        //ROTAS DE "PAPEL" (Roles)
-                        //Exige que o "crachá" contenha "ROLE_ADMIN"
-                        .requestMatchers("/colaboradores/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
+                        // 3. SUAS ROTAS PROTEGIDAS
+                        // (Garanta que está no SINGULAR para bater com o Controller)
+                        .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR
                         .requestMatchers("/permissoes/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/vendas/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
-
-                        //ROTAS DE "PAPEL" MÚLTIPLO
-                        //Exige "ROLE_ADMIN" OU "ROLE_GESTOR"
                         .requestMatchers("/relatorios/**").hasAnyAuthority(PermissaoConstantes.ROLE_ADMIN, PermissaoConstantes.ROLE_GESTOR)
 
-                        //REGRA FINAL (Pega-Tudo)
-                        //Qualquer outra requisição não listada acima (ex: GET /alimentos)
-                        //deve estar, no mínimo, autenticada.
+                        // 4. REGRA FINAL
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
