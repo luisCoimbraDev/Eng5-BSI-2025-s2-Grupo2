@@ -230,9 +230,9 @@ create table entrada_doacao (
 
 create table estoque_alimento (
   alimentos_idalimentos int not null,
-  esa_validade datE,
+  esa_validade date not null,
   esa_qtde int not null,
-  primary key (alimentos_idalimentos),
+  primary key (alimentos_idalimentos, esa_validade),
   constraint fk_estoque_alimento_alimentos1
     foreign key (alimentos_idalimentos)
     references alimentos (idalimentos)
