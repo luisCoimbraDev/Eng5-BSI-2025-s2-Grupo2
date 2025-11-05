@@ -1,7 +1,7 @@
 // Expondo no escopo global para o onclick do HTML
 window.PossiveisCestas = (() => {
+
     function notify(type, message) {
-        // segue disponível só para sucesso; não usamos mais para erro de validação
         if (window.$ && window.$.notify) {
             window.$.notify({ message }, {
                 type,
@@ -26,8 +26,8 @@ window.PossiveisCestas = (() => {
 
           <div class="card-header bg-white border-0">
             <h5 class="mb-0">
-              <i class="fas fa-users me-2"></i>
-              Cestas • Possiveis Cestas
+              <i class="fas fa-box me-2"></i>
+              Cestas • Possíveis Cestas
             </h5>
           </div>
 
@@ -59,7 +59,7 @@ window.PossiveisCestas = (() => {
               <i class="bi bi-eraser"></i> Limpar
             </button>
             <button id="btnSalvarCesta" type="button" class="btn btn-success btn-lg">
-              <i class="bi bi-save"></i> Confirmar
+              <i class="bi bi-search"></i> Verificar
             </button>
           </div>
         </div>
@@ -67,16 +67,15 @@ window.PossiveisCestas = (() => {
     `;
 
         const info = app.querySelector('#cestaInfo');
-        const selectTam  = app.querySelector('#tamanhoCesta');
+        const selectTam = app.querySelector('#tamanhoCesta');
 
         function renderInfo() {
-            const tamTxt  = selectTam.value || null;
+            const tamTxt = selectTam.value || null;
             info.innerHTML = tamTxt
                 ? `Tamanho <span class="badge bg-primary">${tamTxt}</span>`
                 : 'Nenhuma cesta selecionada.';
         }
 
-        // Remover marcação de erro ao escolher um valor
         selectTam.addEventListener('change', () => {
             if (selectTam.value) {
                 selectTam.classList.remove('is-invalid');
@@ -85,20 +84,17 @@ window.PossiveisCestas = (() => {
             renderInfo();
         });
 
-        // Limpar
         app.querySelector('#btnLimparCesta').addEventListener('click', () => {
-            selectTam.value  = '';
-            // limpa estado inválido
+            selectTam.value = '';
             selectTam.classList.remove('is-invalid');
             selectTam.removeAttribute('aria-invalid');
-            renderInfo();
+            info.innerHTML = 'Nenhuma cesta selecionada.';
         });
 
-        // Salvar
-        app.querySelector('#btnSalvarCesta').addEventListener('click', () => {
-            const tam  = selectTam.value;
+        // Confirmar
+        app.querySelector('#btnSalvarCesta').addEventListener('click', async () => {
+            const tam = selectTam.value;
 
-            // valida somente com borda vermelha, sem toast
             if (!tam) {
                 selectTam.classList.add('is-invalid');
                 selectTam.setAttribute('aria-invalid', 'true');
@@ -106,15 +102,87 @@ window.PossiveisCestas = (() => {
                 return;
             }
 
-            // ok
             selectTam.classList.remove('is-invalid');
             selectTam.removeAttribute('aria-invalid');
 
-            notify('success', `Cesta ${tam} definida!`);
-            // fetch('/api/cestas/possiveis', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tamanho: tam }) })
+            // Loading visual
+            Swal.fire({
+                title: 'Consultando...',
+                text: 'Aguarde enquanto verificamos o estoque.',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+            });
+
+            try {
+                const resp = await fetch(`http://localhost:8080/apis/cestas/pegarCesta/${tam}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!resp.ok) throw new Error('Erro ao consultar o servidor.');
+                const data = await resp.json();
+                Swal.close(); // fecha o loading
+
+                // Caso dê pra montar cestas
+                if (typeof data === 'number' && data > 0) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✅ Cestas disponíveis!',
+                        html: `
+                            <p style="font-size:1.1rem;">
+                                É possível montar <b>${data}</b> cesta${data > 1 ? 's' : ''} 
+                                do tipo <span class="badge bg-success">${tam}</span>.
+                            </p>
+                        `,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#28a745'
+                    });
+                }
+                // Caso não dê pra montar nenhuma
+                else if (Array.isArray(data) && data.length > 0) {
+                    const listaHTML = data.map(item => `
+                        <div class="faltante-item">
+                            <i class="bi bi-exclamation-circle text-danger"></i>
+                            <span><b>${item.alimento.nome}</b> — faltam <b>${item.qtde}</b></span>
+                        </div>
+                    `).join('');
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '⚠️ Nenhuma cesta pode ser montada',
+                        html: `
+                            <p style="font-size:1.05rem; margin-bottom:10px;">
+                                Para montar uma cesta <b>${tam}</b>, estão faltando os seguintes itens:
+                            </p>
+                            <div class="faltantes-list" style="text-align:left; padding-left:20px;">
+                                ${listaHTML}
+                            </div>
+                        `,
+                        confirmButtonText: 'Entendi',
+                        confirmButtonColor: '#f0ad4e'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Nenhuma informação',
+                        text: 'Não foi possível determinar o estado das cestas no momento.',
+                        confirmButtonText: 'Ok'
+                    });
+                }
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro na comunicação',
+                    text: 'Falha ao conectar com o servidor. Verifique sua conexão e tente novamente.',
+                    confirmButtonText: 'Ok',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
         });
 
-        return false; // impede navegação do <a href="#">
+        return false;
     }
 
     return { mount };
