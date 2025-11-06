@@ -533,7 +533,7 @@
             });
         });
 
-        // Ações (apagar) -> chama DELETE /apis/clientes/deletar com { cpf }
+
         document.querySelectorAll('#tblClientes .js-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tr = btn.closest('tr');

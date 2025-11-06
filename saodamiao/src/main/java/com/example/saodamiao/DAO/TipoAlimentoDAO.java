@@ -62,6 +62,7 @@ public class TipoAlimentoDAO implements IDAO<TipoAlimento>{
                 entidade.setNome(rs.getString("TPA_DESC"));
                 entidade.setId(rs.getInt("TPA_ID"));
             }
+            rs.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

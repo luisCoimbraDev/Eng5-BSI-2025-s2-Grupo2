@@ -76,7 +76,7 @@ public class AlimentoDAO {
     public Alimento ResgatarAlimento(String nome, Conexao conexao)  {
         String SQL = "SELECT * FROM alimentos WHERE nome = '#2'";
         Alimento alimento = null;
-        SQL = SQL.replace("#2", nome.toLowerCase());
+        SQL = SQL.replace("#2", nome.toLowerCase().trim());
         try{
             ResultSet rs = conexao.consultar(SQL);
             if(rs.next()){

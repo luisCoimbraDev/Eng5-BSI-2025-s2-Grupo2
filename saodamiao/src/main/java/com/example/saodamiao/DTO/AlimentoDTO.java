@@ -1,12 +1,15 @@
 package com.example.saodamiao.DTO;
 
 import com.example.saodamiao.Model.Alimento;
+import com.example.saodamiao.Model.AlimentoEstoque;
 import com.example.saodamiao.Model.TipoAlimento;
 import com.example.saodamiao.Singleton.Singleton;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +19,16 @@ import java.util.List;
 public class AlimentoDTO {
     private String nome;
     private String tipo_alimento;
+    private int quantidade;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate data_validade;
 
 
-    public void toDTO(Alimento alimento, TipoAlimento tipo_alimento){
+    public void toDTO(Alimento alimento, TipoAlimento tipo_alimento, int quantidade,  LocalDate data_validade) {
         this.nome = alimento.getNome();
         this.tipo_alimento = tipo_alimento.getNome();
+        this.quantidade = quantidade;
+        this.data_validade = data_validade;
     }
 
     public  Alimento toAlimento(){
@@ -32,18 +40,13 @@ public class AlimentoDTO {
         return alimento;
     }
 
-    public List<AlimentoDTO> toArrayDTO(List<Alimento> alimentos){
-        List<AlimentoDTO> alimentosDTO = new ArrayList<>();
-        AlimentoDTO alimentoDTO;
-        TipoAlimento tipoAlimento = new TipoAlimento();
-
-        for(Alimento alimento : alimentos){
-            tipoAlimento = tipoAlimento.getTipoAlimentoDAO().ResgatarTipo(alimento.getTipo_alimento_id(), Singleton.Retorna());
-            alimentosDTO.add(
-                    new AlimentoDTO(alimento.getNome(), tipoAlimento.getNome())
-            );
-        }
-        return alimentosDTO;
-
+    public AlimentoEstoque toAlimentoEstoque(){
+        AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
+        alimentoEstoque.setQuantidade(quantidade);
+        alimentoEstoque.setValidade(data_validade);
+        return  alimentoEstoque;
     }
+
+
+
 }

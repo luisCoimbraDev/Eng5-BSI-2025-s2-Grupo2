@@ -195,7 +195,10 @@ const telaConsulta= `
           </div>
           <div class="mb-3">
             <label for="edit-tipo" class="form-label">Tipo de alimento</label>
-            <input type="text" id="edit-tipo" class="form-control" required>
+            <select id ="tipos-list" class="form-select fa-bold" aria-label="Selecione um item" required>
+                <option id="opt-padrao" value="" selected disabled>Escolha um item…</option>
+               </select>
+            
           </div>
         </div>
 
@@ -208,18 +211,42 @@ const telaConsulta= `
   </div>
 </div>
 `;
+    const tipos =  async function () {
+        const response = await fetch('http://localhost:8080/apis/tipoalimento/getall');
+        const data = await response.json();
+        return data;
+    }
+
+    const inserirTipos = async function () {
+        const dl = document.getElementById('tipos-list');
+        if (!dl) return;
+
+        dl.innerHTML = '';
+
+        const lista = await tipos();
+        for (const item of lista) {
+            const opt = document.createElement('option');
+            opt.value = item.nome;
+            opt.textContent = item.nome;
+            dl.appendChild(opt);
+        }
+
+
+
+    };
 
     function montarModal(tr, data, idx){
 
         const el = document.getElementById('modal-editar-alimento');
 
         const editnome = document.getElementById('edit-nome');
-        const edittipo = document.getElementById('edit-tipo');
+
+
+        inserirTipos();
 
         const nomeAtual = data?.nome ?? tr.cells[0]?.textContent?.trim() ?? '';
-        const tipoAtual = data?.tipo_alimento ?? tr.cells[1]?.textContent?.trim() ?? '';
+
         editnome.value = nomeAtual;
-        edittipo.value = tipoAtual;
         bootstrap.Modal.getOrCreateInstance(el).show();
 
         const form = document.getElementById('form-editar-alimento');
@@ -233,8 +260,9 @@ const telaConsulta= `
 
 
             const payload = {
-                alimentoDTO,
-                nome: nomeAtual
+                nome: alimentoDTO.nome,
+                tipo_alimento: alimentoDTO.tipo_alimento,
+                 nomeAntigo: nomeAtual
             };
 
             try {
@@ -266,11 +294,37 @@ const telaConsulta= `
     }
 
     async function deletar(data, idx){
+        var quantidade = 0;
+        try{
+            const url = 'http://localhost:8080/apis/estoque/getEstoque';
+            const respon = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: data.nome
+            }).then( response =>{
+                if (!response.ok){
+                    alert(response);
+                }
+                return response.text();
+            }).then(data => {
+                quantidade = data;
+            })
+        }
+        catch(err){
+            alert(`Erro ao deletar: ${err.message || err}`);
+        }
 
-        const ok = await confirmar(`Excluir "${data.nome}"?`);
+        const ok = await confirmar(`Excluir "${data.nome}"?\n
+        há ${quantidade} alimento(s) no estoque`);
+
         if (!ok)
             return;
 
+        data = {
+            nome: data.nome,
+            tipo_alimento: data.tipo_alimento,
+            nomeAntigo: data.nome
+        }
 
         try{
             const url = 'http://localhost:8080/apis/alimentos/deletar';
@@ -446,27 +500,20 @@ const telaConsulta= `
     }
 
     function confirmar(msg) {
-        const el = document.getElementById('modal-confirma');
-        document.getElementById('modal-confirma-msg').textContent = msg;
-        const modal = bootstrap.Modal.getOrCreateInstance(el);
+        if (typeof swal === 'function') {
+            return new Promise((resolve) => {
+                swal({
+                    title: 'Confirmar exclusão?',
+                    text: msg,
+                    icon: 'warning',
+                    buttons: ['Cancelar', 'Apagar'],
+                    dangerMode: true
+                }).then((willDelete) => resolve(Boolean(willDelete)));
+            });
+        }
 
-        return new Promise((resolve) => {
-            const yes = document.getElementById('modal-confirma-sim');
-            const no  = document.getElementById('modal-confirma-nao');
-
-            const done = (val) => {
-                yes.onclick = null; no.onclick = null;
-                el.removeEventListener('hidden.bs.modal', onHide);
-                modal.hide(); resolve(val);
-            };
-            const onHide = () => done(false);
-
-            yes.onclick = () => done(true);
-            no.onclick  = () => done(false);
-            el.addEventListener('hidden.bs.modal', onHide, { once: true });
-
-            modal.show();
-        });
+        // Fallback para o confirm nativo
+        return Promise.resolve(window.confirm(msg));
     }
 
     link.addEventListener('click', (e) => {
