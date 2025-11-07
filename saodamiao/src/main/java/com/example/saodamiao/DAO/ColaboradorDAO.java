@@ -35,21 +35,19 @@ public class ColaboradorDAO {
     }
 
     public Boolean CriarColaborador(ColaboradorDTO colaborador, Conexao conexao){
-        String sql = "INSERT INTO (idColaborador, nome, cpf, email, dt_mat, telefone, uf, cidade, bairro, rua, cep) VALUES(#1, '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#10', '#11'" +
-                ")";
-        sql = sql.replace("#1", String.valueOf(colaborador.getIdColaborador()));
+        String sql = "INSERT INTO colaborador (nome, cpf, email, telefone, uf, cidade, bairro, rua, cep) VALUES('#2', '#3', '#4', '#6', '#7', '#8', '#9', '#10', '#11'" + ")";
         sql = sql.replace("#2", colaborador.getNome());
         sql = sql.replace("#3", colaborador.getCpf());
         sql = sql.replace("#4", colaborador.getEmail());
-        sql = sql.replace("#5", String.valueOf(colaborador.getMat()));
+        //sql = sql.replace("#5", String.valueOf(colaborador.getDtMat()));
         sql = sql.replace("#6", colaborador.getTelefone());
         sql = sql.replace("#7", colaborador.getUf());
         sql = sql.replace("#8", colaborador.getCidade());
         sql = sql.replace("#9", colaborador.getBairro());
         sql = sql.replace("#10", colaborador.getRua());
         sql = sql.replace("#11", colaborador.getCep());
+        System.out.println("SQL: " + sql);
         return conexao.manipular(sql);
-
     }
 
     public Colaborador BuscarPorCpf(String Cpf, Conexao conexao){
@@ -75,5 +73,20 @@ public class ColaboradorDAO {
             e.printStackTrace();
         }
         return colaborador;
+    }
+
+    public int BuscaPorCpfERetornaId(String cpf, Conexao conexao){
+        String sql = "SELECT idcolaborador FROM colaborador WHERE cpf = '#1'";
+        sql = sql.replace("#1", cpf);
+        int id = -1;
+        try {
+            ResultSet rs = conexao.consultar(sql);
+            if(rs.next()){
+                id = rs.getInt("idcolaborador");
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        return id;
     }
 }

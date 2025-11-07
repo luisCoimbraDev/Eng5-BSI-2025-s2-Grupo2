@@ -234,7 +234,7 @@ const ColaboradorCadastro = {
 
             
             const permissaoPromises = listaNomesPermissoes.map(nomePermissao => {
-                return fetch('/permissoes/inserirPermissao', {
+                return fetch('http://localhost:8080/permissoes/inserirPermissao', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

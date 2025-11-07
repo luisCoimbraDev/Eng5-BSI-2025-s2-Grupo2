@@ -29,26 +29,20 @@ public class ConfiguracaoSeguranca {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults()) // Isto usa o seu Bean lá de baixo, está OK
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
 
-                        // --- INÍCIO DA CORREÇÃO ---
-                        // 1. PERMITA TODAS AS REQUISIÇÕES 'OPTIONS' (PREFLIGHT)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // --- FIM DA CORREÇÃO ---
-
-                        // 2. SUAS ROTAS PÚBLICAS
+                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/alimentos").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens").permitAll()
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
-                        // 3. SUAS ROTAS PROTEGIDAS
-                        // (Garanta que está no SINGULAR para bater com o Controller)
                         .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR
                         .requestMatchers("/permissoes/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/vendas/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/relatorios/**").hasAnyAuthority(PermissaoConstantes.ROLE_ADMIN, PermissaoConstantes.ROLE_GESTOR)
 
-                        // 4. REGRA FINAL
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

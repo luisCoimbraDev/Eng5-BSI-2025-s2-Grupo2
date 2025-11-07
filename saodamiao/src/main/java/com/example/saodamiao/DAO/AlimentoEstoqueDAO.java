@@ -42,23 +42,16 @@ public class AlimentoEstoqueDAO {
         }
     }
 
-    public Boolean AtualizaQtde(long idAlimento,int quantidade){
-        Conexao conexao = new Conexao();
-        String SQL = "select * from ESTOQUE_ALIMENTO where alimentos_idAlimentos=#1 and ESA_VALIDADE ='#2';";
-        SQL = SQL.replace("#1", String.valueOf(idAlimento));
-        SQL = SQL.replace("#2", String.valueOf(quantidade));
-        try{
-            ResultSet rs = Singleton.Retorna().consultar(SQL);
-            if(rs.next()){
-                quantidade= quantidade + rs.getInt("ESA_QTD");
-                SQL = "UPDATE FROM ESTOQUE_ALIMENTO SET ESA_QTD=#1 WHERE alimentos_idAlimentos=#2";
-                SQL = SQL.replace("#1", String.valueOf(quantidade));
-                SQL = SQL.replace("#2", String.valueOf(quantidade));
-                conexao.manipular(SQL);
-                return true;
-            }
-            return false;
-        }catch (SQLException e){
+    public Boolean AtualizaQtde(long idAlimento, int quantidade, Conexao conexao){
+        try {
+            String sql = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = #1 WHERE alimentos_idAlimentos = #2";
+            sql = sql.replace("#1", String.valueOf(quantidade))
+                    .replace("#2", String.valueOf(idAlimento));
+
+            return conexao.manipular(sql);
+
+        } catch (Exception e) {
+            System.out.println("Erro em AtualizaQtde: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

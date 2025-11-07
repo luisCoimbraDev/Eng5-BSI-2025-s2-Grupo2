@@ -89,6 +89,7 @@ public class CaixaModel {
         caixa = new CaixaDAO();
         return caixa.atualizarValorCaixa(qtde, idCaixa);
     }
+
     @Override
     public String toString() {
         return "CaixaModel{" +

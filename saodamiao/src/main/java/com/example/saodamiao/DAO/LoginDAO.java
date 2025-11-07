@@ -59,7 +59,6 @@ public class LoginDAO {
             e.printStackTrace();
             return null;
         }
-
         return loginEncontrado;
     }
 
@@ -78,6 +77,7 @@ public class LoginDAO {
         sql = sql.replace("#2", userName);
         sql = sql.replace("#3", ativo);
         sql = sql.replace("#4", senha);
+        System.out.println("SQL DO LOGIN: " + sql);
         return conexao.manipular(sql);
     }
 

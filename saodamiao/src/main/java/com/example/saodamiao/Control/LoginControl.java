@@ -14,42 +14,77 @@ import org.springframework.web.bind.annotation.*;
 
 
 /*
-* SQL PARA RODAR AS COISA ADICIONADAS
-* --=====================================================
--- 3. INSERT DO GESTOR
+* SQL que eu estou usando para criar um login de admin
 -- =====================================================
-INSERT INTO gestor (idgestor, colaborador_idcolaborador)
-VALUES (1, 1);
+-- 1. COLABORADOR ADMIN
+-- =====================================================
+INSERT INTO colaborador (
+    nome, cpf, dt_mat, telefone, email, rua, bairro, cidade, uf, cep
+) VALUES (
+    'Administrador Padrão', '00000000000', CURRENT_DATE,
+    '00000-0000', 'admin@admin.com',
+    'Rua Admin', 'Centro', 'Cidade', 'SP', '00000-000'
+);
 
 -- =====================================================
--- 4. INSERT DAS PERMISSÕES
+-- 2. LOGIN ADMIN
 -- =====================================================
-INSERT INTO permissao (idpermissao, tipo_permissao, ativo) VALUES
-(1, 'ROLE_ADMIN', 'S'),
-(2, 'ROLE_GESTOR', 'S'),
-(3, 'ROLE_COLABORADOR', 'S'),
-(4, 'VENDA_BAZAR', 'S'),
-(5, 'GERENCIAR_CESTAS', 'S'),
-(6, 'GERENCIAR_ESTOQUE', 'S');
+INSERT INTO login (
+    colaborador_idcolaborador, log_username, log_ativo, log_senha, senha_temporaria
+)
+VALUES (
+    (SELECT idcolaborador FROM colaborador WHERE cpf = '00000000000'),
+    'admin', 'S', '123456', FALSE
+);
 
 -- =====================================================
--- 5. INSERT DA PERMISSÃO DO USUÁRIO
+-- 3. GESTOR ADMIN (com ID autoincrementado)
 -- =====================================================
-INSERT INTO permissao_usuario
-(colaborador_idcolaborador, gestor_idgestor, gestor_colaborador_idcolaborador, permissao_idpermissao, data_inicio, data_fim)
-VALUES
-(1, 1, 1, 1, CURRENT_DATE, NULL);
+INSERT INTO gestor (
+    colaborador_idcolaborador, data_inicio, salario
+)
+VALUES (
+    (SELECT idcolaborador FROM colaborador WHERE cpf = '00000000000'),
+    CURRENT_DATE,
+    0
+);
 
 -- =====================================================
--- 6. VERIFICAÇÃO (OPCIONAL)
+-- 4. PERMISSÕES
 -- =====================================================
-SELECT * FROM colaborador;
-SELECT * FROM login;
-SELECT * FROM gestor;
-SELECT * FROM permissao;
-SELECT * FROM permissao_usuario;
+INSERT INTO permissao (tipo_permissao, ativo) VALUES
+('ROLE_ADMIN', 'S'),
+('ROLE_GESTOR', 'S'),
+('ROLE_COLABORADOR', 'S'),
+('VENDA_BAZAR', 'S'),
+('GERENCIAR_CESTAS', 'S'),
+('GERENCIAR_ESTOQUE', 'S');
+
+-- =====================================================
+-- 5. PERMISSÃO DO USUÁRIO
+-- =====================================================
+INSERT INTO permissao_usuario (
+    colaborador_idcolaborador, gestor_idgestor, gestor_colaborador_idcolaborador,
+    permissao_idpermissao, data_inicio, data_fim
+)
+VALUES (
+    (SELECT idcolaborador FROM colaborador WHERE cpf = '00000000000'),
+    (SELECT idgestor FROM gestor LIMIT 1),
+    (SELECT idcolaborador FROM colaborador WHERE cpf = '00000000000'),
+    1, -- ROLE_ADMIN
+    CURRENT_DATE,
+    NULL
+);
+
+select * from login;
+select * from colaborador;
+select * from gestor;
+select * from permissao;
+select * from permissao_usuario;
 * */
 
+//!autenticacaoDTO.getSenha().equals(login.getLoginSenha())
+//!passwordEncoder.matches(autenticacaoDTO.getSenha(), login.getLoginSenha())
 @RestController
 @RequestMapping(name = "/login")
 public class LoginControl {
@@ -67,7 +102,6 @@ public class LoginControl {
         try {
             Login login = new Login();
             login = login.buscarLogin(autenticacaoDTO.getLogin(), Singleton.Retorna());
-
             if (login == null || VerificaAtivo(autenticacaoDTO.getLogin()) || !autenticacaoDTO.getSenha().equals(login.getLoginSenha())) {
                 return ResponseEntity.status(401).body(new Erro("Usuário ou senha inválidos"));
             }

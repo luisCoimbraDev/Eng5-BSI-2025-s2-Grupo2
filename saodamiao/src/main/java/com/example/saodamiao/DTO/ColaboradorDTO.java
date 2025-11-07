@@ -1,11 +1,11 @@
 package com.example.saodamiao.DTO;
 
 import java.sql.Date;
+import java.time.LocalDate;
 
 public class ColaboradorDTO {
     private String nome;
     private String cpf;
-    private Date mat;
     private String telefone;
     private String email;
     private String bairro;
@@ -16,7 +16,7 @@ public class ColaboradorDTO {
     private String loginAtivo;
     private String loginUserName;
     private String loginSenha;
-    private Date dtMat;
+    private LocalDate dtMat;
 
 
     public String getLoginUserName() {
@@ -27,9 +27,11 @@ public class ColaboradorDTO {
         this.loginUserName = loginUserName;
     }
 
-    public void setDtMat(Date dtMat) {
+    public void setDtMat(LocalDate dtMat) {
         this.dtMat = dtMat;
     }
+    public LocalDate getDtMat(){return dtMat;}
+
     public String getNome() {
         return nome;
     }
@@ -44,14 +46,6 @@ public class ColaboradorDTO {
 
     public void setCpf(String cpf) {
         this.cpf = cpf;
-    }
-
-    public Date getMat() {
-        return mat;
-    }
-
-    public void setMat(Date mat) {
-        this.mat = mat;
     }
 
     public String getTelefone() {
@@ -124,5 +118,24 @@ public class ColaboradorDTO {
 
     public void setLoginSenha(String loginSenha) {
         this.loginSenha = loginSenha;
+    }
+
+    @Override
+    public String toString() {
+        return "ColaboradorDTO{" +
+                "nome='" + nome + '\'' +
+                ", cpf='" + cpf + '\'' +
+                ", telefone='" + telefone + '\'' +
+                ", email='" + email + '\'' +
+                ", bairro='" + bairro + '\'' +
+                ", rua='" + rua + '\'' +
+                ", cep='" + cep + '\'' +
+                ", uf='" + uf + '\'' +
+                ", cidade='" + cidade + '\'' +
+                ", loginAtivo='" + loginAtivo + '\'' +
+                ", loginUserName='" + loginUserName + '\'' +
+                ", loginSenha='" + loginSenha + '\'' +
+                ", dtMat=" + dtMat +
+                '}';
     }
 }

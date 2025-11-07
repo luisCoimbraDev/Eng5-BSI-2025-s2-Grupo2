@@ -13,7 +13,7 @@ public class Permissoes {
     private String nomePermissao;
     private String ativo;
 
-    PermissoesDAO permissoesDAO;
+    PermissoesDAO permissoesDAO = new PermissoesDAO();
     public int getIdPermissao() {
         return idPermissao;
     }

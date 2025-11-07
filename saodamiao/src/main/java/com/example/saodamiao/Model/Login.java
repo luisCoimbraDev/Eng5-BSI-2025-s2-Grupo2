@@ -33,7 +33,7 @@ public class Login {
     }
     public Login buscarLogin(String loginUserName, Conexao conexao){
         LoginDAO loginDAO = new LoginDAO();
-        return loginDAO.ResgatarLogin(loginUserName, conexao);
+        return loginDAO.buscarPorLogin(loginUserName, conexao);
     }
     public Boolean MudarAtividade(Login login, Conexao conexao){
         loginDAO = new LoginDAO();

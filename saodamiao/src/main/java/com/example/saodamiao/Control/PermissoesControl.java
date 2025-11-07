@@ -20,6 +20,7 @@ public class PermissoesControl {
 
     @PostMapping("/inserirPermissao")
     public ResponseEntity InserirPermissao(@RequestBody AtribuirPermissaoDTO dto){
+
         //aqui eu procuro o id do usuario logado
         var authenticacao = SecurityContextHolder.getContext().getAuthentication();
         Login usuarioLogado = (Login) authenticacao.getPrincipal();
@@ -76,7 +77,7 @@ public class PermissoesControl {
         return ResponseEntity.badRequest().body("Nao foi possivel atualizar a permissa");
     }
 
-    @PostMapping("/mudarParaIntiva")
+    @PostMapping("/mudarParaInativa")
     public ResponseEntity mudarParaInativo(@RequestBody String nomePermissao){
         String atividade = permissoes.VerificaAtividade(nomePermissao, Singleton.Retorna());
         if(atividade == "" && atividade == "N"){

@@ -1,6 +1,7 @@
 package com.example.saodamiao.Model;
 
 import com.example.saodamiao.DAO.AlimentoEstoqueDAO;
+import com.example.saodamiao.Singleton.Conexao;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -12,12 +13,8 @@ public class AlimentoEstoque {
     private int quantidade;
 
     AlimentoEstoqueDAO alimento;
-    public Boolean atualizarEstoque(int id_alimento,int quantidade){
-        try{
-            return alimento.AtualizaQtde(id_alimento, quantidade);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+    public Boolean atualizarEstoque(int id_alimento, int quantidade, Conexao conexao){
+        alimento = new AlimentoEstoqueDAO();
+        return alimento.AtualizaQtde(id_alimento, quantidade, conexao);
     }
 }

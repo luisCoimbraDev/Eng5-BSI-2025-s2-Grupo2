@@ -32,7 +32,7 @@ public class PermissoesDAO {
 
     public List<String> buscarPermissoesPorColaboradorId(int id, Conexao conexao){
         String sql = "SELECT DISTINCT\n" +
-                "    p.tipo_permissao\n" +
+                "p.tipo_permissao\n" +
                 "FROM colaborador c\n" +
                 "INNER JOIN permissao_usuario pu ON c.idcolaborador = pu.colaborador_idcolaborador\n" +
                 "INNER JOIN permissao p ON pu.permissao_idpermissao = p.idpermissao\n" +
@@ -40,9 +40,9 @@ public class PermissoesDAO {
         List<String> tipoPermissoesColaborador = new ArrayList<>();
         try{
             ResultSet rs = conexao.consultar(sql);
+            String tipoPermissao;
             while(rs.next()){
-                String tipoPermissao;
-                tipoPermissao = rs.getString("tipo_permissoes");
+                tipoPermissao = rs.getString("tipo_permissao");
                 tipoPermissoesColaborador.add(tipoPermissao);
             }
         }catch(SQLException e){
@@ -59,6 +59,7 @@ public class PermissoesDAO {
         sql = sql.replace("#2", String.valueOf(idGestor));
         sql = sql.replace("#3", String.valueOf(idGestor));
         sql= sql.replace("#4", String.valueOf(idPermissao));
+        System.out.println("SQL DE PERMISSOES_USUARIOS: "+ sql);
         try{
             ResultSet rs = conexao.consultar(sql);
             if(rs.next()){
