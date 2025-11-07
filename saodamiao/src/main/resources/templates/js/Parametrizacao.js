@@ -78,7 +78,7 @@ function abrirCadastro()
           <form id="formParametrizacao" class="needs-validation" novalidate>
             <!-- CNPJ -->
             <div class="mb-3">
-              <label for="par_cnpj" class="form-label">CNPJ <span class="text-danger">*</span> </label>
+              <label for="par_cnpj" class="form-label">CNPJ</label>
               <input type="text" class="form-control form-control-lg" id="par_cnpj" name="par_cnpj"
                      maxlength="18" required placeholder="00.000.000/0000-00">
               <div class="invalid-feedback">Informe o CNPJ (18 caracteres).</div>
@@ -86,7 +86,7 @@ function abrirCadastro()
 
             <!-- Razão Social -->
             <div class="mb-3">
-              <label for="par_razao_social" class="form-label">Razão Social <span class="text-danger">*</span></label>
+              <label for="par_razao_social" class="form-label">Razão Social</label>
               <input type="text" class="form-control form-control-lg" id="par_razao_social" name="par_razao_social"
                      maxlength="60" required>
               <div class="invalid-feedback">Informe entre 3 e 60 caracteres.</div>
@@ -94,7 +94,7 @@ function abrirCadastro()
 
             <!-- Nome Fantasia -->
             <div class="mb-3">
-              <label for="par_nome_fantasia" class="form-label">Nome Fantasia <span class="text-danger">*</span></label>
+              <label for="par_nome_fantasia" class="form-label">Nome Fantasia</label>
               <input type="text" class="form-control form-control-lg" id="par_nome_fantasia" name="par_nome_fantasia"
                      maxlength="45" required>
               <div class="invalid-feedback">Informe entre 3 e 45 caracteres.</div>
@@ -102,7 +102,7 @@ function abrirCadastro()
 
             <!-- Site -->
             <div class="mb-3">
-              <label for="par_site" class="form-label">Site <span class="text-danger">*</span></label>
+              <label for="par_site" class="form-label">Site</label>
               <input type="url" class="form-control form-control-lg" id="par_site" name="par_site"
                      maxlength="120" placeholder="https://meusite.com.br">
               <div class="invalid-feedback">Informe uma URL válida (https://...).</div>
@@ -110,7 +110,7 @@ function abrirCadastro()
 
             <!-- Email -->
             <div class="mb-3">
-              <label for="par_email" class="form-label">E-mail <span class="text-danger">*</span></label>
+              <label for="par_email" class="form-label">E-mail</label>
               <input type="email" class="form-control form-control-lg" id="par_email" name="par_email"
                      maxlength="60" required>
               <div class="invalid-feedback">Informe um e-mail válido.</div>
@@ -118,7 +118,7 @@ function abrirCadastro()
 
             <!-- Telefone -->
             <div class="mb-3">
-              <label for="par_telefone" class="form-label">Telefone <span class="text-danger">*</span></label>
+              <label for="par_telefone" class="form-label">Telefone</label>
               <input type="text" class="form-control form-control-lg" id="par_telefone" name="par_telefone"
                      maxlength="15" required placeholder="(00) 00000-0000">
               <div class="invalid-feedback">Formato (00) 00000-0000.</div>
@@ -126,60 +126,58 @@ function abrirCadastro()
 
             <!-- Contato alternativo -->
             <div class="mb-3">
-              <label for="par_contato" class="form-label">Outro Contato </label>
+              <label for="par_contato" class="form-label">Outro Contato</label>
               <input type="text" class="form-control form-control-lg" id="par_contato" name="par_contato"
                      maxlength="15" placeholder="(00) 00000-0000">
               <div class="invalid-feedback">Formato (00) 00000-0000.</div>
             </div>
 
             <!-- Endereço -->
-            
             <div class="mb-3">
-              <label for="par_cep" class="form-label">CEP <span class="text-danger">*</span></label>
-              <input type="text" class="form-control form-control-lg" id="par_cep" name="par_cep"
-                     maxlength="9" required inputmode="numeric" pattern="^\\d{5}-\\d{3}$" placeholder="00000-000">
-              <div class="invalid-feedback">Formato 00000-000.</div>
-            </div>
-            
-            <div class="mb-3">
-              <label for="par_rua" class="form-label">Rua <span class="text-danger">*</span></label>
+              <label for="par_rua" class="form-label">Rua</label>
               <input type="text" class="form-control form-control-lg" id="par_rua" name="par_rua"
                      maxlength="45" required>
               <div class="invalid-feedback">Informe entre 3 e 45 caracteres.</div>
             </div>
 
             <div class="mb-3">
-              <label for="par_bairro" class="form-label">Bairro <span class="text-danger">*</span></label>
+              <label for="par_bairro" class="form-label">Bairro</label>
               <input type="text" class="form-control form-control-lg" id="par_bairro" name="par_bairro"
                      maxlength="45" required>
               <div class="invalid-feedback">Informe entre 3 e 45 caracteres.</div>
             </div>
 
             <div class="mb-3">
-              <label for="par_cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
+              <label for="par_cidade" class="form-label">Cidade</label>
               <input type="text" class="form-control form-control-lg" id="par_cidade" name="par_cidade"
                      maxlength="45" required>
               <div class="invalid-feedback">Informe entre 3 e 45 caracteres.</div>
             </div>
 
             <div class="mb-3">
-              <label for="par_uf" class="form-label">UF <span class="text-danger">*</span></label>
+              <label for="par_uf" class="form-label">UF</label>
               <input type="text" class="form-control form-control-lg" id="par_uf" name="par_uf"
                      maxlength="2" required pattern="^[A-Za-z]{2}$" placeholder="SP">
               <div class="invalid-feedback">Informe a UF com 2 letras (ex.: SP).</div>
             </div>
 
+            <div class="mb-3">
+              <label for="par_cep" class="form-label">CEP</label>
+              <input type="text" class="form-control form-control-lg" id="par_cep" name="par_cep"
+                     maxlength="9" required inputmode="numeric" pattern="^\\d{5}-\\d{3}$" placeholder="00000-000">
+              <div class="invalid-feedback">Formato 00000-000.</div>
+            </div>
 
             <!-- Logos -->
             <div class="mb-3">
-              <label for="par_logo_grande" class="form-label">Logo grande (URL ou caminho) <span class="text-danger">*</span> </label>
+              <label for="par_logo_grande" class="form-label">Logo grande (URL ou caminho)</label>
               <input type="text" class="form-control form-control-lg" id="par_logo_grande" name="par_logo_grande"
                      maxlength="255" required placeholder="EXE: /uploads/logo-grande.png ou https://...">
               <div class="invalid-feedback">Informe uma URL http/https ou caminho iniciado com “/”.</div>
             </div>
 
             <div class="mb-3">
-              <label for="par_logo_pequeno" class="form-label">Logo pequeno (URL ou caminho) <span class="text-danger">*</span> </label>
+              <label for="par_logo_pequeno" class="form-label">Logo pequeno (URL ou caminho)</label>
               <input type="text" class="form-control form-control-lg" id="par_logo_pequeno" name="par_logo_pequeno"
                      maxlength="255" required placeholder="EXE: /uploads/logo-pequeno.png ou https://...">
               <div class="invalid-feedback">Informe uma URL http/https ou caminho iniciado com “/”.</div>
