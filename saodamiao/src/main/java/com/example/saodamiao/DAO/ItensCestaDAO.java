@@ -19,7 +19,7 @@ public class ItensCestaDAO {
                     i.alimentos_idalimentos,
                     FLOOR(SUM(e.esa_qtde::numeric) / NULLIF(i.qtde, 0)) AS cestas_possiveis
                 FROM itens_cesta i
-                LEFT JOIN estoque_alimento e 
+                INNER JOIN estoque_alimento e 
                   ON e.alimentos_idalimentos = i.alimentos_idalimentos
                 WHERE i.cestas_basicas_idcestas_basicas = #1
                 GROUP BY i.alimentos_idalimentos, i.qtde
@@ -44,9 +44,9 @@ public class ItensCestaDAO {
                    a.nome AS alimento,
                    (i.qtde - COALESCE(SUM(e.esa_qtde), 0)) AS falta
                FROM itens_cesta i
-               JOIN alimentos a
+               INNER JOIN alimentos a
                    ON a.idalimentos = i.alimentos_idalimentos
-               LEFT JOIN estoque_alimento e
+               INNER JOIN estoque_alimento e
                    ON e.alimentos_idalimentos = i.alimentos_idalimentos
                WHERE i.cestas_basicas_idcestas_basicas = #1
                GROUP BY a.nome, i.qtde
