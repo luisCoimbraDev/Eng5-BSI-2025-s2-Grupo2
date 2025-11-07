@@ -47,6 +47,28 @@ public class AlimentoDTO {
         return  alimentoEstoque;
     }
 
+    public static List<AlimentoDTO> toListDTO(List<AlimentoEstoque> alimentoEstoqueList){
+        List<AlimentoDTO> alimentoDTOList = new ArrayList<>();
+        Alimento alimento = new Alimento();
+        TipoAlimento tipoAlimento = new TipoAlimento();
+
+        for(AlimentoEstoque alimentoEstoque: alimentoEstoqueList){
+            AlimentoDTO alimentoDTO = new AlimentoDTO();
+            alimento = alimento.getAlimentoDAO().ResgatarAlimento(alimentoEstoque.getId_alimento(), Singleton.Retorna());
+            tipoAlimento = tipoAlimento.getTipoAlimentoDAO().ResgatarTipo(alimento.getTipo_alimento_id(), Singleton.Retorna());
+
+            alimentoDTO.setNome(alimento.getNome());
+            alimentoDTO.setTipo_alimento(tipoAlimento.getNome());
+            alimentoDTO.setQuantidade(alimentoEstoque.getQuantidade());
+            alimentoDTO.setData_validade(alimentoEstoque.getValidade());
+
+            alimentoDTOList.add(alimentoDTO);
+        }
+
+        return alimentoDTOList;
+
+    }
+
 
 
 }

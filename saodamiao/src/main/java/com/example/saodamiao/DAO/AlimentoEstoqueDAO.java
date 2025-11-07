@@ -6,6 +6,9 @@ import com.example.saodamiao.Singleton.Singleton;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AlimentoEstoqueDAO {
     public AlimentoEstoqueDAO() {}
@@ -102,18 +105,34 @@ public class AlimentoEstoqueDAO {
     }
 
     public int getQuantidadeEstoque(long idAlimento, Conexao conexao) {
-        String SQL = "SELECT COUNT(*) AS qtd from ESTOQUE_ALIMENTO where Alimentos_idAlimentos=#1;";
+        String SQL = "SELECT SUM(ESA_QTDE) AS qtd from ESTOQUE_ALIMENTO where Alimentos_idAlimentos=#1";
         SQL = SQL.replace("#1", String.valueOf(idAlimento));
         try{
             ResultSet rs = conexao.consultar(SQL);
-            if(rs.next()){
-                int quantidade = rs.getInt("qtd");
-                return quantidade;
-            }
+            if(rs.next())
+                 return rs.getInt("qtd");
         }
         catch (SQLException e){
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public List<AlimentoEstoque> getallAlimentosEstoque(Conexao conexao) {
+        String SQL = "select * from ESTOQUE_ALIMENTO";
+        List<AlimentoEstoque> alimentoEstoqueList = new ArrayList<>();
+        try{
+            ResultSet rs = conexao.consultar(SQL);
+            while(rs.next()){
+                AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
+                alimentoEstoque.setId_alimento(rs.getInt("Alimentos_idAlimentos"));
+                alimentoEstoque.setValidade(LocalDate.parse(rs.getString("ESA_VALIDADE"))); // se houver erro, verificar aqui
+                alimentoEstoque.setQuantidade(rs.getInt("ESA_QTDE"));
+                alimentoEstoqueList.add(alimentoEstoque);
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        return alimentoEstoqueList;
     }
 }

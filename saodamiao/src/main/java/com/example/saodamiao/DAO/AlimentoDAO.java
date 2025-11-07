@@ -91,4 +91,22 @@ public class AlimentoDAO {
         }
         return alimento;
     }
+
+    public Alimento ResgatarAlimento(long id, Conexao conexao)  {
+        String SQL = "SELECT * FROM alimentos WHERE idAlimentos =" + id +";";
+        Alimento alimento = null;
+        try{
+            ResultSet rs = conexao.consultar(SQL);
+            if(rs.next()){
+                alimento = new Alimento();
+                alimento.setId(rs.getInt("idAlimentos"));
+                alimento.setNome(rs.getString("nome"));
+                alimento.setTipo_alimento_id(rs.getInt("tipo_alimento_tpa_id"));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return alimento;
+    }
 }
