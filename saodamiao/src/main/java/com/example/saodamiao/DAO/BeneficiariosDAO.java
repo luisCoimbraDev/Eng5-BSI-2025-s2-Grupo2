@@ -1,12 +1,11 @@
 package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.Beneficiarios;
-import com.example.saodamiao.Model.Cliente;
 import com.example.saodamiao.Singleton.Conexao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BeneficiariosDAO implements IDAO<Beneficiarios> {
@@ -31,9 +30,35 @@ public class BeneficiariosDAO implements IDAO<Beneficiarios> {
     public boolean alterar(Beneficiarios beneficiarios, int id, Conexao conexao) {
         return false;
     }
+
+    public boolean alterar(Beneficiarios beneficiarios,String cpf, Conexao conexao) {
+        String sql = """
+                UPDATE BENEFICIARIO
+                SET NOME = '#2',
+                    ENDERECO = '#3',
+                    EMAIL = '#4',
+                    BAIRRO = '#5',
+                    CIDADE = '#6',
+                    UF = '#7',
+                    CEP = '#8',
+                    TELEFONE ='#9'
+                    WHERE CPF = '#1';
+                """;
+        sql = sql.replace("#2",beneficiarios.getNome());
+        sql = sql.replace("#3",beneficiarios.getEndereco());
+        sql = sql.replace("#4",beneficiarios.getEmail());
+        sql = sql.replace("#5",beneficiarios.getBairro());
+        sql = sql.replace("#6",beneficiarios.getCidade());
+        sql = sql.replace("#7",beneficiarios.getUf());
+        sql = sql.replace("#8",beneficiarios.getCep());
+        sql = sql.replace("#9",beneficiarios.getTelefone());
+        sql = sql.replace("#1",""+cpf);
+
+        return conexao.manipular(sql);
+    }
     @Override
     public boolean apagar(Beneficiarios entidade, Conexao conexao) {
-        return false;
+        return conexao.manipular("DELETE FROM beneficiario WHERE CPF = '" + entidade.getCpf() + "'");
     }
 
     public Beneficiarios pegarBeneficiario(String CPF, Conexao conexao) {
@@ -63,6 +88,28 @@ public class BeneficiariosDAO implements IDAO<Beneficiarios> {
     }
     @Override
     public List<Beneficiarios> pegarListaToda(Conexao conexao) {
-        return List.of();
+        String sql = "SELECT * FROM beneficiario";
+        ResultSet rs = conexao.consultar(sql);
+        List<Beneficiarios> lista = new ArrayList<>();
+        try
+        {
+            while (rs.next()) {
+                lista.add(new Beneficiarios(
+                        rs.getInt("idbeneficiario"),
+                        rs.getString("cpf"),
+                        rs.getString("nome"),
+                        rs.getString("endereco"),
+                        rs.getString("email"),
+                        rs.getDate("data_cadastro"),
+                        rs.getString("bairro"),
+                        rs.getString("cidade"),
+                        rs.getString("uf"),
+                        rs.getString("cep"),
+                        rs.getString("telefone")));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return lista;
     }
 }

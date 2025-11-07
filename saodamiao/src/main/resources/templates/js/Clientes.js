@@ -10,6 +10,10 @@
     // Referência do DataTables para remover linha após exclusão
     let dataTableRef = null;
 
+    // === NOVO: desabilitar alertas flutuantes para erros de campos ===
+    const DISABLE_FIELD_TOASTS = true;
+    const FIELD_ERROR_KEYS = new Set(['cpf', 'telefone', 'email', 'nome']);
+
     const TEMPLATE = `
   <div class="form-shell">
     <div class="mb-3">
@@ -23,25 +27,25 @@
       <div class="card-body">
         <form id="formClienteBazar" name="cliente" class="needs-validation" novalidate>
           <div class="mb-3">
-            <label for="nome" class="form-label">Nome completo</label>
+            <label for="nome" class="form-label">Nome completo <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-lg" id="nome" name="nome" maxlength="40" required>
             <div class="invalid-feedback">Informe o nome (2 a 40 caracteres).</div>
           </div>
 
           <div class="mb-3">
-            <label for="cpf" class="form-label">CPF</label>
+            <label for="cpf" class="form-label">CPF <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-lg" id="cpf" name="cpf" maxlength="14" required placeholder="000.000.000-00">
             <div class="invalid-feedback">Informe um CPF válido.</div>
           </div>
 
           <div class="mb-3">
-            <label for="telefone" class="form-label">Telefone</label>
+            <label for="telefone" class="form-label">Telefone <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-lg" id="telefone" name="telefone" maxlength="15" required placeholder="(00) 00000-0000">
             <div class="invalid-feedback">Informe um telefone válido no formato (00) 00000-0000.</div>
           </div>
 
           <div class="mb-2">
-            <label for="email" class="form-label">E-mail</label>
+            <label for="email" class="form-label">E-mail <span class="text-danger">*</span></label>
             <input type="email" class="form-control form-control-lg" id="email" name="email" maxlength="40" required>
             <div class="invalid-feedback">Informe um e-mail válido.</div>
           </div>
@@ -163,8 +167,15 @@
     function setValid (input) { input.classList.remove('is-invalid'); input.classList.add('is-valid'); }
     function setInvalid (input) { input.classList.remove('is-valid'); input.classList.add('is-invalid'); }
 
-    // Alerta flutuante vermelho (top-right)
+    // Alerta flutuante vermelho (top-right) — suprime para erros de campo
     function showError (msg, idKey) {
+        // Se for erro de campo (blur/submit), não exibir toast
+        if (DISABLE_FIELD_TOASTS) {
+            if (FIELD_ERROR_KEYS.has(idKey) || (idKey && String(idKey).startsWith('submit-'))) {
+                return;
+            }
+        }
+
         const box = document.getElementById('formErrors');
         if (!box) return;
 

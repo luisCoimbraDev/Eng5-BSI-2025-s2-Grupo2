@@ -144,10 +144,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-beneficiarios">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="beneficiarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="beneficiarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="beneficiarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="beneficiarios/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#" onclick="return CrudBeneficiario.mount();"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#" onclick="return CrudBeneficiario.mountList()"><span class="sub-item">Listar / Consultar / Editar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -294,7 +292,7 @@
                                     </div>
                                 </li>
                                 <li>
-                                    <a id="inspecao-alimento" href="#">
+                                    <a href="inspecao_alimento/index.html">
                                         <i class="fas fa-search-plus me-2"></i><span class="sub-item">Inspeções de Alimento</span>
                                     </a>
                                 </li>
@@ -475,6 +473,5 @@
     <script defer src="../js/Alimento.js" ></script>
     <script defer src="../js/AlimentoConsulta.js" ></script>
     <script src=" ../js/Beneficiarios.js" defer></script>
-    <script defer src="../js/InspecionarAlimento.js" ></script>
 </body>
 </html>

@@ -227,7 +227,7 @@ function abrirCadastro()
                 else el.value = v;
             });
         });
-
+        function onlyDigits (s) { return String(s ?? '').replace(/\D/g, ''); }
         // Clique no confirmar
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -243,7 +243,7 @@ function abrirCadastro()
                 par_nome_fantasia: document.getElementById('par_nome_fantasia').value,
                 par_site:          document.getElementById('par_site').value,
                 par_email:         document.getElementById('par_email').value,
-                par_telefone:      document.getElementById('par_telefone').value,
+                par_telefone:      onlyDigits(document.getElementById('par_telefone').value),
                 par_contato:       document.getElementById('par_contato').value,
                 par_rua:           document.getElementById('par_rua').value,
                 par_bairro:        document.getElementById('par_bairro').value,
