@@ -22,56 +22,56 @@
         <div class="card-body">
           <form id="formBeneficiario" name="beneficiario" class="needs-validation" novalidate>
             <div class="mb-3">
-              <label for="nome" class="form-label">Nome completo</label>
+              <label for="nome" class="form-label"> <span class="text-danger">*</span> Nome completo</label>
               <input type="text" class="form-control form-control-lg" id="nome" name="nome" maxlength="60" required placeholder= "Nome Completo">
               <div class="invalid-feedback">Informe o nome (2 a 60 caracteres).</div>
             </div>
 
             <div class="mb-3">
-              <label for="cpf" class="form-label">CPF</label>
+              <label for="cpf" class="form-label"> <span class="text-danger">*</span> CPF</label>
               <input type="text" class="form-control form-control-lg" id="cpf" name="cpf" maxlength="14" required placeholder="000.000.000-00">
               <div class="invalid-feedback">Informe um CPF válido.</div>
             </div>
 
             <div class="mb-3">
-              <label for="telefone" class="form-label">Telefone</label>
+              <label for="telefone" class="form-label"> <span class="text-danger">*</span> Telefone</label>
               <input type="text" class="form-control form-control-lg" id="telefone" name="telefone" maxlength="15" required placeholder="(00) 00000-0000">
               <div class="invalid-feedback">Formato (00) 00000-0000.</div>
             </div>
 
             <div class="mb-2">
-              <label for="email" class="form-label">E-mail</label>
+              <label for="email" class="form-label"> <span class="text-danger">*</span> E-mail</label>
               <input type="email" class="form-control form-control-lg" id="email" name="email" maxlength="60" required placeholder="Teste@hotmail.com">
               <div class="invalid-feedback">Informe um e-mail válido.</div>
             </div>
             
             <div class="mb-3">
-              <label for="cep" class="form-label">CEP</label>
+              <label for="cep" class="form-label"> <span class="text-danger">*</span> CEP</label>
               <input type="text" class="form-control form-control-lg" id="cep" name="cep"
                      maxlength="9" required inputmode="numeric" pattern="^\\d{5}-\\d{3}$" placeholder="00000-000">
               <div class="invalid-feedback">Formato 00000-000.</div>
             </div>
             
             <div class="mb-3">
-              <label for="rua" class="form-label">Rua</label>
+              <label for="rua" class="form-label"> <span class="text-danger">*</span> Rua</label>
               <input type="text" class="form-control form-control-lg" id="rua" name="rua" maxlength="40" required placeholder="Nome da Rua Com Numero">
               <div class="invalid-feedback">Informe o nome da rua (2 a 60 caracteres).</div>
             </div>
             
             <div class="mb-3">
-              <label for="bairro" class="form-label">Bairro</label>
+              <label for="bairro" class="form-label"> <span class="text-danger">*</span> Bairro</label>
               <input type="text" class="form-control form-control-lg" id="bairro" name="bairro" maxlength="40" required placeholder="Bairro">
               <div class="invalid-feedback">Informe o nome do bairro (2 a 60 caracteres).</div>
             </div>
             
             <div class="mb-3">
-              <label for="cidade" class="form-label">Cidade</label>
+              <label for="cidade" class="form-label"> <span class="text-danger">*</span> Cidade</label>
               <input type="text" class="form-control form-control-lg" id="cidade" name="cidade" maxlength="40" required placeholder="Cidade">
               <div class="invalid-feedback">Informe o nome do cidade (2 a 60 caracteres).</div>
             </div>
             
             <div class="mb-3">
-              <label for="uf" class="form-label">UF</label>
+              <label for="uf" class="form-label"> <span class="text-danger">*</span> UF</label>
               <input type="text" class="form-control form-control-lg" id="uf" name="uf"
                      maxlength="2" required pattern="^[A-Za-z]{2}$" placeholder="SP">
               <div class="invalid-feedback">Informe a UF com 2 letras (ex.: SP).</div>
@@ -447,13 +447,21 @@
                     cidade: tr.getAttribute('data-cidade') || '',
                     uf: tr.getAttribute('data-uf') || '',
                     cep: tr.getAttribute('data-cep') || '',
-                    endereco: tr.getAttribute('data-endereco') || ''
+                    endereco: tr.getAttribute('data-endereco') || '',
+                    bairro: tr.getAttribute('data-bairro') || ''
                 };
                 console.log('Editar beneficiário:', benef);
                 mountEdit(benef);
             });
         });
-
+        function apenasDigitos(s) {
+            return String(s ?? '').replace(/\D/g, '');
+        }
+        function formatCEP(valor) {
+            const d = apenasDigitos(valor).slice(0, 8);
+            if (d.length <= 5) return d;
+            return `${d.slice(0,5)}-${d.slice(5)}`;
+        }
         function mountEdit(benef) {
             const content = document.getElementById(CONTENT_ID);
             if (!content || !benef) return;
@@ -488,8 +496,8 @@
             if (cpf)      cpf.value      = formatCPF ? formatCPF(benef.cpf ?? '') : (benef.cpf ?? '');
             if (tel)      tel.value      = formatPhone ? formatPhone(benef.telefone ?? '') : (benef.telefone ?? '');
             if (email)    email.value    = benef.email ?? '';
-            if (cep)      cep.value      = (typeof formatCEP === 'function') ? formatCEP(benef.cep ?? '') : (benef.cep ?? '');
-            if (endereco) endereco.value = benef.endereco ?? benef.rua ?? '';
+            if (cep)      cep.value      = formatCEP ? formatCEP(benef.cep ?? '') : (benef.cep ?? '');
+            if (endereco) endereco.value = benef.endereco ?? '';
             if (bairro)   bairro.value   = benef.bairro ?? '';
             if (cidade)   cidade.value   = benef.cidade ?? '';
             if (uf)       uf.value       = String(benef.uf ?? '').toUpperCase();

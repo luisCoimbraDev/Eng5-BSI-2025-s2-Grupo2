@@ -66,7 +66,7 @@ public class BeneficiariosControl {
             return ResponseEntity.badRequest().body(new Erro("CPF inválido!"));
         }
         if(beneficiarios.getBeneficiariosDAO().pegarBeneficiario(beneficiarios.getCpf(), Singleton.Retorna()) != null && !cpfAntigo.equals(beneficiarios.getCpf()))
-            return ResponseEntity.badRequest().body(new Erro("Já tem um cliente cadastrado com esse CPF"));
+            return ResponseEntity.badRequest().body(new Erro("Já tem um beneficiario cadastrado com esse CPF"));
         if(!Singleton.Retorna().StartTransaction())
             return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
 
