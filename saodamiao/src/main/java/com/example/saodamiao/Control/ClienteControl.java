@@ -59,7 +59,7 @@ public class ClienteControl {
         if (!cliente.isCPF(cpfAntigo) || !cliente.isCPF(cliente.getCpf())) {
             return ResponseEntity.badRequest().body(new Erro("CPF inválido!"));
         }
-        if(cliente.getClienteDAO().PegarCliente(cliente.getCpf(), Singleton.Retorna()) != null)
+        if(cliente.getClienteDAO().PegarCliente(cliente.getCpf(), Singleton.Retorna()) != null && !cpfAntigo.equals(cliente.getCpf()))
             return ResponseEntity.badRequest().body(new Erro("Já tem um cliente cadastrado com esse CPF"));
         if(!Singleton.Retorna().StartTransaction())
             return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));

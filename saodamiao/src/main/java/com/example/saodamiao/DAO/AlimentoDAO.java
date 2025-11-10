@@ -9,13 +9,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlimentoDAO implements IDAO<Alimento> {
+public class AlimentoDAO {
 
 
     public AlimentoDAO(){
     }
 
-    @Override
+
     public boolean gravar(Alimento entidade, Conexao conexao)  { // tornar o nome unico o banco tambem
         String SQL = "INSERT INTO alimentos (nome, tipo_alimento_tpa_id) values ('#2',#3)";
         SQL =SQL.replace("#2", entidade.getNome().toLowerCase());
@@ -26,9 +26,10 @@ public class AlimentoDAO implements IDAO<Alimento> {
     }
 
 
-    @Override
-    public boolean alterar(Alimento entidade, int id, Conexao conexao) {
-        String SQL = ("UPDATE FROM alimentos SET nome = '#2', tipo_alimento_tpa_id = #3 where id = "+id +"");
+
+    public boolean alterar(Alimento entidade, String nome, Conexao conexao) {
+        String SQL = ("UPDATE alimentos SET nome = '#2', tipo_alimento_tpa_id = #3 where nome = '#1';");
+        SQL = SQL.replace("#1", nome.toLowerCase());
         SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
         SQL = SQL.replace("#3", String.valueOf(entidade.getTipo_alimento_id()));
         try {
@@ -40,11 +41,10 @@ public class AlimentoDAO implements IDAO<Alimento> {
 
     }
 
-    @Override
+
     public boolean apagar(Alimento entidade, Conexao conexao) {
         String SQL = "DELETE FROM alimentos WHERE nome = '#2'";
         SQL = SQL.replace("#2", entidade.getNome().toLowerCase());
-
         try{
             return conexao.manipular(SQL);
         }
@@ -55,7 +55,7 @@ public class AlimentoDAO implements IDAO<Alimento> {
 
     }
 
-    @Override
+
     public List<Alimento> pegarListaToda(Conexao conexao) {
         List<Alimento> alimentos = new ArrayList<>();
         String SQL = "SELECT * FROM alimentos";
@@ -76,7 +76,25 @@ public class AlimentoDAO implements IDAO<Alimento> {
     public Alimento ResgatarAlimento(String nome, Conexao conexao)  {
         String SQL = "SELECT * FROM alimentos WHERE nome = '#2'";
         Alimento alimento = null;
-        SQL = SQL.replace("#2", nome.toLowerCase());
+        SQL = SQL.replace("#2", nome.toLowerCase().trim());
+        try{
+            ResultSet rs = conexao.consultar(SQL);
+            if(rs.next()){
+                alimento = new Alimento();
+                alimento.setId(rs.getInt("idAlimentos"));
+                alimento.setNome(rs.getString("nome"));
+                alimento.setTipo_alimento_id(rs.getInt("tipo_alimento_tpa_id"));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return alimento;
+    }
+
+    public Alimento ResgatarAlimento(long id, Conexao conexao)  {
+        String SQL = "SELECT * FROM alimentos WHERE idAlimentos =" + id +";";
+        Alimento alimento = null;
         try{
             ResultSet rs = conexao.consultar(SQL);
             if(rs.next()){
