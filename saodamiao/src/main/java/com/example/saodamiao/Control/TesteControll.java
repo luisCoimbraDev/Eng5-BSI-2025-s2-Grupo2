@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("atualizar-estoques")
 public class TesteControll {
 
-    @PostMapping("/alimentos-soma")
+    /*@PostMapping("/alimentos-soma")
     public ResponseEntity AtualizaEstoqueAlimentosSoma(@RequestParam int idAlimento, @RequestParam int qtde){
         AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
         try{
@@ -29,8 +29,9 @@ public class TesteControll {
             e.printStackTrace();
         }
         return ResponseEntity.badRequest().body("Erro ao atualizar o estoque de alimentos");
-    }
-    @PostMapping("/alimentos-subtrai")
+    }*/
+
+    /*@PostMapping("/alimentos-subtrai")
     public ResponseEntity AtualizaEstoqueAlimentosSubtrai(@RequestParam int idAlimento, @RequestParam int qtde){
         AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
         try{
@@ -41,7 +42,7 @@ public class TesteControll {
             e.printStackTrace();
         }
         return ResponseEntity.badRequest().body("Erro ao atualizar o estoque de alimentos");
-    }
+    }*/
 
     @PostMapping("/itens-soma")
     public ResponseEntity atualizarEstoqueItensSoma(@RequestParam int idItem, @RequestParam int qtde){

@@ -26,7 +26,21 @@ public class CaixaModel {
         this.valorFechamento = valorFechamento;
         this.loginFechamento = loginFechamento;
     }
+    public static CaixaModel criarAbertura(int idVoluntario, double valorAbertura) {
+        CaixaModel caixa = new CaixaModel();
+        caixa.dataAbertura = new Date();
+        caixa.valorAbertura = valorAbertura;
+        caixa.loginAbertura = idVoluntario;
+        return caixa;
+    }
 
+    public static CaixaModel criarFechamento(int idVoluntario, double valorFechamento) {
+        CaixaModel caixa = new CaixaModel();
+        caixa.dataFechamento = new Date();
+        caixa.valorFechamento = valorFechamento;
+        caixa.loginFechamento = idVoluntario;
+        return caixa;
+    }
     public CaixaModel() {}
 
     public int getIdCaixa() {
