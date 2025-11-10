@@ -34,8 +34,12 @@ public class ConfiguracaoSeguranca {
                 .authorizeHttpRequests(authorize -> authorize
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/alimentos").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/alimentos-soma").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens-soma").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/alimentos-subtrai").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens-subtrai").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR

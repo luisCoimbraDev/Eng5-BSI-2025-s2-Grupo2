@@ -1,6 +1,7 @@
 package com.example.saodamiao.Model;
 
 import com.example.saodamiao.DAO.CaixaDAO;
+import com.example.saodamiao.Singleton.Conexao;
 
 import java.util.Date;
 
@@ -26,8 +27,7 @@ public class CaixaModel {
         this.loginFechamento = loginFechamento;
     }
 
-    public CaixaModel(int anInt) {
-    }
+    public CaixaModel() {}
 
     public int getIdCaixa() {
         return idCaixa;
@@ -85,9 +85,9 @@ public class CaixaModel {
         this.loginFechamento = loginFechamento;
     }
 
-    public Boolean atualizarCaixa(int qtde, int idCaixa){
+    public Boolean atualizarCaixa(int qtde, int idCaixa, Conexao conexao){
         caixa = new CaixaDAO();
-        return caixa.atualizarValorCaixa(qtde, idCaixa);
+        return caixa.atualizarValorCaixa(qtde, idCaixa, conexao);
     }
 
     @Override

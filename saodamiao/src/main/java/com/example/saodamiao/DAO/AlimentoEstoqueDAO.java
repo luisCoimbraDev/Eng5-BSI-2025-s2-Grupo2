@@ -42,14 +42,26 @@ public class AlimentoEstoqueDAO {
         }
     }
 
-    public Boolean AtualizaQtde(long idAlimento, int quantidade, Conexao conexao){
+    public Boolean AtualizaQtdeSoma(long idAlimento, int quantidade, Conexao conexao){
         try {
-            String sql = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = #1 WHERE alimentos_idAlimentos = #2";
+            String sql = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = ESA_QTDE + #1 WHERE alimentos_idAlimentos = #2";
             sql = sql.replace("#1", String.valueOf(quantidade))
                     .replace("#2", String.valueOf(idAlimento));
 
             return conexao.manipular(sql);
 
+        } catch (Exception e) {
+            System.out.println("Erro em AtualizaQtde: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public Boolean AtualizaQtdeSubtrai(long idAlimento, int quantidade, Conexao conexao){
+        try {
+            String sql = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = ESA_QTDE - #1 WHERE alimentos_idAlimentos = #2";
+            sql = sql.replace("#1", String.valueOf(quantidade))
+                    .replace("#2", String.valueOf(idAlimento));
+            return conexao.manipular(sql);
         } catch (Exception e) {
             System.out.println("Erro em AtualizaQtde: " + e.getMessage());
             e.printStackTrace();

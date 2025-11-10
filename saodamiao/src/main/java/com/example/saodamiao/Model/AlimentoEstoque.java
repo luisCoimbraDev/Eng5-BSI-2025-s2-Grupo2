@@ -13,8 +13,13 @@ public class AlimentoEstoque {
     private int quantidade;
 
     AlimentoEstoqueDAO alimento;
-    public Boolean atualizarEstoque(int id_alimento, int quantidade, Conexao conexao){
+    public Boolean atualizarEstoqueSoma(int id_alimento, int quantidade, Conexao conexao){
         alimento = new AlimentoEstoqueDAO();
-        return alimento.AtualizaQtde(id_alimento, quantidade, conexao);
+        return alimento.AtualizaQtdeSoma(id_alimento, quantidade, conexao);
+    }
+
+    public Boolean atualizarEstoqueSubtrai(int id_alimento, int quantidade, Conexao conexao){
+        alimento = new AlimentoEstoqueDAO();
+        return alimento.AtualizaQtdeSubtrai(id_alimento, quantidade, conexao);
     }
 }

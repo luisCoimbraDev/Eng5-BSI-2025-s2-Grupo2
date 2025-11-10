@@ -8,17 +8,8 @@ import java.sql.SQLException;
 
 
 public class CaixaDAO {
-
-    private Conexao con;
-
-    public CaixaDAO() {
-        con = new Conexao();
-        // Ajuste os parâmetros conforme o seu ambiente:
-        con.conectar("jdbc:postgresql://localhost/", "bazar", "postgres", "1234");
-    }
-
-    public boolean atualizarValorCaixa(double novoValor, int idCaixa) {
-        String sql = "UPDATE caixa SET valorfechamento = " + novoValor + " WHERE idcaixa = " + idCaixa;
+    public boolean atualizarValorCaixa(double novoValor, int idCaixa, Conexao con) {
+        String sql = "UPDATE caixa SET valorfechamento = valorfechamento + " + novoValor + " WHERE idcaixa = " + idCaixa;
         return con.manipular(sql);
     }
 }

@@ -15,11 +15,23 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("atualizar-estoques")
 public class TesteControll {
 
-    @PostMapping("/alimentos")
-    public ResponseEntity alimentos(@RequestParam int idAlimento, @RequestParam int qtde){
+    @PostMapping("/alimentos-soma")
+    public ResponseEntity AtualizaEstoqueAlimentosSoma(@RequestParam int idAlimento, @RequestParam int qtde){
         AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
         try{
-            if(alimentoEstoque.atualizarEstoque(idAlimento, qtde, Singleton.Retorna())){
+            if(alimentoEstoque.atualizarEstoqueSoma(idAlimento, qtde, Singleton.Retorna())){
+                return ResponseEntity.ok("ATUALIZADO COM SUCESSO");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ResponseEntity.badRequest().body("Erro ao atualizar o estoque de alimentos");
+    }
+    @PostMapping("/alimentos-subtrai")
+    public ResponseEntity AtualizaEstoqueAlimentosSubtrai(@RequestParam int idAlimento, @RequestParam int qtde){
+        AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
+        try{
+            if(alimentoEstoque.atualizarEstoqueSubtrai(idAlimento, qtde, Singleton.Retorna())){
                 return ResponseEntity.ok("ATUALIZADO COM SUCESSO");
             }
         }catch (Exception e){
@@ -28,11 +40,24 @@ public class TesteControll {
         return ResponseEntity.badRequest().body("Erro ao atualizar o estoque de alimentos");
     }
 
-    @PostMapping("/itens")
-    public ResponseEntity itens(@RequestParam int idItem, @RequestParam int qtde){
+    @PostMapping("/itens-soma")
+    public ResponseEntity atualizarEstoqueItensSoma(@RequestParam int idItem, @RequestParam int qtde){
         ItensVenda itensVenda = new ItensVenda();
         try{
-            if(itensVenda.AtualizarEstoque(qtde, idItem, Singleton.Retorna())){
+            if(itensVenda.AtualizarEstoqueSoma(qtde, idItem, Singleton.Retorna())){
+                return ResponseEntity.ok("atualizado estoque de itens do bazar com sucesso");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ResponseEntity.badRequest().body("erro ao atualizar o estoque de itens");
+    }
+
+    @PostMapping("/itens-subtrai")
+    public ResponseEntity atualizarEstoqueItensSubtrai(@RequestParam int idItem, @RequestParam int qtde){
+        ItensVenda itensVenda = new ItensVenda();
+        try{
+            if(itensVenda.AtualizarEstoqueSubtrai(qtde, idItem, Singleton.Retorna())){
                 return ResponseEntity.ok("atualizado estoque de itens do bazar com sucesso");
             }
         }catch (Exception e){

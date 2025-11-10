@@ -43,8 +43,13 @@ public class ItensVenda {
     }
 
     //caso a qtde for passada por parametro, eu seto a nova qtde e passo ela para o metodo de atualizarEstoque
-    public Boolean AtualizarEstoque(int qtde, int idItemVenda, Conexao conexao){
+    public Boolean AtualizarEstoqueSoma(int qtde, int idItemVenda, Conexao conexao){
         item = new ItensVendaDAO();
-        return item.atualizaEstoqueItem(qtde, idItemVenda, conexao);
+        return item.atualizaEstoqueItemSoma(qtde, idItemVenda, conexao);
     }
+    public Boolean AtualizarEstoqueSubtrai(int qtde, int idItemVenda, Conexao conexao){
+        item = new ItensVendaDAO();
+        return item.atualizaEstoqueItemSubtrai(qtde, idItemVenda, conexao);
+    }
+
 }
