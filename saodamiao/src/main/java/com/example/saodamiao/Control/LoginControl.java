@@ -119,6 +119,16 @@ public class LoginControl {
         return login.criarLogin(userName, id, senha, "S", Singleton.Retorna());
     }
 
+    @GetMapping("/verifica-ativo/")
+    public Boolean VerificaAtividade(String userName){
+        login = new Login();
+        login = login.buscarLogin(userName, Singleton.Retorna());
+        if(login.getLoginAtivo() == "S"){
+            return true;
+        }
+        return false;
+    }
+
     public Boolean VerificaAtivo(String userName){
         login = new Login();
         login = login.buscarLogin(userName, Singleton.Retorna());

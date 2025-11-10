@@ -32,7 +32,7 @@ public class Permissoes {
 
     public Permissoes BuscarPermissaoPorNome(String nomePermissao, Conexao conexao){return permissoesDAO.buscarPermissaoPorNome(nomePermissao, conexao);}
 
-    public Boolean InserirPermissaoUsuario(int idColaborador, int idGestor, int idPermissao, Conexao conexao){
+    public Boolean InserirPermissaoUsuario(int idColaborador, int idPermissao, int idGestor, Conexao conexao){
         return permissoesDAO.InserirPermissaoAoColaborador(idColaborador, idGestor, idPermissao, conexao);
     }
 
@@ -47,5 +47,9 @@ public class Permissoes {
     }
     public Boolean mudarAtividadeParaInativo(String nomePermissao, Conexao conexao){
         return permissoesDAO.MudarAtivadadePermissaoParaInativo(nomePermissao, conexao);
+    }
+
+    public List<String> BuscarPermissoesPorId(int id, Conexao conexao){
+        return permissoesDAO.buscarPermissoesPorColaboradorId(id, conexao);
     }
 }

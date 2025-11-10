@@ -43,7 +43,7 @@ const GerenciarPermissoes = {
                             <strong>Email:</strong> <span id="info_email">---</span>
                         </div>
                         <div class="col-md-6">
-                            <strong>Login:</strong> <span id="info_login">---</span>
+                            <strong>Telefone:</strong> <span id="info_telefone">---</span>
                         </div>
                     </div>
                     
@@ -110,7 +110,7 @@ const GerenciarPermissoes = {
         const TOKEN = localStorage.getItem('token');
         
         try {
-            const response = await fetch(`http://localhost:8080/colaborador/buscar-por-cpf/${cpf}`, {
+            const response = await fetch(`http://localhost:8080/colaborador/gerenciar-permissao/${cpf}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${TOKEN}`
@@ -146,7 +146,7 @@ const GerenciarPermissoes = {
         
         document.getElementById('info_nome_colaborador').textContent = data.colaborador.nome;
         document.getElementById('info_email').textContent = data.colaborador.email;
-        document.getElementById('info_login').textContent = data.colaborador.loginUserName;
+        document.getElementById('info_telefone').textContent = data.colaborador.telefone;
         
         const allCheckboxes = document.querySelectorAll('#form-salvar-permissoes input[name="permissoes"]');
         allCheckboxes.forEach(checkbox => {

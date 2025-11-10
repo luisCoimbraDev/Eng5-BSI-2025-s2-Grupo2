@@ -51,6 +51,7 @@ public class PermissoesDAO {
         return tipoPermissoesColaborador;
     }
 
+    // Em PermissoesDAO.java
     public Boolean InserirPermissaoAoColaborador(int idColaborador, int idGestor, int idPermissao, Conexao conexao){
         String sql = "INSERT INTO permissao_usuario (colaborador_idcolaborador, gestor_idgestor, gestor_colaborador_idcolaborador, permissao_idpermissao" +
                 ", data_inicio, data_fim)" +
@@ -58,14 +59,12 @@ public class PermissoesDAO {
         sql = sql.replace("#1", String.valueOf(idColaborador));
         sql = sql.replace("#2", String.valueOf(idGestor));
         sql = sql.replace("#3", String.valueOf(idGestor));
-        sql= sql.replace("#4", String.valueOf(idPermissao));
-        System.out.println("SQL DE PERMISSOES_USUARIOS: "+ sql);
-        try{
-            ResultSet rs = conexao.consultar(sql);
-            if(rs.next()){
+        sql = sql.replace("#4", String.valueOf(idPermissao));
+        try {
+            if (conexao.manipular(sql)) {
                 return true;
             }
-        }catch (SQLException e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;

@@ -203,7 +203,26 @@ public class Colaborador {
         colaboradorDAO = new ColaboradorDAO();
         return colaboradorDAO.CriarColaborador(novoColaborador, conexao);
     }
-    public int BuscaPorCpfERetornaId(String cpf, Conexao conexao){return colaboradorDAO.BuscaPorCpfERetornaId(cpf, conexao);}
+    public int BuscaPorCpfERetornaId(String cpf, Conexao conexao){
+        return colaboradorDAO.BuscaPorCpfERetornaId(cpf, conexao);
+    }
     public void setDtMat(Date dateTimeFormatter) {
+    }
+
+    @Override
+    public String toString() {
+        return "Colaborador{" +
+                "idcolaborador=" + idcolaborador +
+                ", nome='" + nome + '\'' +
+                ", cpf='" + cpf + '\'' +
+                ", mat=" + mat +
+                ", telefone='" + telefone + '\'' +
+                ", email='" + email + '\'' +
+                ", bairro='" + bairro + '\'' +
+                ", rua='" + rua + '\'' +
+                ", cep='" + cep + '\'' +
+                ", uf='" + uf + '\'' +
+                ", cidade='" + cidade + '\'' +
+                '}';
     }
 }

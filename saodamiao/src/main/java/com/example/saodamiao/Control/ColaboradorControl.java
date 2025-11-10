@@ -3,6 +3,7 @@ package com.example.saodamiao.Control;
 import com.example.saodamiao.DAO.LoginDAO;
 import com.example.saodamiao.DTO.ColaboradorDTO;
 import com.example.saodamiao.Model.Colaborador;
+import com.example.saodamiao.Model.Permissoes;
 import com.example.saodamiao.Singleton.Conexao;
 import com.example.saodamiao.Singleton.Erro;
 import com.example.saodamiao.Singleton.Singleton;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController()
 @RequestMapping("/colaborador")
@@ -58,12 +61,28 @@ public class ColaboradorControl {
         return colaborador.BuscarColaborador(idColaborador, Singleton.Retorna());
     }
 
-    @PostMapping("/buscar-por-cpf/")
-    public ResponseEntity BuscarColaboradorPorCpf(@RequestParam String cpf){
+    @GetMapping("/gerenciar-permissao/{cpf}")
+    public ResponseEntity BuscarColaboradorPorCpf(@PathVariable String cpf){
         colaborador = new Colaborador();
         colaborador = colaborador.BuscarPorCpf(cpf, Singleton.Retorna());
+
+        Permissoes permissoesModel = new Permissoes();
+        List<String> permissoes = permissoesModel.BuscarPermissoesPorId(colaborador.getIdColaborador(), Singleton.Retorna());
+
+        // "pacote" SÓ com os dados do colaborador que o front precisa
+        Map<String, Object> colaboradorInfo = new HashMap<>();
+        colaboradorInfo.put("nome", colaborador.getNome());
+        colaboradorInfo.put("email", colaborador.getEmail());
+        colaboradorInfo.put("telefone", colaborador.getTelefone());
+        colaboradorInfo.put("cpf", colaborador.getCpf());
+
+        // "pacote" final que o JavaScript espera
+        Map<String, Object> resposta = new HashMap<>();
+        resposta.put("colaborador", colaboradorInfo);
+        resposta.put("permissoes", permissoes);
+
         if(colaborador != null){
-          return ResponseEntity.ok().body(colaborador);
+          return ResponseEntity.ok().body(resposta);
         }
         return ResponseEntity.badRequest().body("erro ao buscar usuario");
     }
@@ -128,4 +147,6 @@ public class ColaboradorControl {
         List<Colaborador> list = colaborador.getColaboradorDAO().pegarListaToda(Singleton.Retorna());
         return ResponseEntity.ok(list);
     }
+
+
 }

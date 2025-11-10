@@ -43,6 +43,7 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR
+                        //.requestMatchers(HttpMethod.POST, "/colaborador/buscar-por-cpf/{cpf}").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/permissoes/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/vendas/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/relatorios/**").hasAnyAuthority(PermissaoConstantes.ROLE_ADMIN, PermissaoConstantes.ROLE_GESTOR)
