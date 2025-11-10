@@ -12,6 +12,7 @@
 
     <!-- Fonts and icons -->
     <script src="../js/plugin/webfont/webfont.min.js"></script>
+    <script src="../js/Colaborador.js"></script>
     <script>
         WebFont.load({
             google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -89,6 +90,7 @@
 </head>
 <body>
 <script> document.addEventListener('DOMContentLoaded', carregarParametrizacao); </script>
+<script src="../js/GerenciarPermissoes.js"></script>
 <div class="wrapper">
     <!-- Sidebar -->
     <div class="sidebar" data-background-color="dark">
@@ -156,7 +158,7 @@
                                     </a>
                                     <div class="collapse" id="pessoas-colaboradores">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="colaboradores/create.html"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#" onclick="return ColaboradorCadastro.mount();"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="colaboradores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="colaboradores/edit.html"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="colaboradores/delete.html"><span class="sub-item">Excluir</span></a></li>
@@ -198,7 +200,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="permissoes/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="permissoes/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="permissoes/edit.html"><span class="sub-item">Editar</span></a></li>
+                                            <li><a href="permissoes/edit.html" onclick="return GerenciarPermissoes.mount();"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="permissoes/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
