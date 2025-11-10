@@ -36,7 +36,9 @@ window.PossiveisCestas = (() => {
               <p class="text-muted mb-4 text-center">Defina o tamanho da cesta:</p>
 
               <div class="mb-4">
-                <label for="tamanhoCesta" class="form-label">Tamanho</label>
+                <label for="tamanhoCesta" class="form-label">
+                    Tamanho <span style="color:red;">*</span>
+                </label>
                 <select id="tamanhoCesta" class="form-select form-select-lg" style="height:3.25rem;" aria-describedby="tamFeedback">
                   <option value="">Selecione...</option>
                   <option value="P">P (Pequena)</option>
@@ -121,9 +123,8 @@ window.PossiveisCestas = (() => {
 
                 if (!resp.ok) throw new Error('Erro ao consultar o servidor.');
                 const data = await resp.json();
-                Swal.close(); // fecha o loading
+                Swal.close();
 
-                // Caso dê pra montar cestas
                 if (typeof data === 'number' && data > 0) {
                     Swal.fire({
                         icon: 'success',
@@ -137,9 +138,7 @@ window.PossiveisCestas = (() => {
                         confirmButtonText: 'Entendido',
                         confirmButtonColor: '#28a745'
                     });
-                }
-                // Caso não dê pra montar nenhuma
-                else if (Array.isArray(data) && data.length > 0) {
+                } else if (Array.isArray(data) && data.length > 0) {
                     const listaHTML = data.map(item => `
                         <div class="faltante-item">
                             <i class="bi bi-exclamation-circle text-danger"></i>
