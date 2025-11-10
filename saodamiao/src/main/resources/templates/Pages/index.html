@@ -217,7 +217,8 @@
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="inspecao_alimento/index.html">
+                                    <!-- MUDANÇA 1: passa a abrir via JS -->
+                                    <a href="#" onclick="return PossiveisCestas.mount();">
                                         <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
                                     </a>
                                 </li>
@@ -464,6 +465,7 @@
 <script src="../js/plugin/datatables/datatables.min.js"></script>
 <script src="../js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
 <script src="../js/plugin/sweetalert/sweetalert.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../js/kaiadmin.min.js"></script>
 
 <!-- Seu JS externo que injeta o formulário -->
@@ -472,6 +474,9 @@
 <script defer src="../js/AlimentoConsulta.js" ></script>
 <script src=" ../js/Beneficiarios.js" defer></script>
 <script src=" ../js/Voluntarios.js" defer></script>
+
+<!-- MUDANÇA 2: inclui o script da tela de Possíveis Cestas -->
+<script src="../js/PossiveisCestas.js" defer></script>
 <script defer src="../js/InspecionarAlimento.js"></script>
 </body>
 </html>
