@@ -1,6 +1,8 @@
 // Expondo no escopo global para o onclick do HTML
 window.PossiveisCestas = (() => {
 
+    /* ===================== Helpers de UI ===================== */
+
     function notify(type, message) {
         if (window.$ && window.$.notify) {
             window.$.notify({ message }, {
@@ -13,6 +15,38 @@ window.PossiveisCestas = (() => {
             console.log(type.toUpperCase() + ": " + message);
         }
     }
+
+    // Abre um "loading" usando o mesmo sweetalert (v1) do módulo de Clientes
+    function openLoadingSwal(title = 'Consultando...', text = 'Aguarde enquanto verificamos o estoque.') {
+        if (typeof swal === 'function') {
+            try {
+                swal({
+                    title,
+                    text,
+                    icon: 'info',
+                    buttons: false,
+                    closeOnClickOutside: false,
+                    closeOnEsc: false
+                });
+            } catch (e) { /* ignore */ }
+        }
+    }
+
+    function closeSwal() {
+        if (typeof swal === 'function' && swal.close) {
+            try { swal.close(); } catch (e) { /* ignore */ }
+        }
+    }
+
+    function showSwal(type, title, text) {
+        if (typeof swal === 'function') {
+            swal({ title, text, icon: type, button: 'OK' });
+        } else {
+            alert((title ? title + '\n\n' : '') + (text || ''));
+        }
+    }
+
+    /* ===================== View ===================== */
 
     function mount() {
         const app = document.getElementById('app-content');
@@ -107,13 +141,8 @@ window.PossiveisCestas = (() => {
             selectTam.classList.remove('is-invalid');
             selectTam.removeAttribute('aria-invalid');
 
-            // Loading visual
-            Swal.fire({
-                title: 'Consultando...',
-                text: 'Aguarde enquanto verificamos o estoque.',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
+            // Loading (SweetAlert v1)
+            openLoadingSwal();
 
             try {
                 const resp = await fetch(`http://localhost:8080/apis/cestas/pegarCesta/${tam}`, {
@@ -123,61 +152,40 @@ window.PossiveisCestas = (() => {
 
                 if (!resp.ok) throw new Error('Erro ao consultar o servidor.');
                 const data = await resp.json();
-                Swal.close();
+                closeSwal();
 
                 if (typeof data === 'number' && data > 0) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '✅ Cestas disponíveis!',
-                        html: `
-                            <p style="font-size:1.1rem;">
-                                É possível montar <b>${data}</b> cesta${data > 1 ? 's' : ''} 
-                                do tipo <span class="badge bg-success">${tam}</span>.
-                            </p>
-                        `,
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: '#28a745'
-                    });
+                    showSwal(
+                        'success',
+                        '✅ Cestas disponíveis!',
+                        `É possível montar ${data} cesta${data > 1 ? 's' : ''} do tipo ${tam}.`
+                    );
                 } else if (Array.isArray(data) && data.length > 0) {
-                    const listaHTML = data.map(item => `
-                        <div class="faltante-item">
-                            <i class="bi bi-exclamation-circle text-danger"></i>
-                            <span><b>${item.alimento.nome}</b> — faltam <b>${item.qtde}</b></span>
-                        </div>
-                    `).join('');
+                    const listText = data.map(item => {
+                        const nome = (item && item.alimento && item.alimento.nome) ? item.alimento.nome
+                            : (item && item.nome) ? item.nome
+                                : 'Item';
+                        const falta = (item && (item.qtde ?? item.falta ?? item.quantidade)) ?? '?';
+                        return `• ${nome} — faltam ${falta}`;
+                    }).join('\n');
 
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '⚠️ Nenhuma cesta pode ser montada',
-                        html: `
-                            <p style="font-size:1.05rem; margin-bottom:10px;">
-                                Para montar uma cesta <b>${tam}</b>, estão faltando os seguintes itens:
-                            </p>
-                            <div class="faltantes-list" style="text-align:left; padding-left:20px;">
-                                ${listaHTML}
-                            </div>
-                        `,
-                        confirmButtonText: 'Entendi',
-                        confirmButtonColor: '#f0ad4e'
-                    });
+                    showSwal(
+                        'warning',
+                        '⚠️ Nenhuma cesta pode ser montada',
+                        `Para montar uma cesta ${tam}, estão faltando:\n\n${listText}`
+                    );
                 } else {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Nenhuma informação',
-                        text: 'Não foi possível determinar o estado das cestas no momento.',
-                        confirmButtonText: 'Ok'
-                    });
+                    showSwal('info', 'Nenhuma informação', 'Não foi possível determinar o estado das cestas no momento.');
                 }
 
             } catch (error) {
                 console.error(error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro na comunicação',
-                    text: 'Falha ao conectar com o servidor. Verifique sua conexão e tente novamente.',
-                    confirmButtonText: 'Ok',
-                    confirmButtonColor: '#dc3545'
-                });
+                closeSwal();
+                showSwal(
+                    'error',
+                    'Erro na comunicação',
+                    'Falha ao conectar com o servidor. Verifique sua conexão e tente novamente.'
+                );
             }
         });
 
