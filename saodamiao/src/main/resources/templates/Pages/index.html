@@ -12,6 +12,7 @@
 
     <!-- Fonts and icons -->
     <script src="../js/plugin/webfont/webfont.min.js"></script>
+    <script src="../js/Colaborador.js"></script>
     <script>
         WebFont.load({
             google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -43,8 +44,6 @@
     <link rel="stylesheet" href="../css/plugins.min.css" />
     <link rel="stylesheet" href="../css/kaiadmin.min.css" />
     <link rel="stylesheet" href="../css/demo.css" />
-    <link rel="stylesheet" href="../css/TipoBazar.css">
-    <link rel="stylesheet" href="../css/caixa.css">
 
     <style>
         html, body { height: 100%; margin: 0; padding: 0; background-color: #f7f9fc; }
@@ -90,7 +89,8 @@
     </style>
 </head>
 <body>
-    <script> document.addEventListener('DOMContentLoaded', carregarParametrizacao); </script>
+<script> document.addEventListener('DOMContentLoaded', carregarParametrizacao); </script>
+<script src="../js/GerenciarPermissoes.js"></script>
 <div class="wrapper">
     <!-- Sidebar -->
     <div class="sidebar" data-background-color="dark">
@@ -146,10 +146,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-beneficiarios">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="beneficiarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="beneficiarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="beneficiarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="beneficiarios/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#" onclick="return CrudBeneficiario.mount();"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#" onclick="return CrudBeneficiario.mountList()"><span class="sub-item">Listar / Consultar / Editar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -160,7 +158,7 @@
                                     </a>
                                     <div class="collapse" id="pessoas-colaboradores">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="colaboradores/create.html"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#" onclick="return ColaboradorCadastro.mount();"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="colaboradores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="colaboradores/edit.html"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="colaboradores/delete.html"><span class="sub-item">Excluir</span></a></li>
@@ -174,10 +172,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-voluntarios">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="voluntarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="voluntarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="voluntarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="voluntarios/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudVoluntario.mount()" class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span  onclick="return CrudVoluntario.mountList()" class="sub-item">Listar / Consultar / Editar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -204,7 +200,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="permissoes/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="permissoes/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="permissoes/edit.html"><span class="sub-item">Editar</span></a></li>
+                                            <li><a href="permissoes/edit.html" onclick="return GerenciarPermissoes.mount();"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="permissoes/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
@@ -223,7 +219,8 @@
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="inspecao_alimento/index.html">
+                                    <!-- MUDANÇA 1: passa a abrir via JS -->
+                                    <a href="#" onclick="return PossiveisCestas.mount();">
                                         <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
                                     </a>
                                 </li>
@@ -296,7 +293,7 @@
                                     </div>
                                 </li>
                                 <li>
-                                    <a href="inspecao_alimento/index.html">
+                                    <a id="inspecao-alimento" href="#">
                                         <i class="fas fa-search-plus me-2"></i><span class="sub-item">Inspeções de Alimento</span>
                                     </a>
                                 </li>
@@ -314,8 +311,8 @@
                         <div class="collapse" id="bazar">
                             <ul class="nav nav-collapse">
                                 <li><a href="bazar/vendas/efetuar.html"><i class="fas fa-cash-register me-2"></i><span class="sub-item">Efetuar Venda</span></a></li>
-                                <li><a href="#" data-modulo="caixa" data-acao="abrir"><i class="fas fa-cash-register me-2"></i><span class="sub-item">Abrir Caixa</span></a></li>
-                                <li><a href="#" data-modulo="caixa" data-acao="fechar"><i class="fas fa-lock me-2"></i><span class="sub-item">Fechar Caixa</span></a></li>
+                                <li><a href="bazar/caixa/abrir.html"><i class="fas fa-money-bill-wave me-2"></i><span class="sub-item">Abrir Caixa</span></a></li>
+                                <li><a href="bazar/caixa/fechar.html"><i class="fas fa-lock me-2"></i><span class="sub-item">Fechar Caixa</span></a></li>
 
                                 <li>
                                     <a data-bs-toggle="collapse" href="#bazar-clientes">
@@ -326,7 +323,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <!-- ESTE LINK DISPARA A INJEÇÃO PELO Clientes.js -->
                                             <li><a href="#" onclick="return BazarClientes.mount();"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="clientes_bazar/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#" onclick="return BazarClientes.list();"><span class="sub-item">Listar / Consultar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -339,10 +336,10 @@
                                     </a>
                                     <div class="collapse" id="bazar-tipo">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="#" data-modulo="tipo-bazar" data-acao="cadastrar"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="#" data-modulo="tipo-bazar" data-acao="listar"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="#" data-modulo="tipo-bazar" data-acao="editar"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="#" data-modulo="tipo-bazar" data-acao="excluir"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="bazar/tipo/create.html"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="bazar/tipo/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="bazar/tipo/edit.html"><span class="sub-item">Editar</span></a></li>
+                                            <li><a href="bazar/tipo/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -443,17 +440,19 @@
         <footer class="footer">
             <div class="container-fluid d-flex justify-content-between">
                 <nav class="pull-left">
-                    <ul class="nav">
-                        <li class="nav-item"><a class="nav-link" href="http://www.themekita.com">ThemeKita</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Help</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Licenses</a></li>
+                    <ul class="nav align-items-center">
+                        <li class="nav-item me-4">
+                            <span class="text-muted">Bairro:</span>
+                            <span id="id-bairro"></span>
+                        </li>
+                        <li class="nav-item">
+                            <span class="text-muted">Rua:</span>
+                            <span id="id-rua"></span>
+                        </li>
                     </ul>
                 </nav>
-                <div class="copyright">
-                    2024, made with <i class="fa fa-heart heart text-danger"></i> by
-                    <a href="http://www.themekita.com">ThemeKita</a>
-                </div>
-                <div>Distributed by <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.</div>
+                <div>Email: <a id="id-email"></a></div>
+                <div>Telefone: <a id="id-tel"></a></div>
             </div>
         </footer>
     </div> <!-- /.main-panel -->
@@ -471,10 +470,14 @@
 <script src="../js/kaiadmin.min.js"></script>
 
 <!-- Seu JS externo que injeta o formulário -->
-    <script src="../js/TipoBazarLoader.js"></script>
-    <script src="../js/Clientes.js" defer></script>
-    <script defer src="../js/Alimento.js" ></script>
-    <script defer src="../js/AlimentoConsulta.js" ></script>
-    <script src="../js/CaixaLoader.js"></script>
+<script src="../js/Clientes.js" defer></script>
+<script defer src="../js/Alimento.js" ></script>
+<script defer src="../js/AlimentoConsulta.js" ></script>
+<script src=" ../js/Beneficiarios.js" defer></script>
+<script src=" ../js/Voluntarios.js" defer></script>
+
+<!-- MUDANÇA 2: inclui o script da tela de Possíveis Cestas -->
+<script src="../js/PossiveisCestas.js" defer></script>
+<script defer src="../js/InspecionarAlimento.js"></script>
 </body>
 </html>
