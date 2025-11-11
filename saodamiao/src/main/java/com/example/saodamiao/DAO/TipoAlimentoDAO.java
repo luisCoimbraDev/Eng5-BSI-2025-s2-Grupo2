@@ -2,8 +2,6 @@ package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.TipoAlimento;
 import com.example.saodamiao.Singleton.Conexao;
-import com.example.saodamiao.Singleton.Singleton;
-import lombok.Data;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

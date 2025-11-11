@@ -285,10 +285,8 @@
                                     </a>
                                     <div class="collapse" id="cestas-agendamentos">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="agendamentos_entrega/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="agendamentos_entrega/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="agendamentos_entrega/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="agendamentos_entrega/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mount()" class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mountList()" class="sub-item">Consultar/ Editar/ Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -479,5 +477,6 @@
 <!-- MUDANÇA 2: inclui o script da tela de Possíveis Cestas -->
 <script src="../js/PossiveisCestas.js" defer></script>
 <script defer src="../js/InspecionarAlimento.js"></script>
+<script defer src=" ../js/AgendamentoCestas.js"></script>
 </body>
 </html>
