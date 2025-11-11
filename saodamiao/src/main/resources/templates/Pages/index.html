@@ -43,6 +43,7 @@
     <link rel="stylesheet" href="../css/plugins.min.css" />
     <link rel="stylesheet" href="../css/kaiadmin.min.css" />
     <link rel="stylesheet" href="../css/demo.css" />
+    <link rel="stylesheet" href="../css/cesta.css" />
 
     <style>
         html, body { height: 100%; margin: 0; padding: 0; background-color: #f7f9fc; }
@@ -219,7 +220,8 @@
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="inspecao_alimento/index.html">
+                                    <!-- MUDANÇA 1: passa a abrir via JS -->
+                                    <a href="#" onclick="return PossiveisCestas.mount();">
                                         <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
                                     </a>
                                 </li>
@@ -250,6 +252,11 @@
                                             <li><a href="cestas_basicas/itens_cesta/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
+                                </li>
+                                <li>
+                                    <a href="#" onclick="return MontagemCesta.mountPossiveisCestas();">
+                                        <i class="fas fa-hammer me-2"></i><span class="sub-item">Realizar Montagem de Cestas</span>
+                                    </a>
                                 </li>
                                 <li>
                                     <a data-bs-toggle="collapse" href="#cestas-alimentos">
@@ -474,5 +481,6 @@
     <script defer src="../js/AlimentoConsulta.js" ></script>
     <script src=" ../js/Beneficiarios.js" defer></script>
     <script src="../js/CestaBasica.js"></script>
+    <script src="../js/MontagemCesta.js"></script>
 </body>
 </html>
