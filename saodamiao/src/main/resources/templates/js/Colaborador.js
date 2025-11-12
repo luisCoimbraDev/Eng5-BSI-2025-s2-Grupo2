@@ -1,16 +1,15 @@
 const ColaboradorCadastro = {
     
     formHTML: `
-        <div class="page-inner">
+        <div class="page-inner pt-5">
           <div class="row">
             <div class="col-md-12">
-              <div class="card">
+              <div class="card mt-3">
                 <div class="card-header">
                   <h4 class="card-title">Cadastrar Novo Colaborador</h4>
                 </div>
                 <div class="card-body">
                   <form id="form-cadastro-colaborador" novalidate>
-                    
                     <h5 class="mb-3">Dados Pessoais</h5>
                     <div class="row">
                       <div class="col-md-7">

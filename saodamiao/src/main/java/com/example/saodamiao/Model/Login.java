@@ -6,6 +6,7 @@ import com.example.saodamiao.Singleton.Conexao;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class Login {
@@ -14,7 +15,6 @@ public class Login {
     private String loginAtivo;
     private String loginSenha;
 
-    private Boolean senhaTemporaria;
 
     private LoginDAO loginDAO;
 
@@ -35,29 +35,22 @@ public class Login {
         LoginDAO loginDAO = new LoginDAO();
         return loginDAO.buscarPorLogin(loginUserName, conexao);
     }
-    public Boolean MudarAtividade(Login login, Conexao conexao){
+    public Boolean MudarParaAtivo(Login login, Conexao conexao){
         loginDAO = new LoginDAO();
         return loginDAO.MudarParaInativo(login, conexao);
+    }
+
+    public Boolean MudarParaInativo(Login login, Conexao conexao){
+        loginDAO = new LoginDAO();
+        return loginDAO.MudarParaAtivo(login, conexao);
     }
     public Boolean criarLogin(String userName, int id, String senha, String ativo, Conexao conexao){
         loginDAO = new LoginDAO();
         return loginDAO.CriarLogin(userName, id, senha, ativo, conexao);
     }
 
-    public Boolean isSenhaTemporaria(){
-        return senhaTemporaria;
-    }
-
     public List<Login> todosLogins(Conexao conexao){
         loginDAO = new LoginDAO();
         return loginDAO.loginsAtivos(conexao);
-    }
-
-    public Boolean getSenhaTemporaria() {
-        return senhaTemporaria;
-    }
-
-    public void setSenhaTemporaria(Boolean senhaTemporaria) {
-        this.senhaTemporaria = senhaTemporaria;
     }
 }

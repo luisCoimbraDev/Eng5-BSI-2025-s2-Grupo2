@@ -4,10 +4,10 @@ const GerenciarPermissoes = {
     permissoesAtuais: [],
     
     formHTML: `
-        <div class="page-inner">
+        <div class="page-inner pt-5">
           <div class="row">
             <div class="col-md-12">
-              <div class="card">
+              <div class="card mt-3">
                 <div class="card-header">
                   <h4 class="card-title">Gerenciar Permissões de Colaborador</h4>
                 </div>
