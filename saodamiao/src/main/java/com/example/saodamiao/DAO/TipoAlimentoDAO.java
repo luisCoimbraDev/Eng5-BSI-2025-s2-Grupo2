@@ -2,8 +2,6 @@ package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.TipoAlimento;
 import com.example.saodamiao.Singleton.Conexao;
-import com.example.saodamiao.Singleton.Singleton;
-import lombok.Data;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -62,6 +60,7 @@ public class TipoAlimentoDAO implements IDAO<TipoAlimento>{
                 entidade.setNome(rs.getString("TPA_DESC"));
                 entidade.setId(rs.getInt("TPA_ID"));
             }
+            rs.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

@@ -18,21 +18,33 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="card-body">
           <form id="formAlimento" class="row g-3 needs-validation" novalidate>
             <div class="col-12">
-              <label for="nome" class="form-label">Nome do Alimento</label>
+              <label for="nome" class="form-label">Nome do Alimento <span style="color: red;">*</span></label>
               <input type="text" class="form-control form-control-lg" id="nome-alim" name="nome" maxlength="40" placeholder="Ex.: Arroz" required>
               <div class="invalid-feedback">Informe o nome do alimento.</div>
             </div>
 
            
             <div class="col-12 col-md-6">
-              <label for="tipo_alimento" class="form-label">Tipo de Alimento</label>
+              <label for="tipo_alimento" class="form-label">Tipo de Alimento <span style="color: red;">*</span></label>
              
-             <select id ="tipos-list" class="form-select" aria-label="Selecione um item" required>
+             <select id ="tipos-list" class="form-select h5 fa-bold" aria-label="Selecione um item" required>
               <option value="" selected disabled>Escolha um item…</option>
             </select>
               <div class="invalid-feedback">Escolha um tipo válido.</div>
             </div>
-
+            
+             <div class="col-12 col-md-6">
+              <label for="nome" class="form-label">Quantidade do Alimento <span style="color: red;">*</span></label>
+              <input type="number" class="form-control form-control-lg" id="qtd-alim" name="qtd" maxlength="6" placeholder="Ex: 40" required>
+              <div class="invalid-feedback">Informe uma quantidade valida.</div>
+            </div>
+            
+            <div class="col-12 mb-3">
+              <label for="nome" class="form-label">Data de Validade <span style="color: red;">*</span></label>
+              <input type="date" class="form-control form-control-lg" id="dt-alim" name="dt" maxlength="10" placeholder="Ex: 24/10/2028" required>
+              <div class="invalid-feedback">Informe uma data valida.</div>
+            </div>
+            
             <div class="col-12 d-grid d-sm-flex gap-2 justify-content-sm-end mt-2">
               <button type="reset" class="btn btn-outline-secondary">Limpar</button>
               <button type="submit" class="btn btn-success"><i class="fas fa-save me-2"></i>Salvar</button>
@@ -87,9 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
             form.classList.add('was-validated');
             if (!form.checkValidity()) return;
 
+            const datavalidade = document.getElementById('dt-alim').value.split('/');
+            const partinvetida = datavalidade.reverse();
+            const dataFormatada = partinvetida.join('-');
+
             const retorno = { // salvando os valores para enviar
                 'nome' : document.getElementById('nome-alim').value.trim(),
-                'tipo_alimento' : document.getElementById('tipos-list').value
+                'tipo_alimento' : document.getElementById('tipos-list').value,
+                'quantidade' : document.getElementById('qtd-alim').value,
+                'data_validade' : dataFormatada
             }
 
             try{

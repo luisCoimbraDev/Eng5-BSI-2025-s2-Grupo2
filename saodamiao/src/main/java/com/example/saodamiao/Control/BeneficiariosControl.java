@@ -46,6 +46,18 @@ public class BeneficiariosControl {
         return  ResponseEntity.ok(lista);
     }
 
+    @GetMapping(value = "/buscar/{cpf}")
+    public ResponseEntity<Object>   buscarBeneficiario(@PathVariable String cpf)
+    {
+        Beneficiarios beneficiarios = new Beneficiarios();
+        beneficiarios = beneficiarios.getBeneficiariosDAO().pegarBeneficiario(cpf,Singleton.Retorna());
+        if(!beneficiarios.isCPF(beneficiarios.getCpf()))
+            return ResponseEntity.badRequest().body(new Erro("CPF Invalido!!"));
+        if (beneficiarios == null) {
+            return ResponseEntity.badRequest().body(new Erro("CPF beneficiario nao encontrado!!"));
+        }
+        return ResponseEntity.ok(beneficiarios);
+    }
     @DeleteMapping(value = "/deletar")
     public ResponseEntity<Object> DeletarBeneficiario(@RequestBody Beneficiarios beneficiarios)
     {
@@ -66,7 +78,7 @@ public class BeneficiariosControl {
             return ResponseEntity.badRequest().body(new Erro("CPF inválido!"));
         }
         if(beneficiarios.getBeneficiariosDAO().pegarBeneficiario(beneficiarios.getCpf(), Singleton.Retorna()) != null && !cpfAntigo.equals(beneficiarios.getCpf()))
-            return ResponseEntity.badRequest().body(new Erro("Já tem um cliente cadastrado com esse CPF"));
+            return ResponseEntity.badRequest().body(new Erro("Já tem um beneficiario cadastrado com esse CPF"));
         if(!Singleton.Retorna().StartTransaction())
             return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
 

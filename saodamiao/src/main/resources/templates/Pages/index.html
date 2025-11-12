@@ -12,6 +12,7 @@
 
     <!-- Fonts and icons -->
     <script src="../js/plugin/webfont/webfont.min.js"></script>
+    <script src="../js/Colaborador.js"></script>
     <script>
         WebFont.load({
             google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -89,7 +90,9 @@
     </style>
 </head>
 <body>
-    <script> document.addEventListener('DOMContentLoaded', carregarParametrizacao); </script>
+<script> document.addEventListener('DOMContentLoaded', carregarParametrizacao); </script>
+<script src="../js/GerenciarPermissoes.js"></script>
+<script src="../js/todosColaboradores.js"></script>
 <div class="wrapper">
     <!-- Sidebar -->
     <div class="sidebar" data-background-color="dark">
@@ -157,8 +160,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-colaboradores">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="colaboradores/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="colaboradores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#" onclick="return ColaboradorCadastro.mount();"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#" onclick="return InativarUsuario.mount();"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="colaboradores/edit.html"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="colaboradores/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
@@ -171,10 +174,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-voluntarios">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="voluntarios/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="voluntarios/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="voluntarios/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="voluntarios/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudVoluntario.mount()" class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span  onclick="return CrudVoluntario.mountList()" class="sub-item">Listar / Consultar / Editar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -201,7 +202,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="permissoes/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="permissoes/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="permissoes/edit.html"><span class="sub-item">Editar</span></a></li>
+                                            <li><a href="permissoes/edit.html" onclick="return GerenciarPermissoes.mount();"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="permissoes/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
@@ -291,15 +292,13 @@
                                     </a>
                                     <div class="collapse" id="cestas-agendamentos">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="agendamentos_entrega/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="agendamentos_entrega/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="agendamentos_entrega/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="agendamentos_entrega/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mount()" class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mountList()" class="sub-item">Consultar/ Editar/ Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
                                 <li>
-                                    <a href="inspecao_alimento/index.html">
+                                    <a id="inspecao-alimento" href="#">
                                         <i class="fas fa-search-plus me-2"></i><span class="sub-item">Inspeções de Alimento</span>
                                     </a>
                                 </li>
@@ -329,7 +328,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <!-- ESTE LINK DISPARA A INJEÇÃO PELO Clientes.js -->
                                             <li><a href="#" onclick="return BazarClientes.mount();"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="clientes_bazar/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#" onclick="return BazarClientes.list();"><span class="sub-item">Listar / Consultar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -476,11 +475,17 @@
 <script src="../js/kaiadmin.min.js"></script>
 
 <!-- Seu JS externo que injeta o formulário -->
-    <script src="../js/Clientes.js" defer></script>
-    <script defer src="../js/Alimento.js" ></script>
-    <script defer src="../js/AlimentoConsulta.js" ></script>
-    <script src=" ../js/Beneficiarios.js" defer></script>
-    <script src="../js/CestaBasica.js"></script>
-    <script src="../js/MontagemCesta.js"></script>
+<script src="../js/Clientes.js" defer></script>
+<script defer src="../js/Alimento.js" ></script>
+<script defer src="../js/AlimentoConsulta.js" ></script>
+<script src=" ../js/Beneficiarios.js" defer></script>
+<script src="../js/CestaBasica.js"></script>
+<script src="../js/MontagemCesta.js"></script>
+<script src=" ../js/Voluntarios.js" defer></script>
+
+<!-- MUDANÇA 2: inclui o script da tela de Possíveis Cestas -->
+<script src="../js/PossiveisCestas.js" defer></script>
+<script defer src="../js/InspecionarAlimento.js"></script>
+<script defer src=" ../js/AgendamentoCestas.js"></script>
 </body>
 </html>

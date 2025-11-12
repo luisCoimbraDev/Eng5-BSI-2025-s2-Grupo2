@@ -14,7 +14,7 @@ import java.util.List;
 public class ClienteControl {
 
     @PostMapping(value = "/inserir")
-    public ResponseEntity<Object> InsereAlimento(@RequestBody Cliente cliente){
+    public ResponseEntity<Object> InsereCliente(@RequestBody Cliente cliente){
         // Valida CPF antes de abrir transação
         if (!cliente.isCPF(cliente.getCpf())) {
             return ResponseEntity.badRequest().body(new Erro("CPF inválido!!"));

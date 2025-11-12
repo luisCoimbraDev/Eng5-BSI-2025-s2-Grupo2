@@ -6,6 +6,8 @@ import com.example.saodamiao.Model.ItemCesta;
 import com.example.saodamiao.Singleton.Erro;
 import com.example.saodamiao.Singleton.Singleton;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.ResultSet;
