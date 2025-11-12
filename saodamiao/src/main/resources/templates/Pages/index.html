@@ -91,6 +91,7 @@
 <body>
 <script> document.addEventListener('DOMContentLoaded', carregarParametrizacao); </script>
 <script src="../js/GerenciarPermissoes.js"></script>
+<script src="../js/todosColaboradores.js"></script>
 <div class="wrapper">
     <!-- Sidebar -->
     <div class="sidebar" data-background-color="dark">
@@ -159,7 +160,7 @@
                                     <div class="collapse" id="pessoas-colaboradores">
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="#" onclick="return ColaboradorCadastro.mount();"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="colaboradores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#" onclick="return InativarUsuario.mount();"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="colaboradores/edit.html"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="colaboradores/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>

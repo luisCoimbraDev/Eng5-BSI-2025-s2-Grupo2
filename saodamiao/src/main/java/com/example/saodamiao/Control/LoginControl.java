@@ -82,9 +82,6 @@ select * from gestor;
 select * from permissao;
 select * from permissao_usuario;
 * */
-
-//!autenticacaoDTO.getSenha().equals(login.getLoginSenha())
-//!passwordEncoder.matches(autenticacaoDTO.getSenha(), login.getLoginSenha())
 @RestController
 @RequestMapping(name = "/login")
 public class LoginControl {
@@ -123,7 +120,7 @@ public class LoginControl {
     public Boolean VerificaAtividade(String userName){
         login = new Login();
         login = login.buscarLogin(userName, Singleton.Retorna());
-        if(login.getLoginAtivo() == "S"){
+        if(login.getLoginAtivo().equals("S")){
             return true;
         }
         return false;
@@ -132,7 +129,7 @@ public class LoginControl {
     public Boolean VerificaAtivo(String userName){
         login = new Login();
         login = login.buscarLogin(userName, Singleton.Retorna());
-        if(login.getLoginAtivo() == "S"){
+        if(login.getLoginAtivo().equals("N")){
             return true;
         }
         return false;
@@ -142,11 +139,11 @@ public class LoginControl {
     public ResponseEntity MudarParaInativo(@RequestBody String userName){
         login = new Login();
         login = login.buscarLogin(userName, Singleton.Retorna());
-        if(!VerificaAtivo(userName) && login.todosLogins(Singleton.Retorna()).size() < 2){
+        if(VerificaAtivo(userName)){
             return ResponseEntity.status(400).body("Nao e possivel desativar o login");
         }
         login.setLoginAtivo("N");
-        if(login.MudarAtividade(login, Singleton.Retorna())){
+        if(login.todosLogins(Singleton.Retorna()).size() > 1  && login.MudarParaInativo(login, Singleton.Retorna())){
             return ResponseEntity.ok("Atualizado com sucesso");
         }
         return ResponseEntity.status(500).body("Operacao não realizada");
@@ -156,11 +153,11 @@ public class LoginControl {
     public ResponseEntity MudarParaAtivo(@RequestBody String userName){
         login = new Login();
         login = login.buscarLogin(userName, Singleton.Retorna());
-        if(VerificaAtivo(userName)){
+        if(!VerificaAtivo(userName)){
             return ResponseEntity.status(400).body("Nao e possivel ativar um login ativo");
         }
         login.setLoginAtivo("S");
-        if(login.MudarAtividade(login, Singleton.Retorna())){
+        if(login.MudarParaAtivo(login, Singleton.Retorna())){
             return ResponseEntity.ok("Atualizado com sucesso");
         }
         return  ResponseEntity.status(500).body("Operacao não realizada");
