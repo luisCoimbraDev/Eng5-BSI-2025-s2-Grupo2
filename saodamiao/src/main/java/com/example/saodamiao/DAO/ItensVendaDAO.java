@@ -3,12 +3,15 @@ package com.example.saodamiao.DAO;
 import com.example.saodamiao.Singleton.Conexao;
 
 public class ItensVendaDAO {
-    public Boolean atualizaEstoqueItemSoma(int qtde, int id, Conexao con){
-        String sql = "UPDATE itens_venda SET qtde = qtde + " + qtde + " WHERE item_bazar_iditem_bazar = "+ id;
-        return con.manipular(sql);
+    Conexao con;
+
+    public ItensVendaDAO(){
+        con = new Conexao();
+        con.conectar("jdbc:postgresql://localhost/", "bazar", "postgres", "1234");
     }
-    public Boolean atualizaEstoqueItemSubtrai(int qtde, int id, Conexao con){
-        String sql = "UPDATE itens_venda SET qtde = qtde - " + qtde + " WHERE item_bazar_iditem_bazar = "+ id;
+
+    public Boolean atualizaEstoqueItem(int qtde, int id){
+        String sql = "UPDATE itens_venda SET qtde = " + qtde + "WHERE item_bazar_iditem_bazar = "+ id;
         return con.manipular(sql);
     }
 }

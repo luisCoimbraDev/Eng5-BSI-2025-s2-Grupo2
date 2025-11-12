@@ -46,18 +46,6 @@ public class BeneficiariosControl {
         return  ResponseEntity.ok(lista);
     }
 
-    @GetMapping(value = "/buscar/{cpf}")
-    public ResponseEntity<Object>   buscarBeneficiario(@PathVariable String cpf)
-    {
-        Beneficiarios beneficiarios = new Beneficiarios();
-        beneficiarios = beneficiarios.getBeneficiariosDAO().pegarBeneficiario(cpf,Singleton.Retorna());
-        if(!beneficiarios.isCPF(beneficiarios.getCpf()))
-            return ResponseEntity.badRequest().body(new Erro("CPF Invalido!!"));
-        if (beneficiarios == null) {
-            return ResponseEntity.badRequest().body(new Erro("CPF beneficiario nao encontrado!!"));
-        }
-        return ResponseEntity.ok(beneficiarios);
-    }
     @DeleteMapping(value = "/deletar")
     public ResponseEntity<Object> DeletarBeneficiario(@RequestBody Beneficiarios beneficiarios)
     {

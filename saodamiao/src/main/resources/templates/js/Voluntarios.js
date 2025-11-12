@@ -197,7 +197,7 @@
         const  campoCpf = document.getElementById('cpf');
         const  caixaErros = document.getElementById('formErrors');
         const  form = document.getElementById('formVoluntario');
-        const  cep = document.getElementById('cep');
+
         const esperar = (fn,ms)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
         let dto;
         const validarCPF = valor => {
@@ -221,9 +221,6 @@
             else                    tel.value = v;
         });
 
-        cep.addEventListener('input', () => {
-            cep.value = formatarCep(cep.value);
-        });
         campoCpf.addEventListener('input', ()=>{
             campoCpf.value = formatar(campoCpf.value);
             if (apenasDigitos(campoCpf.value).length < 11) {
@@ -790,6 +787,7 @@
                         showErrors([`Falha ao atualizar Colaborador (${r1.status}): ${msg}`]);
                         return;
                     }
+                    console.log(dtoVol);
                     // Atualiza VOLUNTÁRIO (datas)
                     const r2 = await fetch(`${API_UPDATE_VOL}/${voluntario.idcolaborador}`, {
                         method: 'PUT',
