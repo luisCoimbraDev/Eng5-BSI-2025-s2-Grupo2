@@ -9,7 +9,12 @@ public class ItensVenda {
     private int qtde;
     private int valorItem;
 
-    private ItensVendaDAO item;
+    private ItensVendaDAO itemDAO;
+
+    public ItensVenda() {
+        this.itemDAO = new ItensVendaDAO();
+    }
+
     public int getValorItem() {
         return valorItem;
     }
@@ -42,14 +47,18 @@ public class ItensVenda {
         this.idItemVenda = idItemVenda;
     }
 
-    //caso a qtde for passada por parametro, eu seto a nova qtde e passo ela para o metodo de atualizarEstoque
-    public Boolean AtualizarEstoqueSoma(int qtde, int idItemVenda, Conexao conexao){
-        item = new ItensVendaDAO();
-        return item.atualizaEstoqueItemSoma(qtde, idItemVenda, conexao);
+    // ✅ CORREÇÃO: Chama o método através da instância (não estático)
+    public Boolean inserirItemVenda(int idVenda, int idItemBazar, int qtde, double valor, Conexao conexao){
+        return itemDAO.inserirItemVenda(idVenda, idItemBazar, qtde, valor, conexao);
     }
-    public Boolean AtualizarEstoqueSubtrai(int qtde, int idItemVenda, Conexao conexao){
-        item = new ItensVendaDAO();
-        return item.atualizaEstoqueItemSubtrai(qtde, idItemVenda, conexao);
-    }
-
 }
+
+//caso a qtde for passada por parametro, eu seto a nova qtde e passo ela para o metodo de atualizarEstoque
+//    public Boolean AtualizarEstoqueSoma(int qtde, int idItemVenda, Conexao conexao){
+//        item = new ItensVendaDAO();
+//        return item.atualizaEstoqueItemSoma(qtde, idItemVenda, conexao);
+//    }
+//    public Boolean AtualizarEstoqueSubtrai(int qtde, int idItemVenda, Conexao conexao){
+//        item = new ItensVendaDAO();
+//        return item.atualizaEstoqueItemSubtrai(qtde, idItemVenda, conexao);
+//    }

@@ -42,6 +42,13 @@ public class ConfiguracaoSeguranca {
 
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
+                        // Adição Pedro Ohye
+                        .requestMatchers("/apis/clientes/**").permitAll()
+                        .requestMatchers("/apis/tipobazar/**").permitAll()
+                        .requestMatchers("/apis/itembazar/**").permitAll()
+                        .requestMatchers("/apis/vendabazar/**").permitAll()
+                        .requestMatchers("/api/caixa/**").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR
                         //.requestMatchers(HttpMethod.POST, "/colaborador/buscar-por-cpf/{cpf}").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/permissoes/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)

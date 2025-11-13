@@ -10,8 +10,6 @@ import java.util.List;
 
 public class CaixaDAO implements IDAO<CaixaModel> {
 
-    private Conexao con;
-
     @Override
     public boolean gravar(CaixaModel entidade, Conexao conexao) {
         try {
@@ -130,13 +128,6 @@ public class CaixaDAO implements IDAO<CaixaModel> {
         return null;
     }
 
-    public boolean atualizarValorCaixa(double novoValor, int idCaixa, Conexao conexao) {
-        String sql = "UPDATE caixa SET valor_fechamento = #1 WHERE idcaixa = #2";
-        sql = sql.replace("#1", String.valueOf(novoValor));
-        sql = sql.replace("#2", String.valueOf(idCaixa));
-        return conexao.manipular(sql);
-    }
-
     public CaixaModel buscarCaixaAberto(Conexao conexao) {
         String sql = "SELECT * FROM caixa WHERE data_fechamento IS NULL";
         try {
@@ -156,5 +147,10 @@ public class CaixaDAO implements IDAO<CaixaModel> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public boolean atualizarValorCaixa(double novoValor, int idCaixa, Conexao con) {
+        String sql = "UPDATE caixa SET valorfechamento = valorfechamento + " + novoValor + " WHERE idcaixa = " + idCaixa;
+        return con.manipular(sql);
     }
 }
