@@ -6,36 +6,29 @@
         ATUALIZAR_CESTA: `${BASE}/apis/cestas/atualizar`,
         DELETAR_CESTA: `${BASE}/apis/cestas/deletar`,
         GET_ALIMENTOS: `${BASE}/apis/alimentos/getall`,
-        LIST_ITENS_POR_CESTA: `${BASE}/apis/itenscesta/lista-cesta`
+        LIST_ITENS_POR_CESTA: `${BASE}/apis/itens-cesta/lista-cesta`
     };
 
     function notifySuccess(title, text) {
         if (typeof swal === "function") swal(title, text, "success");
         else alert(`${title}\n\n${text}`);
     }
+
     function notifyError(title, text) {
         if (typeof swal === "function") swal(title, text, "error");
         else alert(`${title}\n\n${text}`);
     }
+
     async function fetchJson(url, opts = {}) {
-        try {
-            const resp = await fetch(url, opts);
-            if (!resp.ok) {
-                // tenta ler mensagem do servidor
-                const txt = await resp.text().catch(() => null);
-                throw new Error(txt || `HTTP ${resp.status}`);
-            }
-            // se corpo vazio, retorna null
-            const contentType = resp.headers.get("Content-Type") || "";
-            if (!contentType.includes("application/json")) {
-                // tenta texto
-                const t = await resp.text().catch(() => null);
-                return t ? JSON.parse(t) : null;
-            }
-            return await resp.json();
-        } catch (err) {
-            throw err;
+        const response = await fetch(url, opts);
+        if (!response.ok) throw new Error(await response.text());
+
+        const contentType = response.headers.get("Content-Type") || "";
+        if (!contentType.includes("application/json")) {
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
         }
+        return await response.json();
     }
 
     function mountCreate() {
@@ -55,7 +48,7 @@
                   <div class="col-12 col-md-6">
                     <label class="form-label campo-obrigatorio">Identificador da Cesta</label>
                     <input type="text" id="cesta-tamanho" class="form-control" 
-                           placeholder="Ex: FAMILIAR, BASICA, ESPECIAL..." 
+                           placeholder="Tamanho da cesta *" 
                            required maxlength="20">
                     <div class="invalid-feedback">Por favor, informe um identificador único para a cesta.</div>
                     <div class="form-text">Use um nome único para identificar a cesta</div>

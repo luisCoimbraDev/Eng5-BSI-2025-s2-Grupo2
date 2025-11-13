@@ -14,13 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "apis/itenscesta")
+@RequestMapping(value = "apis/itens-cesta")
 @CrossOrigin(origins = "*")
 public class ItemCestaControl {
 
     @PostMapping(value = "/inserir")
     public ResponseEntity<Object> inserirItemCesta(@RequestBody ItemCestaRequest itemRequest) {
-        // Busca a cesta pelo tamanho através da entidade CestaBasica
         CestaBasica cesta = new CestaBasica();
         List<CestaBasica> cestas = cesta.getCestaBasicaDAO().buscarPorTamanho(itemRequest.getTamanhoCesta(), Singleton.Retorna());
 
@@ -46,7 +45,6 @@ public class ItemCestaControl {
 
     @PutMapping(value = "/atualizar")
     public ResponseEntity<Object> atualizarItemCesta(@RequestBody ItemCestaRequest itemRequest) {
-        // Busca a cesta pelo tamanho através da entidade CestaBasica
         CestaBasica cesta = new CestaBasica();
         List<CestaBasica> cestas = cesta.getCestaBasicaDAO().buscarPorTamanho(itemRequest.getTamanhoCesta(), Singleton.Retorna());
 
@@ -61,7 +59,6 @@ public class ItemCestaControl {
             return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
         }
 
-        // Para atualizar, usamos o ID da cesta como parâmetro
         if (!item.getItemCestaDAO().alterar(item, cestaEncontrada.getId(), Singleton.Retorna())) {
             Singleton.Retorna().Rollback();
             return ResponseEntity.badRequest().body(new Erro(Singleton.Retorna().getMensagemErro()));
@@ -73,7 +70,6 @@ public class ItemCestaControl {
 
     @DeleteMapping(value = "/deletar")
     public ResponseEntity<Object> deletarItemCesta(@RequestBody ItemCestaRequest itemRequest) {
-        // Busca a cesta pelo tamanho através da entidade CestaBasica
         CestaBasica cesta = new CestaBasica();
         List<CestaBasica> cestas = cesta.getCestaBasicaDAO().buscarPorTamanho(itemRequest.getTamanhoCesta(), Singleton.Retorna());
 

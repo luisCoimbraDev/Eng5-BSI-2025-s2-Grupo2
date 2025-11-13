@@ -24,17 +24,14 @@ public class CestaBasicaControl {
             return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
         }
 
-        // Grava a cesta básica
         if (!cesta.getCestaBasicaDAO().gravar(cesta, Singleton.Retorna())) {
             Singleton.Retorna().Rollback();
             return ResponseEntity.badRequest().body(new Erro("Problema ao gravar cesta no banco de dados"));
         }
 
-        // Obtém o ID da cesta recém-inserida
         int idCesta = cesta.getCestaBasicaDAO().getUltimoIdInserido(Singleton.Retorna());
         cesta.setId(idCesta);
 
-        // Grava os itens da cesta
         if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
             for (ItemCesta item : cesta.getItens()) {
                 if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
@@ -90,7 +87,6 @@ public class CestaBasicaControl {
     public ResponseEntity<Object> deletarCesta(@RequestBody CestaBasicaDTO cestaDTO) {
         CestaBasica cesta = cestaDTO.toCestaBasica();
 
-        // Busca a cesta existente pelo tamanho para obter o ID
         List<CestaBasica> cestasExistentes = cesta.getCestaBasicaDAO()
                 .buscarPorTamanho(cestaDTO.getTamanho(), Singleton.Retorna());
 
@@ -122,7 +118,6 @@ public class CestaBasicaControl {
             return ResponseEntity.notFound().build();
         }
 
-        // Para cada cesta, carrega seus itens através da entidade ItemCesta
         ItemCesta itemCesta = new ItemCesta();
         for (CestaBasica c : cestas) {
             List<ItemCesta> itensCesta = itemCesta.getItemCestaDAO().buscarItensCesta(c.getId(), Singleton.Retorna());

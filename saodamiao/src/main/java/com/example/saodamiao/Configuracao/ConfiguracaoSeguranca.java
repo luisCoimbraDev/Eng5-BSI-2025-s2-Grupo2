@@ -42,6 +42,13 @@ public class ConfiguracaoSeguranca {
 
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
+                        .requestMatchers("/apis/cestas/**").permitAll()
+                        .requestMatchers("/apis/estoque-cestas/**").permitAll()
+                        .requestMatchers("/apis/itens-cesta/**").permitAll()
+                        .requestMatchers("/apis/alimentos/**").permitAll()
+                        .requestMatchers("/apis/tipoalimento/**").permitAll()
+                        .requestMatchers("/Parametrizacao/**").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR
                         .requestMatchers(HttpMethod.PUT, "/mudarParaInativo").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/mudarParaAtivo").hasAuthority("ROLE_ADMIN")

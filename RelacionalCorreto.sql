@@ -15,6 +15,7 @@ drop table if exists colaborador cascade;
 drop table if exists doacao cascade;
 drop table if exists entrada_doacao cascade;
 drop table if exists estoque_alimento cascade;
+drop table if exists estoque_cesta_basica cascade:
 drop table if exists funcionario cascade;
 drop table if exists gestor cascade;
 drop table if exists inspecao_alimento cascade;
