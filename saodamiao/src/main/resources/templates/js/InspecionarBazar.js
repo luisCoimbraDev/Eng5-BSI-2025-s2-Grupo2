@@ -100,7 +100,7 @@ window.InspecionarBazar = (() => {
             <div class="modal-body">
               <ul class="nav nav-tabs mb-3">
                 <li class="nav-item">
-                  <a class="nav-link active" data-bs-toggle="tab" href="#tabAlterar">Inspeção</a>
+                  <a class="nav-link active" id="tabInspecaoLink" data-bs-toggle="tab" href="#tabAlterar">Inspeção</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" id="btnTabHistorico" data-bs-toggle="tab" href="#tabHistorico">Histórico</a>
@@ -148,8 +148,8 @@ window.InspecionarBazar = (() => {
                       </div>
 
                       <div class="col-12">
-                        <label class="form-label fw-semibold">Observação</label>
-                        <textarea id="obsItem" rows="3" class="form-control" placeholder="Observações sobre o item..."></textarea>
+                        <label class="form-label fw-semibold">Observação <span class="text-danger">*</span></label>
+                        <textarea id="obsItem" rows="3" class="form-control obrigatorio" placeholder="Observações sobre o item..."></textarea>
                       </div>
 
                     </div>
@@ -214,7 +214,6 @@ window.InspecionarBazar = (() => {
 
         try {
             const resp = await fetch(`http://localhost:8080/apis/inspecao/bazar/historico/${itemId}`);
-
             const lista = await resp.json();
 
             if (!lista || lista.length === 0) {
@@ -226,7 +225,7 @@ window.InspecionarBazar = (() => {
             }
 
             area.innerHTML = lista.map(h => `
-                <div class="border rounded p-3 mb-2">
+                <div class="border rounded p-3 mb-2 text-center">
                     <div><strong>Data:</strong> ${formatarData(h.data)}</div>
                     <div><strong>Colaborador:</strong> ${h.colaboradorNome}</div>
                     <div><strong>Observação:</strong> ${h.observacao || "—"}</div>
@@ -338,6 +337,28 @@ window.InspecionarBazar = (() => {
         document.getElementById("condicaoItem").value = item.condicao;
         document.getElementById("obsItem").value = item.observacao || "";
 
+        // ⭐ RESETA A BORDA DO CAMPO OBSERVAÇÃO AO ABRIR O MODAL ⭐
+        document.getElementById("obsItem").style.borderColor = "#ced4da";
+
+        const tabInspecaoLink = document.getElementById("tabInspecaoLink");
+        const tabHistoricoLink = document.getElementById("btnTabHistorico");
+        const tabInspecaoPane = document.getElementById("tabAlterar");
+        const tabHistoricoPane = document.getElementById("tabHistorico");
+
+        tabInspecaoLink.classList.add("active");
+        tabInspecaoLink.setAttribute("aria-selected", "true");
+        tabHistoricoLink.classList.remove("active");
+        tabHistoricoLink.setAttribute("aria-selected", "false");
+
+        tabInspecaoPane.classList.add("show", "active");
+        tabHistoricoPane.classList.remove("show", "active");
+
+        document.getElementById("historicoConteudo").innerHTML = `
+            <div class="py-4 text-muted">
+                <i class="bi bi-clock-history me-2"></i>
+                Nenhum histórico disponível.
+            </div>`;
+
         new bootstrap.Modal(document.getElementById("modalInspecao")).show();
     }
 
@@ -387,15 +408,33 @@ window.InspecionarBazar = (() => {
             e.target.value = formatarMoeda(valor / 100);
         });
 
-        // ⭐ EVENTO CORRETO PARA ABRIR O HISTÓRICO ⭐
+        // carregar histórico ao trocar de aba
         document.getElementById("btnTabHistorico")
             .addEventListener("shown.bs.tab", () => {
-                if (itemSelecionado)
+                if (itemSelecionado) {
                     carregarHistorico(itemSelecionado.id);
+                }
             });
 
-        // salvar inspeção
+        // ⭐ REMOVER BORDA VERMELHA AO DIGITAR NO CAMPO OBSERVAÇÃO ⭐
+        document.getElementById("obsItem").addEventListener("input", e => {
+            if (e.target.value.trim().length > 0) {
+                e.target.style.borderColor = "#ced4da";
+            }
+        });
+
+        // ==================== SALVAR INSPEÇÃO ====================
         document.getElementById("btnSalvarInspecao").onclick = async () => {
+
+            const obsCampo = document.getElementById("obsItem");
+
+            // 🔴 SOMENTE FICA VERMELHO AO TENTAR SALVAR
+            if (!obsCampo.value.trim()) {
+                obsCampo.style.borderColor = "red";
+                return;
+            } else {
+                obsCampo.style.borderColor = "#ced4da";
+            }
 
             const itemAtualizado = {
                 id: itemSelecionado.id,
@@ -403,7 +442,7 @@ window.InspecionarBazar = (() => {
                 qtde: Number(document.getElementById("qtdeItem").value),
                 preco: limparMoeda(document.getElementById("precoItem").value),
                 condicao: document.getElementById("condicaoItem").value,
-                observacao: document.getElementById("obsItem").value
+                observacao: obsCampo.value
             };
 
             swal({
