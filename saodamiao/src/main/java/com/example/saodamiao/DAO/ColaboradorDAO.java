@@ -50,7 +50,6 @@ public class ColaboradorDAO {
         sql = sql.replace("#9", colaborador.getBairro());
         sql = sql.replace("#10", colaborador.getRua());
         sql = sql.replace("#11", colaborador.getCep());
-        System.out.println("SQL: " + sql);
         return conexao.manipular(sql);
     }
 
