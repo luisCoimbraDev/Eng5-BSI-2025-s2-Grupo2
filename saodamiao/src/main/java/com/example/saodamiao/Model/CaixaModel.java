@@ -99,9 +99,9 @@ public class CaixaModel {
         this.loginFechamento = loginFechamento;
     }
 
-    public Boolean atualizarCaixa(int qtde, int idCaixa, Conexao conexao){
+    public Boolean atualizarCaixa(Double novoValor, int idCaixa, Conexao conexao){
         caixa = new CaixaDAO();
-        return caixa.atualizarValorCaixa(qtde, idCaixa, conexao);
+        return caixa.atualizarValorCaixa(novoValor, idCaixa, conexao);
     }
 
     @Override

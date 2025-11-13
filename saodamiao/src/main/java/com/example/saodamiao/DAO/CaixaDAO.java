@@ -80,7 +80,8 @@ public class CaixaDAO {
         }
     }
     public boolean atualizarValorCaixa(double novoValor, int idCaixa, Conexao con) {
-        String sql = "UPDATE caixa SET valorfechamento = valorfechamento + " + novoValor + " WHERE idcaixa = " + idCaixa;
+        String sql = "UPDATE caixa SET valor_fechamento = valor_fechamento + " + novoValor + " WHERE idcaixa = " + idCaixa;
+        System.out.println("SQL DO CAIXA: "+ sql);
         return con.manipular(sql);
     }
 

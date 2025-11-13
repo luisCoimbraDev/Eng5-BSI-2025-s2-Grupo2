@@ -17,7 +17,7 @@ public class AlimentoEstoque {
         alimentoEstoqueDAO = new AlimentoEstoqueDAO();
     }
 
-    public AlimentoEstoque(long id_alimento, LocalDate validade, int quantidade){
+    public AlimentoEstoque(long id_alimento, String validade, int quantidade){
         alimentoEstoqueDAO = new AlimentoEstoqueDAO();
     }
 

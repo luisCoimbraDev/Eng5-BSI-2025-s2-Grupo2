@@ -51,7 +51,6 @@ public class AlimentoEstoqueDAO {
             sql = sql.replace("#1", String.valueOf(quantidade))
                     .replace("#2", String.valueOf(idAlimento))
                     .replace("#3", validade);
-
             return conexao.manipular(sql);
 
         } catch (Exception e) {

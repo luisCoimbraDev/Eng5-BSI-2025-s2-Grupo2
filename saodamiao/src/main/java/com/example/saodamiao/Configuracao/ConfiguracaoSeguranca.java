@@ -39,6 +39,7 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens-soma").permitAll()
                         .requestMatchers(HttpMethod.POST, "/atualizar-estoques/alimentos-subtrai").permitAll()
                         .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens-subtrai").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/atualizar-estoques/atualizarCaixa").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
