@@ -18,31 +18,43 @@ public class CestaBasicaControl {
 
     @PostMapping(value = "/inserir")
     public ResponseEntity<Object> inserirCesta(@RequestBody CestaBasicaDTO cestaDTO) {
-        CestaBasica cesta = cestaDTO.toCestaBasica();
+        try {
+            CestaBasica cesta = cestaDTO.toCestaBasica();
+            CestaBasica cestaModel = new CestaBasica();
 
-        if (!Singleton.Retorna().StartTransaction()) {
-            return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
-        }
+            List<CestaBasica> cestasExistentes = cestaModel.getCestaBasicaDAO().buscarPorTamanho(cestaDTO.getTamanho(), Singleton.Retorna());
 
-        if (!cesta.getCestaBasicaDAO().gravar(cesta, Singleton.Retorna())) {
-            Singleton.Retorna().Rollback();
-            return ResponseEntity.badRequest().body(new Erro("Problema ao gravar cesta no banco de dados"));
-        }
+            if (!cestasExistentes.isEmpty()) {
+                return ResponseEntity.badRequest().body(new Erro("Já existe uma cesta com o tamanho: " + cestaDTO.getTamanho()));
+            }
 
-        int idCesta = cesta.getCestaBasicaDAO().getUltimoIdInserido(Singleton.Retorna());
-        cesta.setId(idCesta);
+            if (!Singleton.Retorna().StartTransaction()) {
+                return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
+            }
 
-        if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
-            for (ItemCesta item : cesta.getItens()) {
-                if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
-                    Singleton.Retorna().Rollback();
-                    return ResponseEntity.badRequest().body(new Erro("Problema ao gravar itens da cesta no banco de dados"));
+            if (!cesta.getCestaBasicaDAO().gravar(cesta, Singleton.Retorna())) {
+                Singleton.Retorna().Rollback();
+                return ResponseEntity.badRequest().body(new Erro("Problema ao gravar cesta no banco de dados"));
+            }
+
+            int idCesta = cesta.getCestaBasicaDAO().getUltimoIdInserido(Singleton.Retorna());
+            cesta.setId(idCesta);
+
+            if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
+                for (ItemCesta item : cesta.getItens()) {
+                    if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
+                        Singleton.Retorna().Rollback();
+                        return ResponseEntity.badRequest().body(new Erro("Problema ao gravar itens da cesta no banco de dados"));
+                    }
                 }
             }
-        }
 
-        Singleton.Retorna().Commit();
-        return ResponseEntity.ok(cestaDTO);
+            Singleton.Retorna().Commit();
+            return ResponseEntity.ok(cestaDTO);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(500).body(new Erro("Erro ao inserir cesta: " + e.getMessage()));
+        }
     }
 
     @PutMapping(value = "/atualizar")

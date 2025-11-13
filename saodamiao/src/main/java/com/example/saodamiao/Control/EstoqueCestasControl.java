@@ -177,12 +177,9 @@ public class EstoqueCestasControl {
             for (ItemCesta item : itensCesta) {
                 int quantidadeTotal = item.getQtde() * request.getQuantidadeSolicitada();
 
-                String dataAtual = LocalDate.now().toString();
-
-                boolean sucesso = alimentoEstoqueModel.atualizarEstoqueSubtrai(
-                        (int) item.getAlimento().getId(),
+                boolean sucesso = alimentoEstoqueModel.atualizarEstoqueMontagem(
+                        item.getAlimento().getId(),
                         quantidadeTotal,
-                        dataAtual,
                         Singleton.Retorna()
                 );
 
@@ -220,7 +217,6 @@ public class EstoqueCestasControl {
 
         } catch (Exception e) {
             Singleton.Retorna().Rollback();
-            System.err.println("ERRO ao confirmar montagem: " + e.getMessage());
             return ResponseEntity.status(500).body(new Erro("Erro ao confirmar montagem: " + e.getMessage()));
         }
     }

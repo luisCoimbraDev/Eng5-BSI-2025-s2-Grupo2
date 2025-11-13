@@ -192,12 +192,31 @@
             atualizarVisibilidadeLista(); // Atualiza a visibilidade das mensagens
         });
 
-        // Resto do código permanece igual...
+        async function verificarTamanhoExistente(tamanho) {
+            try {
+                const cestas = await fetchJson(API.LIST_CESTAS);
+                return cestas.some(cesta =>
+                    cesta.tamanho.toUpperCase() === tamanho.toUpperCase()
+                );
+            } catch (error) {
+                console.error('Erro ao verificar tamanho:', error);
+                return false;
+            }
+        }
+
         form.addEventListener("submit", async (ev) => {
             ev.preventDefault();
             form.classList.add("was-validated");
 
             const tamanho = document.getElementById("cesta-tamanho").value.trim().toUpperCase();
+
+            const tamanhoExiste = await verificarTamanhoExistente(tamanho);
+            if (tamanhoExiste) {
+                notifyError("Erro", `Já existe uma cesta com o tamanho "${tamanho}".`);
+                document.getElementById("cesta-tamanho").classList.add('is-invalid');
+                return;
+            }
+
             const itens = Array.from(lista.children).map(li => ({
                 alimentoNome: li.dataset.alimentoNome,
                 quantidade: Number(li.dataset.qtde)
@@ -774,7 +793,11 @@
 
         if (!ok) return;
 
-        const payload = { tamanho: tamanho }; // <- Mudei para 'tamanho' aqui
+        const payload = {
+            tamanho: tamanho,
+            itens: [] // lista vazia, já que só precisa do tamanho para identificar
+        };
+
         try {
             await fetchJson(API.DELETAR_CESTA, {
                 method: "DELETE",

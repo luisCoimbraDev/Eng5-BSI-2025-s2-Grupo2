@@ -175,4 +175,63 @@ public class AlimentoEstoqueDAO {
         }
         return alimentoEstoqueList;
     }
+
+    public Boolean atualizarEstoqueFIFO(long idAlimento, int quantidade, Conexao conexao) {
+        try {
+            String sqlTotal = "SELECT SUM(ESA_QTDE) AS total FROM ESTOQUE_ALIMENTO WHERE alimentos_idAlimentos = #1";
+            sqlTotal = sqlTotal.replace("#1", String.valueOf(idAlimento));
+
+            ResultSet rsTotal = conexao.consultar(sqlTotal);
+            int estoqueTotal = 0;
+            if (rsTotal != null && rsTotal.next()) {
+                estoqueTotal = rsTotal.getInt("total");
+                rsTotal.close();
+            }
+
+            if (estoqueTotal < quantidade) {
+                return false;
+            }
+
+            String sqlLotes = "SELECT * FROM ESTOQUE_ALIMENTO WHERE alimentos_idAlimentos = #1 AND ESA_QTDE > 0 ORDER BY ESA_VALIDADE ASC";
+            sqlLotes = sqlLotes.replace("#1", String.valueOf(idAlimento));
+
+            ResultSet rs = conexao.consultar(sqlLotes);
+            int quantidadeRestante = quantidade;
+            boolean algumLoteAtualizado = false;
+
+            while (rs != null && rs.next() && quantidadeRestante > 0) {
+                String validadeLote = rs.getString("ESA_VALIDADE");
+                int estoqueLote = rs.getInt("ESA_QTDE");
+                int idLote = rs.getInt("alimentos_idAlimentos");
+
+                int quantidadeSubtrair = Math.min(quantidadeRestante, estoqueLote);
+
+                String sqlUpdate = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = ESA_QTDE - #1 WHERE alimentos_idAlimentos = #2 AND ESA_VALIDADE = '#3'";
+                sqlUpdate = sqlUpdate.replace("#1", String.valueOf(quantidadeSubtrair))
+                        .replace("#2", String.valueOf(idLote))
+                        .replace("#3", validadeLote);
+
+                boolean sucessoUpdate = conexao.manipular(sqlUpdate);
+                if (sucessoUpdate) {
+                    quantidadeRestante -= quantidadeSubtrair;
+                    algumLoteAtualizado = true;
+                } else {
+                    if (rs != null) rs.close();
+                    return false;
+                }
+            }
+
+            if (rs != null) rs.close();
+
+            if (quantidadeRestante > 0) {
+                return false;
+            }
+
+            return algumLoteAtualizado;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }

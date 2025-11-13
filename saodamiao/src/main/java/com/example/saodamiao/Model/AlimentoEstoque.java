@@ -40,4 +40,13 @@ public class AlimentoEstoque {
         alimento = new AlimentoEstoqueDAO();
         return alimento.AtualizaQtdeSubtrai(id_alimento, quantidade, validade , conexao);
     }
+
+    public Boolean atualizarEstoqueMontagem(long idAlimento, int quantidade, Conexao conexao) {
+        try {
+            return alimentoEstoqueDAO.atualizarEstoqueFIFO(idAlimento, quantidade, conexao);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }

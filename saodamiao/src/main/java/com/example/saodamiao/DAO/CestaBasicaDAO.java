@@ -17,9 +17,24 @@ public class CestaBasicaDAO implements IDAO<CestaBasica>{
 
     @Override
     public boolean gravar(CestaBasica entidade, Conexao conexao) {
-        String sql = "INSERT INTO tipo_cesta_basica (tamanho) VALUES ('#1')";
-        sql = sql.replace("#1", entidade.getTamanho());
-        return conexao.manipular(sql);
+        String sqlVerifica = "SELECT 1 FROM tipo_cesta_basica WHERE UPPER(tamanho) = UPPER('#1')";
+        sqlVerifica = sqlVerifica.replace("#1", entidade.getTamanho());
+
+        try {
+            ResultSet rs = conexao.consultar(sqlVerifica);
+            if (rs != null && rs.next()) {
+                rs.close();
+                throw new RuntimeException("Já existe uma cesta com o tamanho: " + entidade.getTamanho());
+            }
+            if (rs != null) rs.close();
+
+            String SQL = "INSERT INTO tipo_cesta_basica (tamanho) VALUES ('#1')";
+            SQL = SQL.replace("#1", entidade.getTamanho().toUpperCase());
+            return conexao.manipular(SQL);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao verificar duplicidade: " + e.getMessage());
+        }
     }
 
     @Override
