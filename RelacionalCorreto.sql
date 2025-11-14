@@ -39,12 +39,12 @@ drop table if exists voluntario cascade;
 -- =====================
 
 create table colaborador (
-  idcolaborador int not null,
+  idcolaborador int not null unique default nextval('seq_colaborador'),
   nome varchar(45) not null,
-  cpf varchar(45) not null,
-  dt_mat date not null,
-  telefone varchar(14) not null,
-  email varchar(60) not null,
+  cpf varchar(45) not null unique,
+  dt_mat date,
+  telefone varchar(14) not null unique,
+  email varchar(60) not null unique,
   rua varchar(40) not null,
   bairro varchar(40) not null,
   cidade varchar(40) not null,
@@ -52,6 +52,7 @@ create table colaborador (
   cep varchar(9) not null,
   primary key (idcolaborador)
 );
+
 
 create table beneficiario (
   idbeneficiario int not null,
@@ -96,7 +97,7 @@ create table tipo_cesta_basica (
 );
 
 create table permissao (
-  idpermissao int not null,
+  idpermissao int not null default nextval('seq_permissao') unique,
   tipo_permissao varchar(30) not null,
   ativo varchar(1) not null,
   primary key (idpermissao)
@@ -128,9 +129,9 @@ create table login (
   colaborador_idcolaborador int not null,
   log_username varchar(10) not null unique,
   log_ativo varchar(1) not null,
-  log_senha varchar(10) not null,
+  log_senha varchar(60) not null,
   primary key (colaborador_idcolaborador),
-  constraint fk_ _colaborador1
+  constraint fk_login_colaborador1
     foreign key (colaborador_idcolaborador)
     references colaborador (idcolaborador)
     on delete no action
