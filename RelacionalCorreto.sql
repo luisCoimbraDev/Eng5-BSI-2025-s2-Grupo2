@@ -469,6 +469,14 @@ create table voluntario (
     on update no action
 );
 
+CREATE TABLE estoque_cesta_basica (
+  idcestas_basicas  INTEGER PRIMARY KEY
+  REFERENCES tipo_cesta_basica(idcestas_basicas),
+  qtde              INTEGER NOT NULL DEFAULT 0,
+  dt_atualizacao    TIMESTAMP NOT NULL DEFAULT now(),
+  CHECK (qtde >= 0)
+);
+
 -- =========================
 -- sequences (estilo simples)
 -- =========================
@@ -494,5 +502,6 @@ create sequence seq_item_entrada_doacao start with 1 increment by 1;
 create sequence seq_itens_doacao start with 1 increment by 1;
 create sequence seq_vendas start with 1 increment by 1;
 create sequence seq_voluntario start with 1 increment by 1;
+create sequence seq_agendamento start with 1 increment by 1;
 
 -- fim

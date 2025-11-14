@@ -220,7 +220,8 @@
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <a href="inspecao_alimento/index.html">
+                                    <!-- MUDANÇA 1: passa a abrir via JS -->
+                                    <a href="#" onclick="return PossiveisCestas.mount();">
                                         <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
                                     </a>
                                 </li>
@@ -285,10 +286,8 @@
                                     </a>
                                     <div class="collapse" id="cestas-agendamentos">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="agendamentos_entrega/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="agendamentos_entrega/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="agendamentos_entrega/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="agendamentos_entrega/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mount()" class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mountList()" class="sub-item">Consultar/ Editar/ Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -323,7 +322,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <!-- ESTE LINK DISPARA A INJEÇÃO PELO Clientes.js -->
                                             <li><a href="#" onclick="return BazarClientes.mount();"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="clientes_bazar/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#" onclick="return BazarClientes.list();"><span class="sub-item">Listar / Consultar</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -475,6 +474,10 @@
 <script defer src="../js/AlimentoConsulta.js" ></script>
 <script src=" ../js/Beneficiarios.js" defer></script>
 <script src=" ../js/Voluntarios.js" defer></script>
+
+<!-- MUDANÇA 2: inclui o script da tela de Possíveis Cestas -->
+<script src="../js/PossiveisCestas.js" defer></script>
 <script defer src="../js/InspecionarAlimento.js"></script>
+<script defer src=" ../js/AgendamentoCestas.js"></script>
 </body>
 </html>
