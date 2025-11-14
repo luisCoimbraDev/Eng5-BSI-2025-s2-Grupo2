@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping(value="apis/cestas")
 public class CestaControl {
 
-    @GetMapping(value = "/pegarCesta/{tipocesta}")
+    /*@GetMapping(value = "/pegarCesta/{tipocesta}")
     public ResponseEntity<Object> pegarTipoCesta(@PathVariable String tipocesta)
     {
         TipoCesta encontrada = new TipoCesta();
@@ -29,5 +29,5 @@ public class CestaControl {
             return ResponseEntity.ok(possiveiscestas);
 
         return ResponseEntity.ok(itensCesta.getItensCestaDAO().pegarItensFaltantes(encontrada.getId(), Singleton.Retorna()));
-    }
+    }*/
 }

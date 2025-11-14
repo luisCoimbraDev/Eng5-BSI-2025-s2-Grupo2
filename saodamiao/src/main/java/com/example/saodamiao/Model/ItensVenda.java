@@ -1,6 +1,6 @@
 package com.example.saodamiao.Model;
 
-import com.example.saodamiao.DAO.ItensVendaDAO;
+import com.example.saodamiao.DAO.ItensBazarDAO;
 import com.example.saodamiao.Singleton.Conexao;
 
 public class ItensVenda {
@@ -9,7 +9,7 @@ public class ItensVenda {
     private int qtde;
     private int valorItem;
 
-    private ItensVendaDAO item;
+    private ItensBazarDAO item;
     public int getValorItem() {
         return valorItem;
     }
@@ -44,11 +44,11 @@ public class ItensVenda {
 
     //caso a qtde for passada por parametro, eu seto a nova qtde e passo ela para o metodo de atualizarEstoque
     public Boolean AtualizarEstoqueSoma(int qtde, int idItemVenda, Conexao conexao){
-        item = new ItensVendaDAO();
+        item = new ItensBazarDAO();
         return item.atualizaEstoqueItemSoma(qtde, idItemVenda, conexao);
     }
     public Boolean AtualizarEstoqueSubtrai(int qtde, int idItemVenda, Conexao conexao){
-        item = new ItensVendaDAO();
+        item = new ItensBazarDAO();
         return item.atualizaEstoqueItemSubtrai(qtde, idItemVenda, conexao);
     }
 

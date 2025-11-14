@@ -47,8 +47,10 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers(HttpMethod.PUT, "/mudarParaInativo").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/mudarParaAtivo").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/colaborador/pegar-tudo").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/colaborador/gerenciar-permissao/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/permissoes/inserirPermissao").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/permissoes/deletarPermissao").hasAuthority("ROLE_ADMIN")
 
-                        //.requestMatchers(HttpMethod.POST, "/colaborador/buscar-por-cpf/{cpf}").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/permissoes/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/vendas/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/relatorios/**").hasAnyAuthority(PermissaoConstantes.ROLE_ADMIN, PermissaoConstantes.ROLE_GESTOR)

@@ -2,6 +2,7 @@ package com.example.saodamiao.Control;
 
 import com.example.saodamiao.Model.AlimentoEstoque;
 import com.example.saodamiao.Model.CaixaModel;
+import com.example.saodamiao.Model.ItemBazar;
 import com.example.saodamiao.Model.ItensVenda;
 import com.example.saodamiao.Singleton.Singleton;
 import org.springframework.http.ResponseEntity;
@@ -48,9 +49,9 @@ public class TesteControll {
 
     @PostMapping("/itens-soma")
     public ResponseEntity atualizarEstoqueItensSoma(@RequestParam int idItem, @RequestParam int qtde){
-        ItensVenda itensVenda = new ItensVenda();
+        ItemBazar itemBazar = new ItemBazar();
         try{
-            if(itensVenda.AtualizarEstoqueSoma(qtde, idItem, Singleton.Retorna())){
+            if(itemBazar.AtualizarEstoqueSoma(qtde, idItem, Singleton.Retorna())){
                 return ResponseEntity.ok("atualizado estoque de itens do bazar com sucesso");
             }
         }catch (Exception e){
@@ -61,9 +62,9 @@ public class TesteControll {
 
     @PostMapping("/itens-subtrai")
     public ResponseEntity atualizarEstoqueItensSubtrai(@RequestParam int idItem, @RequestParam int qtde){
-        ItensVenda itensVenda = new ItensVenda();
+        ItemBazar itemBazar = new ItemBazar();
         try{
-            if(itensVenda.AtualizarEstoqueSubtrai(qtde, idItem, Singleton.Retorna())){
+            if(itemBazar.AtualizarEstoqueSubtrai(qtde, idItem, Singleton.Retorna())){
                 return ResponseEntity.ok("atualizado estoque de itens do bazar com sucesso");
             }
         }catch (Exception e){

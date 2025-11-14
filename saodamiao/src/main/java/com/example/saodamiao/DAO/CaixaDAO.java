@@ -3,6 +3,7 @@ package com.example.saodamiao.DAO;
 import com.example.saodamiao.Model.CaixaModel;
 import com.example.saodamiao.Singleton.Conexao;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -81,8 +82,18 @@ public class CaixaDAO {
     }
     public boolean atualizarValorCaixa(double novoValor, int idCaixa, Conexao con) {
         String sql = "UPDATE caixa SET valor_fechamento = valor_fechamento + " + novoValor + " WHERE idcaixa = " + idCaixa;
-        System.out.println("SQL DO CAIXA: "+ sql);
-        return con.manipular(sql);
+        String sqlGetData = "SELECT data_fechamento FROM caixa WHERE idcaixa = " +idCaixa;
+        try{
+            ResultSet rs = con.consultar(sqlGetData);
+            if(rs.next()){
+                Date datafechamento = rs.getDate("data_fechamento");
+                if(datafechamento == null){
+                    return con.manipular(sql);
+                }
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        return false;
     }
-
 }
