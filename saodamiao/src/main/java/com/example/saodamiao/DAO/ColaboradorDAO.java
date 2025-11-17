@@ -242,4 +242,32 @@ public class ColaboradorDAO {
         }
         return lista;
     }
+
+    public Map<String, String> BuscarPorCpfRetornaInfosSeguras(String cpf, Conexao conexao) {
+        String sql = "SELECT c.nome, c.cpf, c.telefone, c.email, c.bairro, c.rua, c.cep, c.uf, c.cidade, l.log_username " +
+                "FROM colaborador c " +
+                "LEFT JOIN login l ON c.idcolaborador = l.colaborador_idcolaborador " +
+                "WHERE c.cpf = '" + cpf + "'";
+
+        Map<String, String> colaboradorData = new HashMap<>();
+
+        try {
+            ResultSet rs = conexao.consultar(sql);
+            if (rs.next()) {
+                colaboradorData.put("nome", rs.getString("nome"));
+                colaboradorData.put("cpf", rs.getString("cpf"));
+                colaboradorData.put("telefone", rs.getString("telefone"));
+                colaboradorData.put("email", rs.getString("email"));
+                colaboradorData.put("bairro", rs.getString("bairro"));
+                colaboradorData.put("rua", rs.getString("rua"));
+                colaboradorData.put("cep", rs.getString("cep"));
+                colaboradorData.put("uf", rs.getString("uf"));
+                colaboradorData.put("cidade", rs.getString("cidade"));
+                colaboradorData.put("loginUserName", rs.getString("log_username"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return colaboradorData;
+    }
 }

@@ -13,6 +13,8 @@
     <!-- Fonts and icons -->
     <script src="../js/plugin/webfont/webfont.min.js"></script>
     <script src="../js/Colaborador.js"></script>
+    <script src="../js/GestorCadastro.js"></script>
+    <script src="../js/GestorListar.js"></script>
     <script>
         WebFont.load({
             google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -162,7 +164,6 @@
                                             <li><a href="#" onclick="return ColaboradorCadastro.mount();"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="#" onclick="return InativarUsuario.mount();"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="colaboradores/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="colaboradores/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -185,10 +186,9 @@
                                     </a>
                                     <div class="collapse" id="pessoas-gestores">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="gestores/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="gestores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#" onclick="return GestorCadastro.mount();"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#" onclick="return GestorListar.mount();"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="gestores/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="gestores/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -199,10 +199,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-permissoes">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="permissoes/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="permissoes/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="permissoes/edit.html" onclick="return GerenciarPermissoes.mount();"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="permissoes/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>

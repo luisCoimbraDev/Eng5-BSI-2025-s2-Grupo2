@@ -54,7 +54,6 @@ VALUES (
 -- =====================================================
 INSERT INTO permissao (tipo_permissao, ativo) VALUES
 ('ROLE_ADMIN', 'S'),
-('ROLE_GESTOR', 'S'),
 ('ROLE_COLABORADOR', 'S'),
 ('VENDA_BAZAR', 'S'),
 ('GERENCIAR_CESTAS', 'S'),

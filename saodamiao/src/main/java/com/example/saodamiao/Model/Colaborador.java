@@ -3,10 +3,12 @@ package com.example.saodamiao.Model;
 import com.example.saodamiao.DAO.ColaboradorDAO;
 import com.example.saodamiao.DTO.ColaboradorDTO;
 import com.example.saodamiao.Singleton.Conexao;
+import com.example.saodamiao.Singleton.Singleton;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.sql.Date;
 import java.util.InputMismatchException;
+import java.util.Map;
 
 
 public class Colaborador {
@@ -209,6 +211,10 @@ public class Colaborador {
     public void setDtMat(Date dateTimeFormatter) {
     }
 
+    public Map<String, String> buscarPorCpfRetornaInfosSeguras(String cpf, Conexao conexao){
+        colaboradorDAO = new ColaboradorDAO();
+        return colaboradorDAO.BuscarPorCpfRetornaInfosSeguras(cpf, conexao);
+    }
     @Override
     public String toString() {
         return "Colaborador{" +

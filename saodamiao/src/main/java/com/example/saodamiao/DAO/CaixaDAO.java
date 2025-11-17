@@ -96,4 +96,20 @@ public class CaixaDAO {
         }
         return false;
     }
+    public boolean atualizarValorCaixaSaida(double novoValor, int idCaixa, Conexao con){
+        String sql = "UPDATE caixa SET valor_fechamento = valor_fechamento - " + novoValor + " WHERE idcaixa = " + idCaixa;
+        String sqlGetData = "SELECT data_fechamento FROM caixa WHERE idcaixa = " +idCaixa;
+        try{
+            ResultSet rs = con.consultar(sqlGetData);
+            if(rs.next()){
+                Date datafechamento = rs.getDate("data_fechamento");
+                if(datafechamento == null){
+                    return con.manipular(sql);
+                }
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

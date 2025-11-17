@@ -255,18 +255,17 @@ create table funcionario (
     on update no action
 );
 
-create table gestor (
-  idgestor int not null,
-  colaborador_idcolaborador int not null,
-  data_inicio date not null,
-  data_fim date,
-  salario double precision not null,
-  primary key (idgestor, colaborador_idcolaborador),
-  constraint fk_gestor_colaborador1
-    foreign key (colaborador_idcolaborador)
-    references colaborador (idcolaborador)
-    on delete no action
-    on update no action
+CREATE TABLE gestor (
+  idgestor SERIAL PRIMARY KEY,  -- Auto increment
+  colaborador_idcolaborador INT NOT NULL,
+  data_inicio DATE NOT NULL DEFAULT CURRENT_DATE,  -- Data atual como padrão
+  data_fim DATE,
+  salario DOUBLE PRECISION NOT NULL,
+  CONSTRAINT fk_gestor_colaborador1
+    FOREIGN KEY (colaborador_idcolaborador)
+    REFERENCES colaborador (idcolaborador)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 );
 
 create table inspecao_alimento (

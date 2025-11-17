@@ -103,6 +103,10 @@ public class CaixaModel {
         caixa = new CaixaDAO();
         return caixa.atualizarValorCaixa(novoValor, idCaixa, conexao);
     }
+    public Boolean atualizarCaixaSaida(Double novoValor, int idCaixa, Conexao conexao){
+        caixa = new CaixaDAO();
+        return  caixa.atualizarValorCaixaSaida(novoValor, idCaixa, conexao);
+    }
 
     @Override
     public String toString() {
