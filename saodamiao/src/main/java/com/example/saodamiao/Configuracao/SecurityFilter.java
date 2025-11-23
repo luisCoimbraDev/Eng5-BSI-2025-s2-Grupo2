@@ -57,12 +57,6 @@ public class SecurityFilter extends OncePerRequestFilter {
                         );
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                         String requestURI = request.getRequestURI();
-                        if (usuario.isSenhaTemporaria() && !requestURI.startsWith("/colaboradores")) {
-                            response.setStatus(HttpStatus.FORBIDDEN.value());
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write("{\"erro\": \"Acesso negado. Voce deve criar um colaborador primeiro.\"}");
-                            return;
-                        }
                     }
                 }
             } catch (Exception e) {

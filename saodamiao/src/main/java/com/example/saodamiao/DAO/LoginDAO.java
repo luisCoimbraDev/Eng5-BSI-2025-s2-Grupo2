@@ -9,7 +9,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class LoginDAO {
@@ -37,21 +39,14 @@ public class LoginDAO {
     public Login buscarPorLogin(String username, Conexao conexao) {
         Login loginEncontrado = null;
         String sql = "SELECT * FROM login WHERE log_username = '"+ username +"'";
-
         try {
             ResultSet rs = conexao.consultar(sql);
-
             if (rs.next()) {
                 loginEncontrado = new Login();
-
-                // Mapeia os dados do banco para o objeto Java
                 loginEncontrado.setIdColaborador(rs.getInt("colaborador_idColaborador"));
                 loginEncontrado.setLoginUserName(rs.getString("log_username"));
                 loginEncontrado.setLoginSenha(rs.getString("log_senha"));
                 loginEncontrado.setLoginAtivo(rs.getString("log_ativo"));
-                loginEncontrado.setSenhaTemporaria(rs.getBoolean("senha_temporaria"));
-
-                // (Mapeie outros campos como 'colaborador_idcolaborador' aqui se necessário)
             }
 
             rs.close();
@@ -63,11 +58,13 @@ public class LoginDAO {
     }
 
     public Boolean MudarParaInativo(Login login, Conexao conexao){
-        String sql = "UPDATE login SET " + "log_ativo" + login.getLoginAtivo();
+        String sql = "UPDATE login SET log_ativo = '" + login.getLoginAtivo() + "' WHERE colaborador_idcolaborador = #1";
+        sql = sql.replace("#1", String.valueOf(login.getIdColaborador()));
         return conexao.manipular(sql);
     }
     public Boolean MudarParaAtivo(Login login, Conexao conexao){
-        String sql = "UPDATE login SET " + "log_ativo" + login.getLoginAtivo();
+        String sql = "UPDATE login SET log_ativo = '" + login.getLoginAtivo() + "' WHERE colaborador_idcolaborador = #1";
+        sql = sql.replace("#1", String.valueOf(login.getIdColaborador()));
         return conexao.manipular(sql);
     }
 
@@ -78,15 +75,6 @@ public class LoginDAO {
         sql = sql.replace("#3", ativo);
         sql = sql.replace("#4", senha);
         System.out.println("SQL DO LOGIN: " + sql);
-        return conexao.manipular(sql);
-    }
-
-    //ATENÇÃO: Este método funciona, mas é VULNERÁVEL a SQL Injection.
-
-    public boolean atualizarFlagTemporaria(int colaboradorId, boolean isTemporaria, Conexao conexao) {
-        String sql = "UPDATE login SET senha_temporaria = #1 WHERE colaborador_idcolaborador = #2";
-        sql = sql.replace("#1", String.valueOf(isTemporaria));
-        sql = sql.replace("#2", String.valueOf(colaboradorId));
         return conexao.manipular(sql);
     }
 
@@ -109,4 +97,5 @@ public class LoginDAO {
         }
         return log;
     }
+
 }

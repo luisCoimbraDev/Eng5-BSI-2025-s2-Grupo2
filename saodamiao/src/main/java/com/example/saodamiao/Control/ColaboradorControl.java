@@ -3,6 +3,7 @@ package com.example.saodamiao.Control;
 import com.example.saodamiao.DAO.LoginDAO;
 import com.example.saodamiao.DTO.ColaboradorDTO;
 import com.example.saodamiao.Model.Colaborador;
+import com.example.saodamiao.Model.Login;
 import com.example.saodamiao.Model.Permissoes;
 import com.example.saodamiao.Singleton.Conexao;
 import com.example.saodamiao.Singleton.Erro;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +37,10 @@ public class ColaboradorControl {
     @PostMapping("/criar")
     public ResponseEntity CriarColaborador(@RequestBody ColaboradorDTO novoColaborador){
         //log para ver oq está chegando da requisição
-        System.out.println(novoColaborador.toString());
         Colaborador colaborador = new Colaborador();
         LoginDAO loginDAO = new LoginDAO(); //
         Conexao conexao = Singleton.Retorna();
-        String senhaHasheada = passwordEncoder.encode(novoColaborador.getLoginSenha());
+        //String senhaHasheada = passwordEncoder.encode(novoColaborador.getLoginSenha());
 
         if(novoColaborador.getDtMat() == null) {
             novoColaborador.setDtMat(LocalDate.now());
@@ -48,7 +49,7 @@ public class ColaboradorControl {
         {
             int id = colaborador.BuscaPorCpfERetornaId(novoColaborador.getCpf(), Singleton.Retorna());
             if(id != -1){
-                if(loginDAO.CriarLogin(novoColaborador.getLoginUserName(),id, senhaHasheada, "S", conexao)){
+                if(loginDAO.CriarLogin(novoColaborador.getLoginUserName(),id, novoColaborador.getLoginSenha(), "S", conexao)){
                     return ResponseEntity.ok("Criado com sucesso");
                 }
             }
@@ -85,6 +86,13 @@ public class ColaboradorControl {
           return ResponseEntity.ok().body(resposta);
         }
         return ResponseEntity.badRequest().body("erro ao buscar usuario");
+    }
+
+    @GetMapping(value = "/pegar-tudo")
+    public ResponseEntity<Object> pegarTudoComLogin() {
+        Colaborador colaboradorModel = new Colaborador();
+        List<Map<String, Object>> listaCombinada = colaboradorModel.getColaboradorDAO().pegarListaTodaComLogin(Singleton.Retorna());
+        return ResponseEntity.ok(listaCombinada);
     }
 
     //============================================
