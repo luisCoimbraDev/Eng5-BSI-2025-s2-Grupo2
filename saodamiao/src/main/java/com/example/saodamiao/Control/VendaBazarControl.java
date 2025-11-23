@@ -9,10 +9,14 @@ import com.example.saodamiao.Model.ItensVenda;
 import com.example.saodamiao.Model.CaixaModel;
 import com.example.saodamiao.Singleton.Erro;
 import com.example.saodamiao.Singleton.Singleton;
+import com.example.saodamiao.Singleton.Conexao;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.sql.ResultSet;
 
 @RestController
 @CrossOrigin
@@ -78,6 +82,24 @@ public class VendaBazarControl {
             }
 
             System.out.println("✅ Transação iniciada");
+
+            // 🔥 NOVA LÓGICA: Determinar valor para o caixa baseado no troco
+            double valorParaCaixa = vendaCompletaDTO.getValorPago();
+
+            // Se o cliente devolveu o troco, usa o valor da venda em vez do valor pago
+            if (vendaCompletaDTO.getTrocoFicouComCliente() != null &&
+                    !vendaCompletaDTO.getTrocoFicouComCliente() &&
+                    vendaCompletaDTO.getTroco() != null &&
+                    vendaCompletaDTO.getTroco() > 0) {
+
+                valorParaCaixa = vendaCompletaDTO.getValor(); // Usa o valor real da venda
+                System.out.println("🔁 Troco devolvido - Valor para caixa ajustado para: " + valorParaCaixa);
+            } else if (vendaCompletaDTO.getTrocoFicouComCliente() != null &&
+                    vendaCompletaDTO.getTrocoFicouComCliente() &&
+                    vendaCompletaDTO.getTroco() != null &&
+                    vendaCompletaDTO.getTroco() > 0) {
+                System.out.println("💰 Cliente ficou com o troco de: R$ " + vendaCompletaDTO.getTroco());
+            }
 
             // 1. INSERE CABEÇALHO DA VENDA
             VendaBazar vendaBazar = new VendaBazar();
@@ -156,7 +178,22 @@ public class VendaBazarControl {
                 System.out.println("✅ Estoque do item " + itemDTO.getIdItemBazar() + " atualizado");
             }
 
-            // 5. COMMIT DA TRANSAÇÃO
+            // 5. ATUALIZA O CAIXA COM O VALOR CORRETO (AJUSTADO PELO TROCO)
+            System.out.println("💰 Atualizando caixa com valor: R$ " + valorParaCaixa);
+            boolean caixaAtualizado = atualizarCaixaComVenda(
+                    valorParaCaixa, // 🔥 VALOR AJUSTADO CONFORME O TROCO
+                    vendaCompletaDTO.getCaixaId(),
+                    Singleton.Retorna()
+            );
+
+            if (!caixaAtualizado) {
+                System.err.println("⚠️ AVISO: Caixa não foi atualizado, mas venda foi registrada");
+                // Não faz rollback, apenas registra o aviso
+            } else {
+                System.out.println("✅ Caixa atualizado com sucesso");
+            }
+
+            // 6. COMMIT DA TRANSAÇÃO
             System.out.println("💾 Commit da transação...");
             Singleton.Retorna().Commit();
 
@@ -202,57 +239,108 @@ public class VendaBazarControl {
         }
     }
 
-    // ENDPOINT com permissão para deletar venda
-    @DeleteMapping(value = "/deletar")
-    public ResponseEntity<Object> deletaVendaBazar(@RequestBody VendaCompletaDTO vendaCompletaDTO) {
+    // 🔧 CORREÇÃO: ENDPOINT para deletar venda - SIMPLIFICADO E CORRIGIDO
+    @DeleteMapping(value = "/deletar/{id}")
+    public ResponseEntity<Map<String, String>> deletaVendaBazar(@PathVariable int id) {
+        Map<String, String> resposta = new HashMap<>();
+
         try {
-            if (!Singleton.Retorna().StartTransaction()) {
-                return ResponseEntity.status(500).body(new Erro("Erro ao iniciar transação"));
+            System.out.println("🗑️ Iniciando exclusão da venda ID: " + id);
+
+            // 🔧 CORREÇÃO: Buscar informações completas da venda primeiro
+            String sqlVenda = "SELECT * FROM vendas WHERE idvenda = " + id;
+            ResultSet rsVenda = Singleton.Retorna().consultar(sqlVenda);
+
+            if (rsVenda == null || !rsVenda.next()) {
+                resposta.put("mensagem", "Venda não encontrada");
+                return ResponseEntity.badRequest().body(resposta);
             }
 
-            VendaBazar vendaBazar = new VendaBazar();
-            vendaBazar.setId(vendaCompletaDTO.getId());
+            // 🔧 CORREÇÃO: Obter o ID do caixa da venda
+            int caixaId = rsVenda.getInt("caixa_idcaixa");
+            double valorVenda = rsVenda.getDouble("valor");
+            rsVenda.close();
 
-            // 1. RESTAURA ESTOQUE DOS ITENS
-            for (ItensVendaDTO itemDTO : vendaCompletaDTO.getItensVenda()) {
-                ItensBazar itensBazar = new ItensBazar();
-                boolean estoqueRestaurado = itensBazar.atualizarEstoqueSoma(
-                        itemDTO.getQtde(),
-                        itemDTO.getIdItemBazar(),
+            System.out.println("🔍 Venda encontrada - Caixa ID: " + caixaId + ", Valor: " + valorVenda);
+
+            // Buscar itens da venda (com método corrigido)
+            System.out.println("🔍 Buscando itens da venda para restauração de estoque...");
+            List<ItensVenda> itens = buscarItensPorVenda(id, Singleton.Retorna());
+
+            if (itens.isEmpty()) {
+                System.out.println("⚠️ Nenhum item encontrado para a venda ID: " + id);
+                resposta.put("mensagem", "Nenhum item encontrado para esta venda");
+                return ResponseEntity.badRequest().body(resposta);
+            }
+
+            // Iniciar transação
+            if (!Singleton.Retorna().StartTransaction()) {
+                resposta.put("mensagem", "Erro ao iniciar transação");
+                return ResponseEntity.status(500).body(resposta);
+            }
+
+            // 1. Restaurar estoque dos itens
+            System.out.println("📦 Restaurando estoque de " + itens.size() + " itens...");
+            ItensBazar itensBazar = new ItensBazar();
+            for (ItensVenda item : itens) {
+                boolean estoqueAtualizado = itensBazar.atualizarEstoqueSoma(
+                        item.getQtde(),                                   // ✅ getQtde() existe
+                        item.getItemBazarIditemBazar(),                   // ✅ getItemBazarIditemBazar() existe
                         Singleton.Retorna()
                 );
 
-                if (!estoqueRestaurado) {
-                    Singleton.Retorna().Rollback();
-                    return ResponseEntity.badRequest().body(new Erro("Erro ao restaurar estoque do item: " + itemDTO.getIdItemBazar()));
+                if (!estoqueAtualizado) {
+                    throw new Exception("Falha ao restaurar estoque do item " + item.getItemBazarIditemBazar());
                 }
+                System.out.println("✅ Estoque do item " + item.getItemBazarIditemBazar() + " restaurado");
             }
 
-            // 2. ATUALIZA CAIXA (subtrai valor)
-            boolean caixaAtualizado = atualizarCaixaComEstorno(
-                    vendaCompletaDTO.getValorPago(),
-                    vendaCompletaDTO.getCaixaId(),
-                    Singleton.Retorna()
-            );
+            // 2. Estornar valor do caixa
+            System.out.println("💰 Atualizando caixa com estorno...");
+            System.out.println("🔧 Estornando caixa ID " + caixaId + " com valor: R$ " + valorVenda);
+
+            // 🔧 CORREÇÃO: Usar o método correto para estornar o caixa
+            CaixaModel caixaModel = new CaixaModel();
+            boolean caixaAtualizado = caixaModel.atualizarCaixa(-valorVenda, caixaId, Singleton.Retorna());
+
+            System.out.println("🔍 Resultado do estorno do caixa: " + caixaAtualizado);
 
             if (!caixaAtualizado) {
-                Singleton.Retorna().Rollback();
-                return ResponseEntity.badRequest().body(new Erro("Erro ao atualizar caixa com estorno"));
+                throw new Exception("Erro ao atualizar caixa com estorno");
             }
 
-            // 3. DELETA VENDA
-            if (vendaBazar.getVendaBazarDAO().apagar(vendaBazar, Singleton.Retorna())) {
-                Singleton.Retorna().Commit();
-                return ResponseEntity.ok().body("Venda deletada com sucesso");
+            // 3. Deletar itens da venda
+            String sqlDeleteItens = "DELETE FROM itens_venda WHERE vendas_idvenda = " + id;
+            boolean itensDeletados = Singleton.Retorna().manipular(sqlDeleteItens);
+
+            if (!itensDeletados) {
+                throw new Exception("Falha ao deletar itens da venda");
             }
 
-            Singleton.Retorna().Rollback();
-            return ResponseEntity.badRequest().body(new Erro("Erro ao deletar venda do banco de dados"));
+            // 4. Deletar venda
+            String sqlDeleteVenda = "DELETE FROM vendas WHERE idvenda = " + id;
+            boolean vendaDeletada = Singleton.Retorna().manipular(sqlDeleteVenda);
+
+            if (!vendaDeletada) {
+                throw new Exception("Falha ao deletar venda");
+            }
+
+            // Commit da transação
+            Singleton.Retorna().Commit();
+
+            System.out.println("✅ Venda #" + id + " deletada com sucesso!");
+            resposta.put("mensagem", "Venda deletada com sucesso");
+            return ResponseEntity.ok(resposta);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // Rollback em caso de erro
             Singleton.Retorna().Rollback();
-            return ResponseEntity.badRequest().body(new Erro("Erro interno: " + e.getMessage()));
+
+            System.err.println("❌ ERRO ao deletar venda: " + e.getMessage());
+            e.printStackTrace();
+
+            resposta.put("mensagem", "Erro ao deletar venda: " + e.getMessage());
+            return ResponseEntity.badRequest().body(resposta);
         }
     }
 
@@ -318,15 +406,20 @@ public class VendaBazarControl {
     /**
      * Método para atualizar o caixa com o valor da venda
      */
-    private boolean atualizarCaixaComVenda(double valorVenda, int caixaId, com.example.saodamiao.Singleton.Conexao conexao) {
+    private boolean atualizarCaixaComVenda(double valorVenda, int caixaId, Conexao conexao) {
         try {
-            // Atualiza o valor do caixa (soma o valor da venda)
-            String sql = "UPDATE caixa SET valor_fechamento = valor_fechamento + " + valorVenda +
-                    " WHERE idcaixa = " + caixaId;
+            System.out.println("💰 Atualizando caixa ID " + caixaId + " com valor da venda: R$ " + valorVenda);
 
-            return conexao.manipular(sql);
+            // 🔧 CORREÇÃO: Usar o método atualizarValorCaixa do CaixaDAO
+            // Porque estamos ADICIONANDO valor ao caixa (venda)
+            CaixaModel caixa = new CaixaModel();
+            boolean resultado = caixa.getCaixaDAO().atualizarValorCaixa(valorVenda, caixaId, conexao);
+
+            System.out.println("🔍 Resultado da atualização do caixa: " + resultado);
+            return resultado;
 
         } catch (Exception e) {
+            System.err.println("❌ ERRO ao atualizar caixa: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -335,12 +428,94 @@ public class VendaBazarControl {
     /**
      * Método para estornar valor no caixa ao deletar venda
      */
-    private boolean atualizarCaixaComEstorno(double valorEstorno, int caixaId, com.example.saodamiao.Singleton.Conexao conexao) {
+    private boolean atualizarCaixaComEstorno(double valorEstorno, int caixaId, Conexao conexao) {
         try {
-            String sql = "UPDATE caixa SET valor_fechamento = valor_fechamento - " + valorEstorno +
-                    " WHERE idcaixa = " + caixaId;
-            return conexao.manipular(sql);
+            System.out.println("🔧 Estornando caixa ID " + caixaId + " com valor: R$ " + valorEstorno);
+
+            // 🔧 CORREÇÃO: Usar o método atualizarValorCaixaSaida do CaixaDAO
+            // Porque estamos REMOVENDO valor do caixa (estorno)
+            CaixaModel caixa = new CaixaModel();
+            boolean resultado = caixa.getCaixaDAO().atualizarValorCaixaSaida(valorEstorno, caixaId, conexao);
+
+            System.out.println("🔍 Resultado do estorno do caixa: " + resultado);
+
+            if (!resultado) {
+                System.err.println("❌ DETALHES DO ERRO - Verificando caixa...");
+
+                // Debug detalhado
+                String sqlVerifica = "SELECT idcaixa, data_fechamento, valor_fechamento FROM caixa WHERE idcaixa = " + caixaId;
+                ResultSet rs = conexao.consultar(sqlVerifica);
+
+                if (rs == null || !rs.next()) {
+                    System.err.println("❌ Caixa ID " + caixaId + " não encontrado!");
+                } else {
+                    java.sql.Date dataFechamento = rs.getDate("data_fechamento");
+                    double valorAtual = rs.getDouble("valor_fechamento");
+                    rs.close();
+
+                    System.err.println("✅ Caixa ID " + caixaId + " existe");
+                    System.err.println("📅 Data fechamento: " + dataFechamento);
+                    System.err.println("💰 Valor atual: " + valorAtual);
+
+                    if (dataFechamento != null) {
+                        System.err.println("❌ CAIXA JÁ ESTÁ FECHADO - Não pode fazer estorno!");
+                    }
+                }
+            }
+
+            return resultado;
+
         } catch (Exception e) {
+            System.err.println("❌ ERRO ao estornar caixa: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // 🔧 CORREÇÃO: Método para buscar itens da venda com os setters corretos
+    private List<ItensVenda> buscarItensPorVenda(int idVenda, Conexao conexao) {
+        List<ItensVenda> itens = new java.util.ArrayList<>();
+
+        try {
+            String sql = "SELECT iv.vendas_idvenda, iv.item_bazar_iditem_bazar, " +
+                    "iv.qtde, iv.valor " +
+                    "FROM itens_venda iv " +
+                    "WHERE iv.vendas_idvenda = " + idVenda;
+
+            ResultSet rs = conexao.consultar(sql);
+
+            while (rs != null && rs.next()) {
+                ItensVenda item = new ItensVenda();
+
+                // 🔧 CORREÇÃO: Usar os setters corretos baseados no modelo ItensVenda
+                item.setIdVenda(rs.getInt("vendas_idvenda"));                    // ✅ CORRETO
+                item.setItemBazarIditemBazar(rs.getInt("item_bazar_iditem_bazar")); // ✅ CORRETO
+                item.setQtde(rs.getInt("qtde"));                                 // ✅ CORRETO
+                item.setValorItem(rs.getInt("valor"));                           // ✅ CORRETO - Note que valorItem é int no modelo
+
+                itens.add(item);
+            }
+
+            if (rs != null) rs.close();
+
+        } catch (Exception e) {
+            System.err.println("❌ ERRO ao buscar itens da venda: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return itens;
+    }
+
+    // 🔧 CORREÇÃO: Método para deletar itens da venda
+    private boolean deletarItensPorVenda(int vendaId, Conexao conexao) {
+        try {
+            String SQL = "DELETE FROM itens_venda WHERE vendas_idvenda = " + vendaId;
+            boolean resultado = conexao.manipular(SQL);
+
+            System.out.println("🔍 DEBUG - Itens deletados da venda " + vendaId + ": " + resultado);
+            return resultado;
+        } catch (Exception e) {
+            System.err.println("❌ ERRO ao deletar itens da venda: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

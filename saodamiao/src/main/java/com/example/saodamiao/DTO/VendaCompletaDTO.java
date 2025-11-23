@@ -2,6 +2,8 @@ package com.example.saodamiao.DTO;
 
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -16,7 +18,9 @@ public class VendaCompletaDTO {
     private double valorPago;
     private String tipoPagamento;
     private int caixaId;
-    private List<ItensVendaDTO> itensVenda;
+    private Double troco;
+    private Boolean trocoFicouComCliente;
+    private List<ItensVendaDTO> itensVenda = new ArrayList<>();
 
     public VendaCompletaDTO() {
     }
@@ -33,5 +37,25 @@ public class VendaCompletaDTO {
         this.tipoPagamento = tipoPagamento;
         this.caixaId = caixaId;
         this.itensVenda = itensVenda;
+    }
+
+    public List<ItensVendaDTO> getItensVenda() {
+        // ✅ Garante que nunca retorne null
+        if (itensVenda == null) {
+            itensVenda = new ArrayList<>();
+        }
+        return itensVenda;
+    }
+
+    public void setItensVenda(List<ItensVendaDTO> itensVenda) {
+        this.itensVenda = itensVenda != null ? itensVenda : new ArrayList<>();
+    }
+
+    public Double getTroco() { return troco; }
+    public void setTroco(Double troco) { this.troco = troco; }
+
+    public Boolean getTrocoFicouComCliente() { return trocoFicouComCliente; }
+    public void setTrocoFicouComCliente(Boolean trocoFicouComCliente) {
+        this.trocoFicouComCliente = trocoFicouComCliente;
     }
 }

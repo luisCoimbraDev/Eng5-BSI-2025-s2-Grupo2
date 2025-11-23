@@ -33,4 +33,21 @@ public class ItensVendaDAO {
             return false;
         }
     }
+
+    public boolean deletarItensPorVenda(int vendaId, Conexao conexao) {
+        try {
+            String SQL = "DELETE FROM itens_venda WHERE vendas_idvenda = #1";
+            SQL = SQL.replace("#1", String.valueOf(vendaId));
+
+            System.out.println("🔍 DEBUG ItensVendaDAO - Deletando itens da venda: " + vendaId);
+            boolean resultado = conexao.manipular(SQL);
+            System.out.println("🔍 DEBUG ItensVendaDAO - Itens deletados: " + resultado);
+
+            return resultado;
+        } catch (Exception e) {
+            System.err.println("❌ ERRO ao deletar itens da venda: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

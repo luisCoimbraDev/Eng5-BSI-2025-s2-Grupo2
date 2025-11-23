@@ -31,11 +31,9 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
             }
 
             // SEGUNDO: Inserir usando o ID obtido
-            String SQL = """
-            INSERT INTO vendas (idvenda, data_venda, valor, cliente_idcliente, login_colaborador_idcolaborador, 
-                               valor_pago, tipo_pagamento, caixa_idcaixa) 
-            VALUES (#1, CURRENT_DATE, #2, #3, #4, #5, '#6', #7)
-            """;
+            String SQL = "INSERT INTO vendas (idvenda, data_venda, valor, cliente_idcliente, login_colaborador_idcolaborador, " +
+                    "valor_pago, tipo_pagamento, caixa_idcaixa) " +
+                    "VALUES (#1, CURRENT_DATE, #2, #3, #4, #5, '#6', #7)";
 
             SQL = SQL.replace("#1", String.valueOf(nextId))
                     .replace("#2", String.valueOf(entidade.getValor()))
@@ -66,17 +64,15 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
 
     @Override
     public boolean alterar(VendaBazar entidade, int id, Conexao conexao) {
-        String sql = """
-            UPDATE vendas 
-            SET data_venda = '#1', 
-                valor = #2, 
-                cliente_idcliente = #3, 
-                login_colaborador_idcolaborador = #4, 
-                valor_pago = #5, 
-                tipo_pagamento = '#6', 
-                caixa_idcaixa = #7
-            WHERE idvenda = #8
-            """;
+        String sql = "UPDATE vendas " +
+                "SET data_venda = '#1', " +
+                "    valor = #2, " +
+                "    cliente_idcliente = #3, " +
+                "    login_colaborador_idcolaborador = #4, " +
+                "    valor_pago = #5, " +
+                "    tipo_pagamento = '#6', " +
+                "    caixa_idcaixa = #7 " +
+                "WHERE idvenda = #8";
 
         sql = sql.replace("#1", new java.sql.Date(entidade.getDataVenda().getTime()).toString())
                 .replace("#2", String.valueOf(entidade.getValor()))
@@ -100,7 +96,12 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
     @Override
     public List<VendaBazar> pegarListaToda(Conexao conexao) {
         List<VendaBazar> lista = new ArrayList<>();
-        String SQL = "SELECT * FROM vendas ORDER BY data_venda DESC, idvenda DESC";
+
+        // 🔧 CORREÇÃO: JOIN com cliente para trazer nome e CPF
+        String SQL = "SELECT v.*, c.nome as cliente_nome, c.cpf as cliente_cpf " +
+                "FROM vendas v " +
+                "LEFT JOIN cliente c ON v.cliente_idcliente = c.idcliente " +
+                "ORDER BY v.data_venda DESC, v.idvenda DESC";
 
         try {
             ResultSet rs = conexao.consultar(SQL);
@@ -114,6 +115,11 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
                 entidade.setValorPago(rs.getDouble("valor_pago"));
                 entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
                 entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
+
+                // 🔧 NOVO: Armazenar nome e CPF do cliente
+                entidade.setClienteNome(rs.getString("cliente_nome"));
+                entidade.setClienteCpf(rs.getString("cliente_cpf"));
+
                 lista.add(entidade);
             }
         } catch (SQLException e) {
@@ -124,7 +130,12 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
 
     public VendaBazar resgatarVenda(int id, Conexao conexao) {
         VendaBazar entidade = null;
-        String SQL = "SELECT * FROM vendas WHERE idvenda = " + id;
+
+        // 🔧 CORREÇÃO: JOIN com cliente
+        String SQL = "SELECT v.*, c.nome as cliente_nome, c.cpf as cliente_cpf " +
+                "FROM vendas v " +
+                "LEFT JOIN cliente c ON v.cliente_idcliente = c.idcliente " +
+                "WHERE v.idvenda = " + id;
 
         try {
             ResultSet rs = conexao.consultar(SQL);
@@ -138,6 +149,10 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
                 entidade.setValorPago(rs.getDouble("valor_pago"));
                 entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
                 entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
+
+                // 🔧 NOVO: Armazenar nome e CPF do cliente
+                entidade.setClienteNome(rs.getString("cliente_nome"));
+                entidade.setClienteCpf(rs.getString("cliente_cpf"));
             }
             if (rs != null) {
                 rs.close();
@@ -149,48 +164,15 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
         return entidade;
     }
 
-    public VendaBazar resgatarVendaPorDados(java.util.Date dataVenda, int clienteId, int caixaId, Conexao conexao) {
-        VendaBazar entidade = null;
-
-        // CORREÇÃO: Formatar data corretamente
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-        String dataFormatada = sdf.format(dataVenda);
-
-        String SQL = "SELECT * FROM vendas WHERE data_venda = '" + dataFormatada +
-                "' AND cliente_idcliente = " + clienteId +
-                " AND caixa_idcaixa = " + caixaId +
-                " ORDER BY idvenda DESC LIMIT 1";
-
-        System.out.println("🔍 DEBUG - SQL de busca da venda recente: " + SQL);
-
-        try {
-            ResultSet rs = conexao.consultar(SQL);
-            if (rs != null && rs.next()) {
-                entidade = new VendaBazar();
-                entidade.setId(rs.getInt("idvenda"));
-                entidade.setDataVenda(rs.getDate("data_venda"));
-                entidade.setValor(rs.getDouble("valor"));
-                entidade.setClienteId(rs.getInt("cliente_idcliente"));
-                entidade.setLoginColaboradorId(rs.getInt("login_colaborador_idcolaborador"));
-                entidade.setValorPago(rs.getDouble("valor_pago"));
-                entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
-                entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
-
-                System.out.println("🔍 DEBUG - Venda recuperada: ID=" + entidade.getId());
-            }
-            if (rs != null) {
-                rs.close();
-            }
-        } catch (SQLException e) {
-            System.err.println("Erro SQL ao resgatar venda por dados: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return entidade;
-    }
-
     public List<VendaBazar> resgatarVendasPorCaixa(int caixaId, Conexao conexao) {
         List<VendaBazar> lista = new ArrayList<>();
-        String SQL = "SELECT * FROM vendas WHERE caixa_idcaixa = " + caixaId + " ORDER BY data_venda DESC, idvenda DESC";
+
+        // 🔧 CORREÇÃO: JOIN com cliente
+        String SQL = "SELECT v.*, c.nome as cliente_nome, c.cpf as cliente_cpf " +
+                "FROM vendas v " +
+                "LEFT JOIN cliente c ON v.cliente_idcliente = c.idcliente " +
+                "WHERE v.caixa_idcaixa = " + caixaId + " " +
+                "ORDER BY v.data_venda DESC, v.idvenda DESC";
 
         try {
             ResultSet rs = conexao.consultar(SQL);
@@ -204,6 +186,11 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
                 entidade.setValorPago(rs.getDouble("valor_pago"));
                 entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
                 entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
+
+                // 🔧 NOVO: Armazenar nome e CPF do cliente
+                entidade.setClienteNome(rs.getString("cliente_nome"));
+                entidade.setClienteCpf(rs.getString("cliente_cpf"));
+
                 lista.add(entidade);
             }
         } catch (SQLException e) {
@@ -214,7 +201,13 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
 
     public List<VendaBazar> resgatarVendasPorData(java.sql.Date data, Conexao conexao) {
         List<VendaBazar> lista = new ArrayList<>();
-        String SQL = "SELECT * FROM vendas WHERE data_venda = '" + data.toString() + "' ORDER BY idvenda DESC";
+
+        // 🔧 CORREÇÃO: JOIN com cliente + correção do problema de data
+        String SQL = "SELECT v.*, c.nome as cliente_nome, c.cpf as cliente_cpf " +
+                "FROM vendas v " +
+                "LEFT JOIN cliente c ON v.cliente_idcliente = c.idcliente " +
+                "WHERE v.data_venda = DATE '" + data.toString() + "' " +
+                "ORDER BY v.idvenda DESC";
 
         try {
             ResultSet rs = conexao.consultar(SQL);
@@ -228,6 +221,11 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
                 entidade.setValorPago(rs.getDouble("valor_pago"));
                 entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
                 entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
+
+                // 🔧 NOVO: Armazenar nome e CPF do cliente
+                entidade.setClienteNome(rs.getString("cliente_nome"));
+                entidade.setClienteCpf(rs.getString("cliente_cpf"));
+
                 lista.add(entidade);
             }
         } catch (SQLException e) {
@@ -238,7 +236,13 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
 
     public List<VendaBazar> resgatarVendasPorCliente(int clienteId, Conexao conexao) {
         List<VendaBazar> lista = new ArrayList<>();
-        String SQL = "SELECT * FROM vendas WHERE cliente_idcliente = " + clienteId + " ORDER BY data_venda DESC, idvenda DESC";
+
+        // 🔧 CORREÇÃO: JOIN com cliente
+        String SQL = "SELECT v.*, c.nome as cliente_nome, c.cpf as cliente_cpf " +
+                "FROM vendas v " +
+                "LEFT JOIN cliente c ON v.cliente_idcliente = c.idcliente " +
+                "WHERE v.cliente_idcliente = " + clienteId + " " +
+                "ORDER BY v.data_venda DESC, v.idvenda DESC";
 
         try {
             ResultSet rs = conexao.consultar(SQL);
@@ -252,6 +256,11 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
                 entidade.setValorPago(rs.getDouble("valor_pago"));
                 entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
                 entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
+
+                // 🔧 NOVO: Armazenar nome e CPF do cliente
+                entidade.setClienteNome(rs.getString("cliente_nome"));
+                entidade.setClienteCpf(rs.getString("cliente_cpf"));
+
                 lista.add(entidade);
             }
         } catch (SQLException e) {
@@ -260,11 +269,16 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
         return lista;
     }
 
-    // Método para buscar vendas por período (data início e data fim)
-    public List<VendaBazar> resgatarVendasPorPeriodo(java.sql.Date dataInicio, java.sql.Date dataFim, Conexao conexao) {
+    // 🔧 NOVO: Método para buscar vendas por nome/CPF do cliente
+    public List<VendaBazar> resgatarVendasPorNomeCpfCliente(String termo, Conexao conexao) {
         List<VendaBazar> lista = new ArrayList<>();
-        String SQL = "SELECT * FROM vendas WHERE data_venda BETWEEN '" + dataInicio.toString() +
-                "' AND '" + dataFim.toString() + "' ORDER BY data_venda DESC, idvenda DESC";
+
+        String SQL = "SELECT v.*, c.nome as cliente_nome, c.cpf as cliente_cpf " +
+                "FROM vendas v " +
+                "LEFT JOIN cliente c ON v.cliente_idcliente = c.idcliente " +
+                "WHERE c.nome ILIKE '%" + termo + "%' " +
+                "   OR c.cpf ILIKE '%" + termo + "%' " +
+                "ORDER BY v.data_venda DESC, v.idvenda DESC";
 
         try {
             ResultSet rs = conexao.consultar(SQL);
@@ -278,6 +292,48 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
                 entidade.setValorPago(rs.getDouble("valor_pago"));
                 entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
                 entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
+
+                // 🔧 NOVO: Armazenar nome e CPF do cliente
+                entidade.setClienteNome(rs.getString("cliente_nome"));
+                entidade.setClienteCpf(rs.getString("cliente_cpf"));
+
+                lista.add(entidade);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar vendas por nome/CPF do cliente: " + e.getMessage(), e);
+        }
+        return lista;
+    }
+
+    // Método para buscar vendas por período (data início e data fim)
+    public List<VendaBazar> resgatarVendasPorPeriodo(java.sql.Date dataInicio, java.sql.Date dataFim, Conexao conexao) {
+        List<VendaBazar> lista = new ArrayList<>();
+
+        // 🔧 CORREÇÃO: JOIN com cliente + correção de data
+        String SQL = "SELECT v.*, c.nome as cliente_nome, c.cpf as cliente_cpf " +
+                "FROM vendas v " +
+                "LEFT JOIN cliente c ON v.cliente_idcliente = c.idcliente " +
+                "WHERE v.data_venda BETWEEN DATE '" + dataInicio.toString() + "' " +
+                "    AND DATE '" + dataFim.toString() + "' " +
+                "ORDER BY v.data_venda DESC, v.idvenda DESC";
+
+        try {
+            ResultSet rs = conexao.consultar(SQL);
+            while (rs.next()) {
+                VendaBazar entidade = new VendaBazar();
+                entidade.setId(rs.getInt("idvenda"));
+                entidade.setDataVenda(rs.getDate("data_venda"));
+                entidade.setValor(rs.getDouble("valor"));
+                entidade.setClienteId(rs.getInt("cliente_idcliente"));
+                entidade.setLoginColaboradorId(rs.getInt("login_colaborador_idcolaborador"));
+                entidade.setValorPago(rs.getDouble("valor_pago"));
+                entidade.setTipoPagamento(rs.getString("tipo_pagamento"));
+                entidade.setCaixaId(rs.getInt("caixa_idcaixa"));
+
+                // 🔧 NOVO: Armazenar nome e CPF do cliente
+                entidade.setClienteNome(rs.getString("cliente_nome"));
+                entidade.setClienteCpf(rs.getString("cliente_cpf"));
+
                 lista.add(entidade);
             }
         } catch (SQLException e) {
@@ -289,7 +345,7 @@ public class VendaBazarDAO implements IDAO<VendaBazar> {
     // Método para obter o total de vendas por período
     public double obterTotalVendasPorPeriodo(java.sql.Date dataInicio, java.sql.Date dataFim, Conexao conexao) {
         double total = 0;
-        String SQL = "SELECT SUM(valor_pago) as total FROM vendas WHERE data_venda BETWEEN '" +
+        String SQL = "SELECT SUM(valor) as total FROM vendas WHERE data_venda BETWEEN '" +
                 dataInicio.toString() + "' AND '" + dataFim.toString() + "'";
 
         try {

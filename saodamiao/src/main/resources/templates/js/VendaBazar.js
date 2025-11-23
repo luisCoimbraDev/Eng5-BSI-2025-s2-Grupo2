@@ -1,4 +1,4 @@
-const tam_pagina = 5;
+const tam_pagina = 10;
 const estado_pag = {
     dados: [],
     pagina_atual: 0,
@@ -41,7 +41,9 @@ const debounce = (fn, ms = 0) => {
 const formatarData = (dataString) => {
     if (!dataString) return '';
     const data = new Date(dataString);
-    return data.toLocaleDateString('pt-BR');
+    // 🔧 CORREÇÃO: Ajuste para timezone do Brasil
+    const dataAjustada = new Date(data.getTime() + data.getTimezoneOffset() * 60000);
+    return dataAjustada.toLocaleDateString('pt-BR');
 };
 
 // Formatar valor monetário
@@ -52,156 +54,143 @@ const formatarValor = (valor) => {
     }).format(valor || 0);
 };
 
-// FUNÇÃO FINALIZAR VENDA CORRIGIDA
-const finalizarVenda = async function(vendaData) {
+// Formatar CPF
+const formatarCPF = (cpf) => {
+    if (!cpf) return '';
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+};
+
+// APIs
+const vendas = async function () {
+    const response = await fetch('http://localhost:8080/apis/vendabazar/getall');
+    if (!response.ok) throw new Error(await response.text());
+    return await response.json();
+};
+
+async function deletarVenda(idVenda) {
+    console.log(`🗑️ Tentando excluir venda ID: ${idVenda}`);
+
     try {
-        // VALIDAÇÕES INICIAIS
-        if (!vendaData.itensVenda || vendaData.itensVenda.length === 0) {
-            throw new Error('A venda deve conter pelo menos um item');
-        }
-
-        if (!vendaData.tipoPagamento) {
-            throw new Error('Tipo de pagamento é obrigatório');
-        }
-
-        if (!vendaData.caixaId || vendaData.caixaId <= 0) {
-            throw new Error('Caixa inválido');
-        }
-
-        // ESTRUTURA CORRIGIDA baseada no VendaCompletaDTO
-        const vendaPayload = {
-            dataVenda: vendaData.dataVenda,
-            valor: vendaData.valor,
-            clienteId: vendaData.clienteId,
-            loginColaboradorId: vendaData.loginColaboradorId,
-            valorPago: vendaData.valorPago,
-            tipoPagamento: vendaData.tipoPagamento.toUpperCase(),
-            caixaId: vendaData.caixaId,
-            itensVenda: vendaData.itensVenda.map(item => {
-                if (!item.idItemBazar || item.idItemBazar <= 0) {
-                    throw new Error('ID do item de bazar inválido');
-                }
-                if (!item.qtde || item.qtde <= 0) {
-                    throw new Error('Quantidade do item deve ser maior que zero');
-                }
-                if (!item.valor || item.valor <= 0) {
-                    throw new Error('Valor do item deve ser maior que zero');
-                }
-
-                return {
-                    idItemBazar: item.idItemBazar,
-                    qtde: item.qtde,
-                    valor: item.valor
-                };
-            })
-        };
-
-        console.log('📤 Enviando venda completa para backend:', vendaPayload);
-
-        const response = await fetch('http://localhost:8080/apis/vendabazar/realizar-venda', {
-            method: 'POST',
+        const response = await fetch(`/apis/vendabazar/deletar/${idVenda}`, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(vendaPayload)
-        });
-
-        const responseText = await response.text();
-        let responseData;
-
-        try {
-            responseData = responseText ? JSON.parse(responseText) : {};
-        } catch (e) {
-            console.error('❌ Resposta não é JSON válido:', responseText);
-            throw new Error(`Resposta inválida do servidor: ${responseText}`);
-        }
-
-        if (!response.ok) {
-            console.error('❌ Erro detalhado do backend:', {
-                status: response.status,
-                statusText: response.statusText,
-                data: responseData
-            });
-
-            let errorMessage = `Erro ${response.status}: `;
-
-            if (responseData.mensagem) {
-                errorMessage += responseData.mensagem;
-            } else if (responseData.message) {
-                errorMessage += responseData.message;
-            } else if (responseData.error) {
-                errorMessage += responseData.error;
-            } else {
-                errorMessage += response.statusText || 'Erro desconhecido';
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
-
-            throw new Error(errorMessage);
-        }
-
-        console.log('✅ Venda realizada com sucesso:', responseData);
-        return responseData;
-
-    } catch (error) {
-        console.error('❌ Erro ao finalizar venda:', error);
-
-        if (error.message.includes('Failed to fetch')) {
-            throw new Error('Erro de conexão com o servidor. Verifique se o backend está rodando.');
-        } else if (error.message.includes('400')) {
-            throw new Error(`Dados inválidos: ${error.message}`);
-        } else if (error.message.includes('403')) {
-            throw new Error('Sem permissão para realizar venda');
-        } else if (error.message.includes('500')) {
-            throw new Error('Erro interno do servidor');
-        } else {
-            throw error;
-        }
-    }
-};
-
-// FUNÇÃO AUXILIAR para buscar venda por ID (também corrigida)
-const buscarVendaPorId = async function(id) {
-    try {
-        if (!id || id <= 0) {
-            throw new Error('ID da venda inválido');
-        }
-
-        const response = await fetch('http://localhost:8080/apis/vendabazar/buscar/id', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ id: id })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Erro ao buscar venda:', response.status, errorText);
-            throw new Error(`Erro ${response.status}: ${errorText}`);
+        console.log(`📊 Status da resposta: ${response.status}`);
+
+        const text = await response.text();
+        console.log(`📨 Resposta do servidor:`, text);
+
+        let data;
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch (e) {
+            console.error('❌ Resposta não é JSON:', text);
+            throw new Error('Resposta inválida do servidor');
         }
 
-        return await response.json();
-    } catch (error) {
-        console.error('❌ Erro ao buscar venda:', error);
-        throw error;
-    }
-};
+        if (response.ok) {
+            console.log('✅ Venda excluída com sucesso no backend');
+            // 🔥 REMOVIDO: alert('Venda excluída com sucesso!');
+            removerLinhaDaTabela(idVenda);
 
-// FUNÇÃO PARA VERIFICAR CAIXA ABERTO
-const verificarCaixaAberto = async function() {
-    try {
-        const response = await fetch('http://localhost:8080/apis/caixa/aberto');
-        if (!response.ok) {
-            throw new Error('Erro ao verificar caixa');
+            // 🔥 OPÇÃO: Mostrar um toast/notificação discreta (se tiver)
+            mostrarNotificacaoSucesso('Venda excluída com sucesso!');
+
+        } else {
+            throw new Error(data.mensagem || 'Erro ao excluir venda');
         }
-        const caixa = await response.json();
-        return caixa;
     } catch (error) {
-        console.error('❌ Erro ao verificar caixa:', error);
-        throw error;
+        console.error('❌ Erro ao deletar venda:', error);
+        // 🔥 REMOVIDO: alert('Erro ao excluir venda: ' + error.message);
+        mostrarNotificacaoErro('Erro ao excluir venda: ' + error.message);
     }
-};
+}
+
+// 🔧 CORREÇÃO: Função para remover a linha da tabela sem recarregar a página
+function removerLinhaDaTabela(idVenda) {
+    const linha = document.querySelector(`tr[data-venda-id="${idVenda}"]`);
+    if (linha) {
+        // 🔥 OPÇÃO: Adicionar efeito visual antes de remover
+        linha.style.opacity = '0.5';
+        linha.style.transition = 'opacity 0.3s';
+
+        setTimeout(() => {
+            linha.remove();
+            console.log(`✅ Linha da venda ${idVenda} removida da tabela`);
+
+            // 🔥 OPÇÃO: Mostrar que sumiu (feedback visual)
+            if (document.querySelectorAll('tbody tr').length === 0) {
+                // Se não tem mais linhas, mostra mensagem
+                const tbody = document.querySelector('tbody');
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px;">Nenhuma venda encontrada</td></tr>';
+            }
+        }, 300);
+
+    } else {
+        console.log(`⚠️ Linha da venda ${idVenda} não encontrada`);
+        // 🔥 REMOVIDO: location.reload();
+    }
+}
+
+// 🔥 OPÇÃO: Funções para notificações discretas (se quiser algo mais profissional)
+function mostrarNotificacaoSucesso(mensagem) {
+    // Se tiver um sistema de toast/notificação, use aqui
+    // Ou pode simplesmente logar no console
+    console.log('✅ ' + mensagem);
+
+    // Exemplo simples de notificação
+    const notificacao = document.createElement('div');
+    notificacao.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+    `;
+    notificacao.textContent = mensagem;
+    document.body.appendChild(notificacao);
+
+    setTimeout(() => notificacao.style.opacity = '1', 100);
+    setTimeout(() => {
+        notificacao.style.opacity = '0';
+        setTimeout(() => notificacao.remove(), 300);
+    }, 3000);
+}
+
+function mostrarNotificacaoErro(mensagem) {
+    console.error('❌ ' + mensagem);
+
+    const notificacao = document.createElement('div');
+    notificacao.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #f44336;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+    `;
+    notificacao.textContent = mensagem;
+    document.body.appendChild(notificacao);
+
+    setTimeout(() => notificacao.style.opacity = '1', 100);
+    setTimeout(() => {
+        notificacao.style.opacity = '0';
+        setTimeout(() => notificacao.remove(), 300);
+    }, 3000);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const link = document.getElementById('consultar-vendas');
@@ -239,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="bi bi-receipt me-2"></i>Detalhes da Venda
+          <i class="bi bi-receipt me-2"></i>Detalhes da Venda #<span id="detalhe-id">-</span>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
@@ -248,10 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="col-md-6">
             <h6 class="text-muted">Informações da Venda</h6>
             <table class="table table-sm">
-              <tr>
-                <td><strong>ID:</strong></td>
-                <td id="detalhe-id">-</td>
-              </tr>
               <tr>
                 <td><strong>Data:</strong></td>
                 <td id="detalhe-data">-</td>
@@ -268,22 +253,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><strong>Pagamento:</strong></td>
                 <td id="detalhe-pagamento">-</td>
               </tr>
+              <tr>
+                <td><strong>Caixa ID:</strong></td>
+                <td id="detalhe-caixa">-</td>
+              </tr>
             </table>
           </div>
           <div class="col-md-6">
-            <h6 class="text-muted">Informações Adicionais</h6>
+            <h6 class="text-muted">Informações do Cliente</h6>
             <table class="table table-sm">
               <tr>
-                <td><strong>Cliente ID:</strong></td>
-                <td id="detalhe-cliente">-</td>
+                <td><strong>Nome:</strong></td>
+                <td id="detalhe-cliente-nome">-</td>
+              </tr>
+              <tr>
+                <td><strong>CPF:</strong></td>
+                <td id="detalhe-cliente-cpf">-</td>
+              </tr>
+              <tr>
+                <td><strong>ID Cliente:</strong></td>
+                <td id="detalhe-cliente-id">-</td>
               </tr>
               <tr>
                 <td><strong>Colaborador ID:</strong></td>
                 <td id="detalhe-colaborador">-</td>
-              </tr>
-              <tr>
-                <td><strong>Caixa ID:</strong></td>
-                <td id="detalhe-caixa">-</td>
               </tr>
             </table>
           </div>
@@ -294,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <table class="table table-sm">
               <thead>
                 <tr>
-                  <th>Item</th>
+                  <th>Item ID</th>
                   <th>Quantidade</th>
                   <th>Valor Unit.</th>
                   <th>Subtotal</th>
@@ -316,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>`;
 
-    // Tela de consulta de vendas
+    // Tela de consulta de vendas - SIMPLIFICADA
     const telaConsulta = `
 <section class="container py-4 min-vh-100 d-flex align-items-center">
   <div class="row justify-content-center w-100">
@@ -332,35 +325,36 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="card-body">
-          <!-- Filtros -->
+          <!-- Filtros Simplificados -->
           <form id="formFiltro" class="row g-3 align-items-end">
             <div class="col-12 col-md-4">
-              <label for="filtro-data" class="form-label">Filtrar por data</label>
+              <label for="filtro-data" class="form-label">Data da venda</label>
               <input type="date" id="filtro-data" class="form-control">
             </div>
             <div class="col-12 col-md-4">
-              <label for="filtro-cliente" class="form-label">Filtrar por cliente</label>
-              <input type="number" id="filtro-cliente" class="form-control" placeholder="ID do cliente">
-            </div>
-            <div class="col-12 col-md-4">
-              <label for="filtro-caixa" class="form-label">Filtrar por caixa</label>
-              <input type="number" id="filtro-caixa" class="form-control" placeholder="ID do caixa">
+              <label for="filtro-pagamento" class="form-label">Tipo Pagamento</label>
+              <select id="filtro-pagamento" class="form-select">
+                <option value="">Todos</option>
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="CARTAO">Cartão</option>
+                <option value="PIX">PIX</option>
+              </select>
             </div>
             <div class="col-12 col-md-8">
-              <label for="filtro-geral" class="form-label">Busca geral</label>
-              <div class="input-group input-group-lg">
+              <label for="filtro-cliente" class="form-label">Buscar por Cliente (Nome ou CPF)</label>
+              <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
                 <input
                   type="text"
-                  id="filtro-geral"
+                  id="filtro-cliente"
                   class="form-control"
-                  placeholder="Digite para buscar em todos os campos..."
+                  placeholder="Digite nome ou CPF do cliente..."
                 >
               </div>
             </div>
-            <div class="col-12 col-md-4 d-grid d-md-flex gap-2">
+            <div class="col-12 col-md-4 d-grid d-md-flex gap-2 align-self-end">
               <button type="button" id="btn-limpar-filtro" class="btn btn-outline-secondary">
-                <i class="bi bi-eraser me-1"></i> Limpar filtros
+                <i class="bi bi-eraser me-1"></i> Limpar Filtros
               </button>
             </div>
           </form>
@@ -370,29 +364,24 @@ document.addEventListener('DOMContentLoaded', () => {
             <table id="tabela-vendas" class="table table-hover table-striped align-middle mb-0">
               <thead class="table-light sticky-top">
                 <tr>
-                  <th scope="col" style="width:10%;cursor:pointer" data-sort="id" class="sortable">
+                  <th scope="col" style="width:8%;cursor:pointer" data-sort="id" class="sortable">
                     <span class="d-inline-flex align-items-center gap-2">
                       ID <i class="bi bi-arrow-down-up small text-secondary sort-indicator"></i>
                     </span>
                   </th>
-                  <th scope="col" style="width:15%;cursor:pointer" data-sort="dataVenda" class="sortable">
+                  <th scope="col" style="width:12%;cursor:pointer" data-sort="dataVenda" class="sortable">
                     <span class="d-inline-flex align-items-center gap-2">
                       Data <i class="bi bi-arrow-down-up small text-secondary sort-indicator"></i>
                     </span>
                   </th>
-                  <th scope="col" style="width:15%;cursor:pointer" data-sort="valor" class="sortable">
+                  <th scope="col" style="width:15%">Cliente</th>
+                  <th scope="col" style="width:12%;cursor:pointer" data-sort="valor" class="sortable">
                     <span class="d-inline-flex align-items-center gap-2">
                       Valor Total <i class="bi bi-arrow-down-up small text-secondary sort-indicator"></i>
                     </span>
                   </th>
-                  <th scope="col" style="width:15%;cursor:pointer" data-sort="valorPago" class="sortable">
-                    <span class="d-inline-flex align-items-center gap-2">
-                      Valor Pago <i class="bi bi-arrow-down-up small text-secondary sort-indicator"></i>
-                    </span>
-                  </th>
-                  <th scope="col" style="width:15%">Pagamento</th>
-                  <th scope="col" style="width:10%">Cliente</th>
-                  <th scope="col" style="width:10%">Caixa</th>
+                  <th scope="col" style="width:12%">Pagamento</th>
+                  <th scope="col" style="width:8%">Caixa</th>
                   <th scope="col" class="text-end" style="width:10%">Ações</th>
                 </tr>
               </thead>
@@ -409,55 +398,28 @@ document.addEventListener('DOMContentLoaded', () => {
 </section>
 `;
 
-    // APIs
-    const vendas = async function () {
-        const response = await fetch('http://localhost:8080/apis/vendabazar/getall');
-        if (!response.ok) throw new Error(await response.text());
-        return await response.json();
-    };
-
-    const deletarVenda = async function (id) {
-        const response = await fetch('http://localhost:8080/apis/vendabazar/deletar', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
-        });
-        if (!response.ok) throw new Error(await response.text());
-        return await response.text();
-    };
-
-    // Filtro + ordenação
+    // 🔧 CORREÇÃO: Filtro + ordenação - SIMPLIFICADO
     function aplicarFiltroOrdenacao() {
         const base = (estado_pag.todos?.length ? estado_pag.todos : estado_pag.dados) || [];
-        const txt = normalizar(estado_pag.filtro);
+        const filtroCliente = normalizar(document.getElementById('filtro-cliente')?.value || '');
         const filtroData = document.getElementById('filtro-data')?.value;
-        const filtroCliente = document.getElementById('filtro-cliente')?.value;
-        const filtroCaixa = document.getElementById('filtro-caixa')?.value;
+        const filtroPagamento = document.getElementById('filtro-pagamento')?.value;
 
         let arr = base.filter(it => {
-            // Filtro de texto geral
-            const passaFiltroTexto = !txt ||
-                normalizar(it?.id).includes(txt) ||
-                normalizar(it?.dataVenda).includes(txt) ||
-                normalizar(it?.valor).includes(txt) ||
-                normalizar(it?.valorPago).includes(txt) ||
-                normalizar(it?.tipoPagamento).includes(txt) ||
-                normalizar(it?.clienteId).includes(txt) ||
-                normalizar(it?.caixaId).includes(txt);
+            // Filtro por nome/CPF do cliente
+            const passaFiltroCliente = !filtroCliente ||
+                normalizar(it?.clienteNome).includes(filtroCliente) ||
+                normalizar(it?.clienteCpf).includes(filtroCliente);
 
-            // Filtro por data
+            // Filtro por data - CORRIGIDO problema de timezone
             const passaFiltroData = !filtroData ||
                 new Date(it.dataVenda).toISOString().split('T')[0] === filtroData;
 
-            // Filtro por cliente
-            const passaFiltroCliente = !filtroCliente ||
-                String(it.clienteId) === filtroCliente;
+            // Filtro por tipo de pagamento
+            const passaFiltroPagamento = !filtroPagamento ||
+                it.tipoPagamento === filtroPagamento;
 
-            // Filtro por caixa
-            const passaFiltroCaixa = !filtroCaixa ||
-                String(it.caixaId) === filtroCaixa;
-
-            return passaFiltroTexto && passaFiltroData && passaFiltroCliente && passaFiltroCaixa;
+            return passaFiltroCliente && passaFiltroData && passaFiltroPagamento;
         });
 
         const { campo, dir } = estado_pag.sort || {};
@@ -467,8 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let vb = b?.[campo];
 
                 // Converte para número se for campo numérico
-                if (campo === 'id' || campo === 'valor' || campo === 'valorPago' ||
-                    campo === 'clienteId' || campo === 'caixaId') {
+                if (campo === 'id' || campo === 'valor' || campo === 'valorPago') {
                     va = Number(va) || 0;
                     vb = Number(vb) || 0;
                 }
@@ -521,22 +482,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 🔧 CORREÇÃO: Setup dos listeners dos filtros - SIMPLIFICADO
     function setupFiltroOrdenacaoListeners() {
-        const inputGeral = document.getElementById('filtro-geral');
-        const inputData = document.getElementById('filtro-data');
         const inputCliente = document.getElementById('filtro-cliente');
-        const inputCaixa = document.getElementById('filtro-caixa');
+        const inputData = document.getElementById('filtro-data');
+        const selectPagamento = document.getElementById('filtro-pagamento');
         const limpar = document.getElementById('btn-limpar-filtro');
 
         const aplicarFiltros = debounce(() => {
-            estado_pag.filtro = inputGeral?.value || '';
             estado_pag.pagina_atual = 0;
             aplicarFiltroOrdenacao();
         }, 300);
 
-        if (inputGeral && !inputGeral.dataset.ready) {
-            inputGeral.dataset.ready = '1';
-            inputGeral.addEventListener('input', aplicarFiltros);
+        if (inputCliente && !inputCliente.dataset.ready) {
+            inputCliente.dataset.ready = '1';
+            inputCliente.addEventListener('input', aplicarFiltros);
         }
 
         if (inputData && !inputData.dataset.ready) {
@@ -544,24 +504,17 @@ document.addEventListener('DOMContentLoaded', () => {
             inputData.addEventListener('change', aplicarFiltros);
         }
 
-        if (inputCliente && !inputCliente.dataset.ready) {
-            inputCliente.dataset.ready = '1';
-            inputCliente.addEventListener('input', aplicarFiltros);
-        }
-
-        if (inputCaixa && !inputCaixa.dataset.ready) {
-            inputCaixa.dataset.ready = '1';
-            inputCaixa.addEventListener('input', aplicarFiltros);
+        if (selectPagamento && !selectPagamento.dataset.ready) {
+            selectPagamento.dataset.ready = '1';
+            selectPagamento.addEventListener('change', aplicarFiltros);
         }
 
         if (limpar && !limpar.dataset.ready) {
             limpar.dataset.ready = '1';
             limpar.addEventListener('click', () => {
-                if (inputGeral) inputGeral.value = '';
-                if (inputData) inputData.value = '';
                 if (inputCliente) inputCliente.value = '';
-                if (inputCaixa) inputCaixa.value = '';
-                estado_pag.filtro = '';
+                if (inputData) inputData.value = '';
+                if (selectPagamento) selectPagamento.value = '';
                 estado_pag.pagina_atual = 0;
                 aplicarFiltroOrdenacao();
             });
@@ -578,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Mostrar detalhes da venda
+    // 🔧 CORREÇÃO: Mostrar detalhes da venda - COM DADOS DO CLIENTE
     async function mostrarDetalhes(venda) {
         const modal = document.getElementById('modal-detalhes-venda');
         if (!modal) return;
@@ -589,16 +542,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('detalhe-valor').textContent = formatarValor(venda.valor);
         document.getElementById('detalhe-valor-pago').textContent = formatarValor(venda.valorPago);
         document.getElementById('detalhe-pagamento').textContent = venda.tipoPagamento || '-';
-        document.getElementById('detalhe-cliente').textContent = venda.clienteId || '-';
-        document.getElementById('detalhe-colaborador').textContent = venda.loginColaboradorId || '-';
         document.getElementById('detalhe-caixa').textContent = venda.caixaId || '-';
 
-        // TODO: Buscar itens da venda quando tiver o endpoint
+        // 🔧 NOVO: Informações do cliente
+        document.getElementById('detalhe-cliente-nome').textContent = venda.clienteNome || 'Não informado';
+        document.getElementById('detalhe-cliente-cpf').textContent = formatarCPF(venda.clienteCpf) || 'Não informado';
+        document.getElementById('detalhe-cliente-id').textContent = venda.clienteId || '-';
+        document.getElementById('detalhe-colaborador').textContent = venda.loginColaboradorId || '-';
+
+        // Buscar itens da venda (placeholder)
         const listaItens = document.getElementById('lista-itens-venda');
         listaItens.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center text-muted">
-                    Funcionalidade de itens em desenvolvimento
+                    <i class="bi bi-info-circle me-2"></i>Funcionalidade de itens em desenvolvimento
                 </td>
             </tr>
         `;
@@ -608,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Deletar venda
     async function deletar(venda) {
-        const ok = await confirmar(`Excluir a venda #${venda.id}?\nData: ${formatarData(venda.dataVenda)}\nValor: ${formatarValor(venda.valor)}`);
+        const ok = await confirmar(`Excluir a venda #${venda.id}?\nData: ${formatarData(venda.dataVenda)}\nCliente: ${venda.clienteNome || venda.clienteId}\nValor: ${formatarValor(venda.valor)}`);
 
         if (!ok) return;
 
@@ -629,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Carrega dados na tabela
+    // 🔧 CORREÇÃO: Carrega dados na tabela - COM DADOS DO CLIENTE
     async function insereVendasTabela() {
         const table = document.getElementById('lista-vendas');
 
@@ -644,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!data.length) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 8;
+                td.colSpan = 7;
                 td.textContent = 'Nenhuma venda encontrada.';
                 td.className = 'text-center py-4 text-muted';
                 tr.appendChild(td);
@@ -698,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Erro ao carregar vendas:', err);
             const tr = document.createElement('tr');
             const td = document.createElement('td');
-            td.colSpan = 8;
+            td.colSpan = 7;
             td.textContent = `Erro ao carregar vendas: ${err.message || err}`;
             td.className = 'text-center py-4 text-danger';
             tr.appendChild(td);
@@ -706,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Render da página atual
+    // 🔧 CORREÇÃO: Render da página atual - COM DADOS DO CLIENTE
     function carregarPagina() {
         const table = document.getElementById('lista-vendas');
         while (table.firstChild) table.removeChild(table.firstChild);
@@ -731,29 +688,34 @@ document.addEventListener('DOMContentLoaded', () => {
             tdData.textContent = formatarData(venda.dataVenda);
             tr.appendChild(tdData);
 
+            // 🔧 NOVO: Cliente (Nome e CPF)
+            const tdCliente = document.createElement('td');
+            tdCliente.innerHTML = `
+                <div class="d-flex flex-column">
+                    <strong class="mb-1">${venda.clienteNome || 'Cliente ' + venda.clienteId}</strong>
+                    <small class="text-muted">${formatarCPF(venda.clienteCpf) || 'CPF não informado'}</small>
+                </div>
+            `;
+            tr.appendChild(tdCliente);
+
             // Valor Total
             const tdValor = document.createElement('td');
             tdValor.textContent = formatarValor(venda.valor);
-            tdValor.className = 'fw-bold';
+            tdValor.className = 'fw-bold text-success';
             tr.appendChild(tdValor);
-
-            // Valor Pago
-            const tdValorPago = document.createElement('td');
-            tdValorPago.textContent = formatarValor(venda.valorPago);
-            tr.appendChild(tdValorPago);
 
             // Tipo Pagamento
             const tdPagamento = document.createElement('td');
             const badgePagamento = document.createElement('span');
-            badgePagamento.className = `badge ${venda.tipoPagamento === 'DINHEIRO' ? 'bg-success' : 'bg-primary'}`;
+            let badgeClass = 'bg-secondary';
+            if (venda.tipoPagamento === 'DINHEIRO') badgeClass = 'bg-success';
+            else if (venda.tipoPagamento === 'CARTAO') badgeClass = 'bg-primary';
+            else if (venda.tipoPagamento === 'PIX') badgeClass = 'bg-info';
+
+            badgePagamento.className = `badge ${badgeClass}`;
             badgePagamento.textContent = venda.tipoPagamento || 'N/A';
             tdPagamento.appendChild(badgePagamento);
             tr.appendChild(tdPagamento);
-
-            // Cliente
-            const tdCliente = document.createElement('td');
-            tdCliente.textContent = venda.clienteId;
-            tr.appendChild(tdCliente);
 
             // Caixa
             const tdCaixa = document.createElement('td');
@@ -851,13 +813,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Nova venda (redirecionar para tela de nova venda)
+    // Nova venda
     function setupNovaVendaListener() {
         const btnNovaVenda = document.getElementById('btn-nova-venda');
         if (btnNovaVenda) {
             btnNovaVenda.addEventListener('click', () => {
-                // TODO: Implementar redirecionamento para tela de nova venda
-                mostrarToast('Funcionalidade de nova venda em desenvolvimento', 'info');
+                const linkEfetuarVenda = document.getElementById('efetuar-venda');
+                if (linkEfetuarVenda) {
+                    linkEfetuarVenda.click();
+                } else {
+                    mostrarToast('Funcionalidade de nova venda em desenvolvimento', 'info');
+                }
             });
         }
     }
@@ -872,5 +838,235 @@ document.addEventListener('DOMContentLoaded', () => {
             insereVendasTabela();
             setupNovaVendaListener();
         });
+    }
+
+    // Função para finalizar venda com tratamento de troco
+    async function finalizarVendaComTroco(dadosVenda) {
+        const valorVenda = calcularTotalVenda(); // Seu método atual que calcula o total
+        const valorPago = parseFloat(document.getElementById('valorPago').value);
+
+        // Verifica se o valor pago é maior que o valor da venda
+        if (valorPago > valorVenda) {
+            const troco = valorPago - valorVenda;
+
+            // Popup de confirmação do troco
+            const decisaoTroco = await mostrarPopupTroco(troco, valorPago, valorVenda);
+
+            if (decisaoTroco.acao === 'manter_troco') {
+                // Cliente ficou com o troco - mantém valor pago original
+                dadosVenda.valorPago = valorPago;
+                dadosVenda.troco = troco;
+                dadosVenda.trocoFicouComCliente = true;
+            } else if (decisaoTroco.acao === 'devolver_troco') {
+                // Devolveu o troco - ajusta valor pago para valor da venda
+                dadosVenda.valorPago = valorVenda;
+                dadosVenda.troco = 0;
+                dadosVenda.trocoFicouComCliente = false;
+            } else {
+                // Usuário cancelou
+                return null;
+            }
+        } else {
+            // Sem troco - valor normal
+            dadosVenda.valorPago = valorPago;
+            dadosVenda.troco = 0;
+            dadosVenda.trocoFicouComCliente = false;
+        }
+
+        return dadosVenda;
+    }
+
+// Popup personalizado para tratamento do troco
+    function mostrarPopupTroco(troco, valorPago, valorVenda) {
+        return new Promise((resolve) => {
+            // Cria o modal do troco
+            const modalTroco = document.createElement('div');
+            modalTroco.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+            modalTroco.innerHTML = `
+            <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; text-align: center;">
+                <h3 style="color: #333; margin-bottom: 20px;">💰 Troco Disponível</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Valor da Venda:</strong> R$ ${valorVenda.toFixed(2)}</p>
+                    <p><strong>Valor Pago:</strong> R$ ${valorPago.toFixed(2)}</p>
+                    <p style="font-size: 1.2em; color: #e74c3c; font-weight: bold;">
+                        <strong>Troco:</strong> R$ ${troco.toFixed(2)}
+                    </p>
+                </div>
+                
+                <p style="margin-bottom: 25px; color: #666;">
+                    O cliente ficou com o troco ou devolveu?
+                </p>
+                
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="btnFicouComTroco" style="
+                        padding: 12px 24px;
+                        background: #3498db;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Ficou com Troco</button>
+                    
+                    <button id="btnDevolveuTroco" style="
+                        padding: 12px 24px;
+                        background: #2ecc71;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Devolveu Troco</button>
+                    
+                    <button id="btnCancelarTroco" style="
+                        padding: 12px 24px;
+                        background: #95a5a6;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Cancelar</button>
+                </div>
+            </div>
+        `;
+
+            document.body.appendChild(modalTroco);
+
+            // Event listeners para os botões
+            document.getElementById('btnFicouComTroco').onclick = () => {
+                document.body.removeChild(modalTroco);
+                resolve({ acao: 'manter_troco', troco: troco });
+            };
+
+            document.getElementById('btnDevolveuTroco').onclick = () => {
+                document.body.removeChild(modalTroco);
+                resolve({ acao: 'devolver_troco', troco: 0 });
+            };
+
+            document.getElementById('btnCancelarTroco').onclick = () => {
+                document.body.removeChild(modalTroco);
+                resolve({ acao: 'cancelar' });
+            };
+        });
+    }
+
+// Modifique a função principal de finalizar venda
+    async function finalizarVenda() {
+        try {
+            // Seus dados atuais da venda...
+            const dadosVenda = {
+                valor: calcularTotalVenda(),
+                valorPago: parseFloat(document.getElementById('valorPago').value),
+                tipoPagamento: document.getElementById('tipoPagamento').value,
+                clienteId: parseInt(document.getElementById('clienteSelect').value),
+                loginColaboradorId: usuarioLogado.id,
+                caixaId: caixaAtual.id,
+                itensVenda: getItensVenda()
+            };
+
+            // Aplica o tratamento de troco
+            const dadosComTroco = await finalizarVendaComTroco(dadosVenda);
+
+            if (!dadosComTroco) {
+                console.log('Venda cancelada pelo usuário');
+                return;
+            }
+
+            // Continua com o processo normal de venda
+            const response = await fetch('/apis/vendabazar/realizar-venda', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(dadosComTroco)
+            });
+
+            if (response.ok) {
+                const vendaRealizada = await response.json();
+                console.log('✅ Venda realizada com sucesso:', vendaRealizada);
+
+                // Mostra resumo com informações do troco
+                mostrarResumoVenda(vendaRealizada, dadosComTroco.troco, dadosComTroco.trocoFicouComCliente);
+
+            } else {
+                throw new Error('Erro ao realizar venda');
+            }
+
+        } catch (error) {
+            console.error('Erro ao finalizar venda:', error);
+            alert('Erro ao finalizar venda: ' + error.message);
+        }
+    }
+
+// Função para mostrar resumo da venda com troco
+    function mostrarResumoVenda(venda, troco, trocoFicouComCliente) {
+        const modalResumo = document.createElement('div');
+        modalResumo.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+
+        let infoTroco = '';
+        if (troco > 0) {
+            if (trocoFicouComCliente) {
+                infoTroco = `<p style="color: #e74c3c;"><strong>Troco:</strong> R$ ${troco.toFixed(2)} (Cliente ficou com o troco)</p>`;
+            } else {
+                infoTroco = `<p style="color: #27ae60;"><strong>Troco devolvido:</strong> R$ ${troco.toFixed(2)} (Valor pago ajustado)</p>`;
+            }
+        }
+
+        modalResumo.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; text-align: center;">
+            <h3 style="color: #27ae60; margin-bottom: 20px;">✅ Venda Realizada!</h3>
+            
+            <div style="text-align: left; margin-bottom: 20px;">
+                <p><strong>Nº Venda:</strong> #${venda.id}</p>
+                <p><strong>Valor:</strong> R$ ${venda.valor.toFixed(2)}</p>
+                <p><strong>Valor Pago:</strong> R$ ${venda.valorPago.toFixed(2)}</p>
+                <p><strong>Forma de Pagamento:</strong> ${venda.tipoPagamento}</p>
+                ${infoTroco}
+            </div>
+            
+            <button id="btnFecharResumo" style="
+                padding: 12px 30px;
+                background: #3498db;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+            ">Fechar</button>
+        </div>
+    `;
+
+        document.body.appendChild(modalResumo);
+
+        document.getElementById('btnFecharResumo').onclick = () => {
+            document.body.removeChild(modalResumo);
+            limparCarrinho(); // Sua função para limpar o carrinho
+        };
     }
 });

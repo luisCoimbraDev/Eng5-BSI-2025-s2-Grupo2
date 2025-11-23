@@ -10,189 +10,277 @@ const EfetuarVenda = {
         tipoBazarSelecionado: null,
         todosClientes: [],
         clientesFiltrados: [],
-        clientesCarregados: false
+        clientesCarregados: false,
+        // 🔍 NOVO: Estado para busca de produtos
+        termoBuscaProduto: '',
+        todosItens: [], // Para armazenar todos os itens carregados
+        timeoutBusca: null // Para debounce da busca
+    },
+
+    // Sistema de Notificações igual ao das Cestas - APENAS PARA FINALIZAR VENDA
+    notifySuccess: function(title, text) {
+        if (typeof swal === "function") {
+            swal(title, text, "success");
+        } else {
+            alert(`${title}\n\n${text}`);
+        }
+    },
+
+    notifyError: function(title, text) {
+        if (typeof swal === "function") {
+            swal(title, text, "error");
+        } else {
+            alert(`${title}\n\n${text}`);
+        }
+    },
+
+    // Fetch wrapper com tratamento de erro
+    fetchJson: async function(url, opts = {}) {
+        try {
+            const resp = await fetch(url, opts);
+            const text = await resp.text().catch(() => null);
+
+            if (!resp.ok) {
+                try {
+                    const j = text ? JSON.parse(text) : null;
+                    throw new Error((j && (j.mensagem || j.message)) || text || `HTTP ${resp.status}`);
+                } catch (e) {
+                    throw new Error(text || `HTTP ${resp.status}`);
+                }
+            }
+
+            if (!text) return null;
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                return text;
+            }
+        } catch (err) {
+            throw err;
+        }
     },
 
     mount: function() {
         const main = document.getElementById('app-content');
 
         main.innerHTML = `
-            <section class="container py-3 min-vh-100">
-                <div class="row justify-content-center">
-                    <div class="col-12 col-xl-10">
-                        <div class="card shadow-sm">
-                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
-                                <h3 class="h5 mb-0">
-                                    <i class="bi bi-cart-plus me-2"></i>Efetuar Nova Venda
-                                </h3>
-                                <div class="d-flex align-items-center">
-                                    <small class="me-3">${new Date().toLocaleDateString('pt-BR')}</small>
-                                    <span class="badge bg-light text-dark" id="status-caixa">Verificando caixa...</span>
-                                </div>
+        <section class="container py-3 min-vh-100">
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+                    <div class="card shadow-sm">
+        
+                        <div class="rounded card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                            <h3 class="h5 mb-0">
+                                <i class="bi bi-cart-plus me-2"></i>Efetuar Nova Venda
+                            </h3>
+                            <div class="d-flex align-items-center">
+                                <small class="me-3">${new Date().toLocaleDateString('pt-BR')}</small>
+                                <span class="bg-light text-dark" id="status-caixa">Verificando caixa...</span>
                             </div>
-                            
-                            <div class="card-body">
-                                <!-- Alertas -->
-                                <div id="alert-area"></div>
-
-                                <!-- Informações de Pagamento -->
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Tipo de Pagamento <span class="text-danger">*</span></label>
-                                        <select id="tipo-pagamento" class="form-select" required>
-                                            <option value="">Selecione...</option>
-                                            <option value="DINHEIRO">Dinheiro</option>
-                                            <option value="CARTAO">Cartão</option>
-                                            <option value="PIX">PIX</option>
-                                            <option value="DEBITO">Débito</option>
-                                            <option value="CREDITO">Crédito</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Valor Pago <span class="text-danger">*</span></label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">R$</span>
-                                            <input type="text" id="valor-pago" class="form-control money-mask" placeholder="0,00" required>
+                        </div>
+        
+                        <div class="card-body">
+                            <div id="alert-area"></div>
+        
+                            <!-- CLIENTE -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header bg-light py-2">
+                                            <h6 class="mb-0"><i class="bi bi-person me-2"></i>Cliente <span class="text-danger">*</span></h6>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <!-- Seleção de Cliente -->
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <div class="card">
-                                            <div class="card-header bg-light py-2">
-                                                <h6 class="mb-0"><i class="bi bi-person me-2"></i>Cliente <span class="text-danger">*</span></h6>
-                                            </div>
-                                            <div class="card-body py-3">
-                                                <div class="row g-3">
-                                                    <div class="col-md-6 position-relative">
-                                                        <label class="form-label">Buscar Cliente por Nome ou CPF</label>
-                                                        <div class="input-group">
-                                                            <input type="text" id="busca-cliente" class="form-control" 
-                                                                   placeholder="Digite nome ou CPF... (mín. 2 caracteres)"
-                                                                   autocomplete="off">
-                                                            <button class="btn btn-outline-secondary" type="button" id="btn-buscar-cliente">
-                                                                <i class="bi bi-search"></i>
-                                                            </button>
-                                                        </div>
-                                                        <div id="lista-clientes" class="mt-1 border rounded" style="display: none; max-height: 200px; overflow-y: auto; position: absolute; z-index: 1000; width: 100%; background: white;">
-                                                            <div class="list-group list-group-flush" id="resultados-clientes">
-                                                                <!-- Resultados da busca aparecerão aqui -->
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-text">
-                                                            Digite pelo menos 2 caracteres para buscar
-                                                        </div>
+                                        <div class="card-body py-3">
+                                            <div class="row g-3">
+                                                <div class="col-md-6 position-relative">
+                                                    <label class="form-label">Buscar Cliente por Nome ou CPF</label>
+                                                    <div class="input-group">
+                                                        <input type="text" id="busca-cliente" class="form-control"
+                                                            placeholder="Digite nome ou CPF... (mín. 2 caracteres)"
+                                                            autocomplete="off">
+                                                        <button class="btn btn-outline-secondary" type="button" id="btn-buscar-cliente">
+                                                            <i class="bi bi-search"></i>
+                                                        </button>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div id="info-cliente" class="alert alert-info mb-0">
-                                                            <strong>Nenhum cliente selecionado</strong><br>
-                                                            <small>Busque e selecione um cliente para continuar</small>
-                                                        </div>
+                                                    <div id="lista-clientes" class="mt-1 border rounded"
+                                                        style="display: none; max-height: 200px; overflow-y: auto; position: absolute; z-index: 1000; width: 100%; background: white;">
+                                                        <div class="list-group list-group-flush" id="resultados-clientes"></div>
                                                     </div>
+                                                    <div class="form-text">Digite pelo menos 2 caracteres para buscar</div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Filtro por Tipo de Bazar -->
-                                <div class="row mb-3">
-                                    <div class="col-12">
-                                        <div class="card">
-                                            <div class="card-header bg-light py-2">
-                                                <h6 class="mb-0"><i class="bi bi-filter me-2"></i>Filtrar por Tipo de Bazar</h6>
-                                            </div>
-                                            <div class="card-body py-3">
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <select id="filtro-tipo-bazar" class="form-select">
-                                                            <option value="">Todos os tipos</option>
-                                                            <!-- Tipos de bazar serão carregados aqui -->
-                                                        </select>
+        
+                                                <div class="col-md-6">
+                                                    <div id="info-cliente" class="alert alert-info mb-0">
+                                                        <strong>Nenhum cliente selecionado</strong><br>
+                                                        <small>Busque e selecione um cliente para continuar</small>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-text mb-0">
-                                                            Filtre os itens por categoria para encontrar mais facilmente
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Seleção de Itens -->
-                                <div class="row">
-                                    <div class="col-lg-8">
-                                        <div class="card">
-                                            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                                                <h6 class="mb-0"><i class="bi bi-box-seam me-2"></i>Itens do Bazar <span class="text-danger">*</span></h6>
-                                                <button class="btn btn-sm btn-outline-primary" id="btn-carregar-itens">
-                                                    <i class="bi bi-arrow-clockwise"></i> Atualizar
-                                                </button>
-                                            </div>
-                                            <div class="card-body p-0">
-                                                <div class="table-responsive" style="max-height: 350px;">
-                                                    <table class="table table-sm table-hover mb-0">
-                                                        <thead class="table-light sticky-top">
-                                                            <tr>
-                                                                <th width="60">ID</th>
-                                                                <th>Nome</th>
-                                                                <th width="120">Tipo</th>
-                                                                <th width="100">Preço</th>
-                                                                <th width="100">Estoque</th>
-                                                                <th width="100">Ação</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="lista-itens-bazar">
-                                                            <tr>
-                                                                <td colspan="6" class="text-center text-muted py-3">
-                                                                    Carregando itens...
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-4 mt-3 mt-lg-0">
-                                        <div class="card h-100">
-                                            <div class="card-header bg-light py-2">
-                                                <h6 class="mb-0"><i class="bi bi-cart-check me-2"></i>Itens Selecionados</h6>
-                                            </div>
-                                            <div class="card-body d-flex flex-column">
-                                                <div id="lista-itens-selecionados" style="max-height: 250px; overflow-y: auto; min-height: 100px;">
-                                                    <div class="text-center text-muted py-3">
-                                                        Nenhum item selecionado
-                                                    </div>
-                                                </div>
-                                                <div class="border-top pt-3 mt-auto">
-                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                        <strong>Subtotal:</strong>
-                                                        <span id="subtotal">R$ 0,00</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                                        <strong>Total:</strong>
-                                                        <span id="total-venda" class="h5 text-primary">R$ 0,00</span>
-                                                    </div>
-                                                    <button class="btn btn-success w-100" id="btn-finalizar-venda" disabled>
-                                                        <i class="bi bi-check-lg me-2"></i>Finalizar Venda
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- 🔍 CARD UNIFICADO: FILTROS DE TIPO E BUSCA POR PRODUTO -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header bg-light py-2">
+                                            <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filtrar Produtos</h6>
+                                        </div>
+                                        <div class="card-body py-3">
+                                            <div class="row g-3 align-items-end">
+                                                <!-- Busca por Nome do Produto -->
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Buscar por Nome do Produto</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">
+                                                            <i class="bi bi-search"></i>
+                                                        </span>
+                                                        <input type="text" id="busca-produto" class="form-control"
+                                                            placeholder="Digite o nome do produto..."
+                                                            autocomplete="off">
+                                                        <button class="btn btn-outline-secondary" type="button" id="btn-limpar-busca-produto" 
+                                                                title="Limpar busca" style="display: none;">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="form-text">Busque produtos digitando o nome</div>
+                                                </div>
+
+                                                <!-- Filtro por Tipo -->
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Filtrar por Tipo</label>
+                                                    <select id="filtro-tipo-bazar" class="form-select">
+                                                        <option value="">Todos os tipos</option>
+                                                    </select>
+                                                    <div class="form-text">Filtre por categoria</div>
+                                                </div>
+
+                                                <!-- Contador de Resultados -->
+                                                <div class="col-md-2">
+                                                    <div class="d-flex align-items-center h-100">
+                                                        <div class="text-center w-100">
+                                                            <div id="contador-resultados" class="fw-bold text-primary fs-5">-</div>
+                                                            <small class="text-muted">itens</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- 🔍 Status da Busca -->
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <div id="info-busca-produto" class="text-muted small">
+                                                        Digite um termo ou selecione um tipo para filtrar
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+        
+                            <!-- ITENS + SELECIONADOS -->
+                            <div class="row">
+        
+                                <!-- LISTA DE ITENS -->
+                                <div class="col-lg-8">
+                                    <div class="card">
+                                        <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-box-seam me-2"></i>Itens do Bazar 
+                                                <span class="text-danger">*</span>
+                                                <span id="badge-resultados" class="badge bg-primary ms-2"></span>
+                                            </h6>
+                                            <button class="btn btn-sm btn-outline-primary" id="btn-carregar-itens">
+                                                <i class="bi bi-arrow-clockwise"></i> Atualizar
+                                            </button>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="table-responsive" style="max-height: 350px;">
+                                                <table class="table table-sm table-hover mb-0">
+                                                    <thead class="table-light sticky-top">
+                                                        <tr>
+                                                            <th>Nome</th>
+                                                            <th width="120">Tipo</th>
+                                                            <th width="100">Preço</th>
+                                                            <th width="100">Estoque</th>
+                                                            <th width="100">Ação</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="lista-itens-bazar">
+                                                        <tr>
+                                                            <td colspan="5" class="text-center text-muted py-3">
+                                                                Carregando itens...
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+        
+                                <!-- LISTA DE SELECIONADOS + TOTAL -->
+                                <div class="col-lg-4 mt-3 mt-lg-0">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light py-2">
+                                            <h6 class="mb-0"><i class="bi bi-cart-check me-2"></i>Itens Selecionados</h6>
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <div id="lista-itens-selecionados" style="max-height: 250px; overflow-y: auto; min-height: 100px;">
+                                                <div class="text-center text-muted py-3">Nenhum item selecionado</div>
+                                            </div>
+        
+                                            <div class="border-top pt-3 mt-auto">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <strong>Subtotal:</strong>
+                                                    <span id="subtotal">R$ 0,00</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <strong>Total:</strong>
+                                                    <span id="total-venda" class="h5 text-primary">R$ 0,00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+        
+                            <!-- PAGAMENTO -->
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tipo de Pagamento <span class="text-danger">*</span></label>
+                                    <select id="tipo-pagamento" class="form-select">
+                                        <option value="">Selecione...</option>
+                                        <option value="DINHEIRO">Dinheiro</option>
+                                        <option value="CARTAO">Cartão</option>
+                                        <option value="PIX">PIX</option>
+                                    </select>
+                                </div>
+        
+                                <div class="col-md-6">
+                                    <label class="form-label">Valor Pago <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        <input type="text" id="valor-pago" class="form-control money-mask" placeholder="0,00">
+                                    </div>
+                                </div>
+                            </div>
+        
+                            <!-- BOTÃO FINAL -->
+                            <div class="mt-4">
+                                <button class="btn btn-success w-100" id="btn-finalizar-venda" disabled>
+                                    <i class="bi bi-check-lg me-2"></i>Finalizar Venda
+                                </button>
+                            </div>
+        
                         </div>
                     </div>
                 </div>
-            </section>
-        `;
+            </div>
+        </section>
+    `;
 
         this.inicializarVenda();
         return false;
@@ -223,34 +311,29 @@ const EfetuarVenda = {
 
     verificarCaixaAberto: async function() {
         try {
-            const response = await fetch('http://localhost:8080/api/caixa/aberto');
-            if (!response.ok) throw new Error('Erro ao verificar caixa');
+            const response = await this.fetchJson('http://localhost:8080/api/caixa/aberto');
 
-            const data = await response.json();
             const statusCaixa = document.getElementById('status-caixa');
 
-            if (data.idCaixa && data.idCaixa > 0) {
-                this.estado.caixaAberto = data;
-                statusCaixa.className = 'badge bg-success';
-                statusCaixa.textContent = `Caixa #${data.idCaixa} Aberto`;
-                this.mostrarAlerta('Caixa aberto encontrado!', 'success');
+            if (response.idCaixa && response.idCaixa > 0) {
+                this.estado.caixaAberto = response;
+                // 🎯 MESMO ESTILO DO ABRIR/FECHAR CAIXA
+                statusCaixa.innerHTML = '<span class="rounded bg-success fs-6 p-2"><i class="fas fa-lock-open me-2"></i>Caixa Aberto</span>';
             } else {
-                statusCaixa.className = 'badge bg-danger';
-                statusCaixa.textContent = 'Nenhum caixa aberto';
-                this.mostrarAlerta('Não há caixa aberto. É necessário abrir um caixa antes de efetuar vendas.', 'warning');
+                // 🎯 MESMO ESTILO DO ABRIR/FECHAR CAIXA
+                statusCaixa.innerHTML = '<span class="rounded bg-warning text-dark fs-6 p-2"><i class="fas fa-lock me-2"></i>Caixa Fechado</span>';
             }
         } catch (error) {
             console.error('Erro ao verificar caixa:', error);
-            this.mostrarAlerta('Erro ao verificar status do caixa', 'danger');
+            const statusCaixa = document.getElementById('status-caixa');
+            // 🎯 ESTILO DE ERRO CONSISTENTE
+            statusCaixa.innerHTML = '<span class="badge bg-danger fs-6 p-2"><i class="fas fa-exclamation-triangle me-2"></i>Erro ao verificar caixa</span>';
         }
     },
 
     carregarTiposBazar: async function() {
         try {
-            const response = await fetch('http://localhost:8080/apis/tipobazar/getall');
-            if (!response.ok) throw new Error('Erro ao carregar tipos de bazar');
-
-            const tipos = await response.json();
+            const tipos = await this.fetchJson('http://localhost:8080/apis/tipobazar/getall');
             this.estado.tiposBazar = tipos;
             this.preencherSelectTiposBazar(tipos);
         } catch (error) {
@@ -279,11 +362,7 @@ const EfetuarVenda = {
 
     carregarTodosClientes: async function() {
         try {
-            const response = await fetch('http://localhost:8080/apis/clientes/pegalista');
-            if (!response.ok) throw new Error('Erro ao carregar clientes');
-
-            const clientes = await response.json();
-            console.log('Clientes carregados:', clientes);
+            const clientes = await this.fetchJson('http://localhost:8080/apis/clientes/pegalista');
 
             this.estado.todosClientes = clientes.map(cliente => ({
                 id: cliente.id || cliente.idCliente || cliente.idcliente,
@@ -293,7 +372,7 @@ const EfetuarVenda = {
                 email: cliente.email
             }));
 
-            console.log('Clientes normalizados:', this.estado.todosClientes);
+            console.log('Clientes carregados:', this.estado.todosClientes);
         } catch (error) {
             console.error('Erro ao carregar clientes:', error);
             this.estado.todosClientes = [
@@ -303,8 +382,6 @@ const EfetuarVenda = {
                 { id: 4, nome: 'Pedro Almeida Souza', cpf: '444.555.666-77', telefone: '(11) 95555-4444', email: 'pedro.souza@email.com' },
                 { id: 5, nome: 'Carla Mendes Lima', cpf: '555.666.777-88', telefone: '(11) 94444-3333', email: 'carla.lima@email.com' }
             ];
-
-            this.mostrarAlerta('Usando dados de exemplo para clientes', 'info');
         }
     },
 
@@ -326,26 +403,26 @@ const EfetuarVenda = {
 
         if (this.estado.clientesFiltrados.length === 0) {
             resultados.innerHTML = `
-            <div class="list-group-item text-center text-muted py-2">
-                <i class="bi bi-search me-2"></i>Nenhum cliente encontrado
-            </div>
-        `;
+        <div class="list-group-item text-center text-muted py-2">
+            <i class="bi bi-search me-2"></i>Nenhum cliente encontrado
+        </div>
+    `;
         } else {
             resultados.innerHTML = this.estado.clientesFiltrados.map(cliente => `
-            <button type="button" class="list-group-item list-group-item-action border-0 py-2" 
-                    onclick="EfetuarVenda.selecionarCliente(${cliente.id})">
-                <div class="d-flex w-100 justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <strong class="mb-1 d-block">${cliente.nome}</strong>
-                        <div class="text-start">
-                            <small class="text-muted d-block">CPF: ${cliente.cpf || 'Não informado'}</small>
-                            <small class="text-muted">Tel: ${cliente.telefone || 'Não informado'}</small>
-                        </div>
+        <button type="button" class="list-group-item list-group-item-action border-0 py-2" 
+                onclick="EfetuarVenda.selecionarCliente(${cliente.id})">
+            <div class="d-flex w-100 justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <strong class="mb-1 d-block">${cliente.nome}</strong>
+                    <div class="text-start">
+                        <small class="text-muted d-block">CPF: ${cliente.cpf || 'Não informado'}</small>
+                        <small class="text-muted">Tel: ${cliente.telefone || 'Não informado'}</small>
                     </div>
-                    <small class="text-muted ms-2">ID: ${cliente.id}</small>
                 </div>
-            </button>
-        `).join('');
+                <!-- REMOVIDO O ID DO CLIENTE -->
+            </div>
+        </button>
+    `).join('');
         }
 
         listaClientes.style.display = 'block';
@@ -379,7 +456,6 @@ const EfetuarVenda = {
             this.calcularTotal();
         } else {
             console.error('Cliente não encontrado:', clienteId);
-            this.mostrarAlerta('Erro ao selecionar cliente', 'danger');
         }
     },
 
@@ -401,49 +477,183 @@ const EfetuarVenda = {
 
     carregarItensBazar: async function() {
         try {
-            const response = await fetch('http://localhost:8080/apis/itembazar/getall');
-
-            if (!response.ok) {
-                console.log('API não disponível, usando dados mock');
-                const dadosMock = [
-                    { idItemBazar: 1, nome: 'Camiseta Branca M', qtde: 10, condicaoitem: 'Nova', preco: 15.00, tipoBazarTpbId: 1, tipoBazar: 'Roupas' },
-                    { idItemBazar: 2, nome: 'Calça Jeans 40', qtde: 5, condicaoitem: 'Semi-nova', preco: 35.00, tipoBazarTpbId: 1, tipoBazar: 'Roupas' },
-                    { idItemBazar: 3, nome: 'Blusa de Moletom', qtde: 8, condicaoitem: 'Nova', preco: 45.00, tipoBazarTpbId: 1, tipoBazar: 'Roupas' },
-                    { idItemBazar: 4, nome: 'Tênis Esportivo', qtde: 6, condicaoitem: 'Usado', preco: 25.00, tipoBazarTpbId: 2, tipoBazar: 'Calçados' },
-                    { idItemBazar: 5, nome: 'Livro - Dom Casmurro', qtde: 12, condicaoitem: 'Usado', preco: 20.00, tipoBazarTpbId: 4, tipoBazar: 'Livros' }
-                ];
-                this.exibirItensBazar(dadosMock);
-                return;
-            }
-
-            const itens = await response.json();
-            this.exibirItensBazar(itens);
+            const itens = await this.fetchJson('http://localhost:8080/apis/itembazar/getall');
+            // 🔍 NOVO: Armazena todos os itens para busca
+            this.estado.todosItens = itens;
+            this.aplicarFiltrosEExibir();
         } catch (error) {
             console.error('Erro ao carregar itens:', error);
-            this.mostrarAlerta('Erro ao carregar itens do bazar', 'danger');
+
+            // Fallback com dados mock
+            const dadosMock = [
+                { idItemBazar: 1, nome: 'Camiseta Branca M', qtde: 10, condicaoitem: 'Nova', preco: 15.00, tipoBazarTpbId: 1, tipoBazar: 'Roupas' },
+                { idItemBazar: 2, nome: 'Calça Jeans 40', qtde: 5, condicaoitem: 'Semi-nova', preco: 35.00, tipoBazarTpbId: 1, tipoBazar: 'Roupas' },
+                { idItemBazar: 3, nome: 'Blusa de Moletom', qtde: 8, condicaoitem: 'Nova', preco: 45.00, tipoBazarTpbId: 1, tipoBazar: 'Roupas' },
+                { idItemBazar: 4, nome: 'Tênis Esportivo', qtde: 6, condicaoitem: 'Usado', preco: 25.00, tipoBazarTpbId: 2, tipoBazar: 'Calçados' },
+                { idItemBazar: 5, nome: 'Livro - Dom Casmurro', qtde: 12, condicaoitem: 'Usado', preco: 20.00, tipoBazarTpbId: 4, tipoBazar: 'Livros' }
+            ];
+
+            this.estado.todosItens = dadosMock;
+            this.aplicarFiltrosEExibir();
         }
     },
 
-    exibirItensBazar: function(itens) {
-        const tbody = document.getElementById('lista-itens-bazar');
+    aplicarFiltrosEExibir: function() {
         const tipoSelecionado = document.getElementById('filtro-tipo-bazar').value;
+        const termoBusca = this.estado.termoBuscaProduto.toLowerCase().trim();
 
-        let itensFiltrados = itens;
+        let itensFiltrados = this.estado.todosItens;
+
+        // Aplica filtro por tipo
         if (tipoSelecionado) {
-            itensFiltrados = itens.filter(item =>
+            itensFiltrados = itensFiltrados.filter(item =>
                 item.tipoBazarTpbId == tipoSelecionado ||
                 item.tipo_bazar_tpb_id == tipoSelecionado
             );
         }
 
+        // Aplica filtro por busca
+        if (termoBusca) {
+            itensFiltrados = itensFiltrados.filter(item =>
+                item.nome.toLowerCase().includes(termoBusca)
+            );
+        }
+
+        // Atualiza contadores
+        this.atualizarContadores(itensFiltrados.length);
+
+        // Exibe os itens
+        this.exibirItensBazar(itensFiltrados);
+    },
+
+    // 🔍 NOVO MÉTODO: Busca dinâmica com debounce
+    buscarProdutosDinamico: function() {
+        const termo = document.getElementById('busca-produto').value.trim();
+        this.estado.termoBuscaProduto = termo;
+
+        const btnLimpar = document.getElementById('btn-limpar-busca-produto');
+
+        // Mostra/oculta botão de limpar
+        if (termo) {
+            btnLimpar.style.display = 'block';
+        } else {
+            btnLimpar.style.display = 'none';
+        }
+
+        // Debounce para evitar buscas excessivas
+        clearTimeout(this.estado.timeoutBusca);
+        this.estado.timeoutBusca = setTimeout(() => {
+            this.aplicarFiltrosEExibir();
+        }, 300); // 300ms de delay
+    },
+
+    // 🔍 NOVO MÉTODO: Limpar busca de produtos
+    limparBuscaProdutos: function() {
+        document.getElementById('busca-produto').value = '';
+        this.estado.termoBuscaProduto = '';
+
+        document.getElementById('btn-limpar-busca-produto').style.display = 'none';
+        this.aplicarFiltrosEExibir();
+    },
+
+    // 🔍 NOVO MÉTODO: Atualizar contadores de resultados
+    atualizarContadores: function(totalFiltrado) {
+        const totalGeral = this.estado.todosItens.length;
+        const contador = document.getElementById('contador-resultados');
+        const badge = document.getElementById('badge-resultados');
+        const infoBusca = document.getElementById('info-busca-produto');
+
+        // Atualiza contador principal
+        contador.textContent = totalFiltrado;
+
+        // Atualiza badge no header
+        if (totalFiltrado === totalGeral) {
+            badge.textContent = `${totalGeral} itens`;
+            badge.className = 'badge bg-secondary ms-2';
+        } else {
+            badge.textContent = `${totalFiltrado}/${totalGeral} itens`;
+            badge.className = 'badge bg-primary ms-2';
+        }
+
+        // Atualiza informação da busca
+        if (this.estado.termoBuscaProduto) {
+            const tipoSelecionado = document.getElementById('filtro-tipo-bazar').value;
+            if (tipoSelecionado) {
+                const tipoNome = this.obterNomeTipo(tipoSelecionado);
+                infoBusca.textContent = `Mostrando ${totalFiltrado} resultado(s) para "${this.estado.termoBuscaProduto}" no tipo "${tipoNome}"`;
+            } else {
+                infoBusca.textContent = `Mostrando ${totalFiltrado} resultado(s) para "${this.estado.termoBuscaProduto}"`;
+            }
+        } else {
+            const tipoSelecionado = document.getElementById('filtro-tipo-bazar').value;
+            if (tipoSelecionado) {
+                const tipoNome = this.obterNomeTipo(tipoSelecionado);
+                infoBusca.textContent = `Mostrando ${totalFiltrado} item(s) do tipo "${tipoNome}"`;
+            } else {
+                infoBusca.textContent = `Mostrando todos os ${totalFiltrado} itens disponíveis`;
+            }
+        }
+    },
+
+    // 🔍 NOVO MÉTODO: Obter nome do tipo pelo ID
+    obterNomeTipo: function(tipoId) {
+        const tipo = this.estado.tiposBazar.find(t =>
+            t.id == tipoId || t.tpb_id == tipoId
+        );
+        return tipo ? (tipo.desc || tipo.tpb_desc) : 'Tipo desconhecido';
+    },
+
+    buscarProdutosPorNome: function() {
+        const termo = document.getElementById('busca-produto').value.toLowerCase().trim();
+        this.estado.termoBuscaProduto = termo;
+
+        const infoBusca = document.getElementById('info-busca-produto');
+
+        if (!termo) {
+            infoBusca.textContent = 'Digite um termo para buscar produtos';
+            this.exibirItensBazar(this.estado.todosItens);
+            return;
+        }
+
+        // Filtra os itens pelo termo de busca
+        const itensFiltrados = this.estado.todosItens.filter(item =>
+            item.nome.toLowerCase().includes(termo)
+        );
+
+        infoBusca.textContent = `Encontrados ${itensFiltrados.length} produto(s) para "${termo}"`;
+
+        // Exibe os itens filtrados
+        this.exibirItensBazar(itensFiltrados);
+    },
+
+    // 🔍 NOVO MÉTODO: Limpar busca de produtos
+    limparBuscaProdutos: function() {
+        document.getElementById('busca-produto').value = '';
+        this.estado.termoBuscaProduto = '';
+
+        const infoBusca = document.getElementById('info-busca-produto');
+        infoBusca.textContent = 'Digite um termo para buscar produtos';
+
+        this.exibirItensBazar(this.estado.todosItens);
+    },
+
+    exibirItensBazar: function(itensFiltrados) {
+        const tbody = document.getElementById('lista-itens-bazar');
+
         if (!itensFiltrados || itensFiltrados.length === 0) {
+            let mensagem = 'Nenhum item disponível no bazar';
+
+            if (this.estado.termoBuscaProduto) {
+                mensagem = `Nenhum item encontrado para "${this.estado.termoBuscaProduto}"`;
+            }
+
             tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-3">
-                        ${tipoSelecionado ? 'Nenhum item encontrado para este tipo' : 'Nenhum item disponível no bazar'}
-                    </td>
-                </tr>
-            `;
+            <tr>
+                <td colspan="5" class="text-center text-muted py-3">
+                    ${mensagem}
+                </td>
+            </tr>
+        `;
             return;
         }
 
@@ -453,32 +663,43 @@ const EfetuarVenda = {
             );
             const tipoNome = tipoBazar ? (tipoBazar.desc || tipoBazar.tpb_desc) : (item.tipoBazar || 'Não categorizado');
 
+            // 🔍 DESTAQUE: Marca o termo buscado no nome do produto
+            let nomeExibicao = item.nome || '-';
+            if (this.estado.termoBuscaProduto) {
+                const regex = new RegExp(`(${this.escapeRegex(this.estado.termoBuscaProduto)})`, 'gi');
+                nomeExibicao = nomeExibicao.replace(regex, '<mark class="bg-warning px-1 rounded">$1</mark>');
+            }
+
             return `
-                <tr>
-                    <td class="fw-bold">${item.idItemBazar || item.id}</td>
-                    <td>
-                        <div class="d-flex flex-column">
-                            <span class="fw-medium">${item.nome || '-'}</span>
-                            <small class="text-muted">${item.condicaoitem || 'Condição não informada'}</small>
-                        </div>
-                    </td>
-                    <td><span class="badge bg-secondary">${tipoNome}</span></td>
-                    <td class="fw-bold text-success">R$ ${(item.preco || 0).toFixed(2)}</td>
-                    <td>
-                        <span class="badge ${(item.qtde || 0) > 0 ? 'bg-success' : 'bg-danger'}">
-                            ${item.qtde || 0}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" 
-                                onclick="EfetuarVenda.adicionarItem(${JSON.stringify(item).replace(/"/g, '&quot;')})"
-                                ${(item.qtde || 0) <= 0 ? 'disabled' : ''}>
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
+            <tr>
+                <td>
+                    <div class="d-flex flex-column">
+                        <span class="fw-medium">${nomeExibicao}</span>
+                        <small class="text-muted">${item.condicaoitem || 'Condição não informada'}</small>
+                    </div>
+                </td>
+                <td><span class="badge bg-secondary">${tipoNome}</span></td>
+                <td class="fw-bold text-success">R$ ${(item.preco || 0).toFixed(2)}</td>
+                <td>
+                    <span class="badge ${(item.qtde || 0) > 0 ? 'bg-success' : 'bg-danger'}">
+                        ${item.qtde || 0}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            onclick="EfetuarVenda.adicionarItem(${JSON.stringify(item).replace(/"/g, '&quot;')})"
+                            ${(item.qtde || 0) <= 0 ? 'disabled' : ''}>
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
         }).join('');
+    },
+
+    // 🔍 NOVO MÉTODO: Escapar caracteres especiais para regex
+    escapeRegex: function(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     },
 
     adicionarItem: function(item) {
@@ -581,117 +802,143 @@ const EfetuarVenda = {
         btnFinalizar.disabled = !(this.estado.itensSelecionados.length > 0 && clienteValido && pagamentoValido && valorPagoValido && this.estado.caixaAberto);
     },
 
+    mostrarPopupTroco: function(troco, valorPago, valorVenda) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        `;
+
+            modal.innerHTML = `
+            <div style="background: white; padding: 24px; border-radius: 10px; max-width: 420px; width: 100%; text-align: center;">
+                <h4 style="margin-bottom:12px;">💰 Troco Detectado</h4>
+                <div style="margin-bottom:12px;">
+                    <div><strong>Valor Venda:</strong> R$ ${valorVenda.toFixed(2)}</div>
+                    <div><strong>Valor Pago:</strong> R$ ${valorPago.toFixed(2)}</div>
+                    <div style="font-size:18px; color:#e74c3c;"><strong>Troco:</strong> R$ ${troco.toFixed(2)}</div>
+                </div>
+                <div style="display:flex; gap:8px; justify-content:center; margin-top:12px;">
+                    <button id="ef_mnt" class="btn btn-primary">Ok</button>
+                    <button id="ef_can" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        `;
+
+            document.body.appendChild(modal);
+
+            const btnOK = modal.querySelector('#ef_mnt');
+            const btnCancel = modal.querySelector('#ef_can');
+
+            btnOK.onclick = () => {
+                document.body.removeChild(modal);
+                resolve({ acao: 'ok' });
+            };
+
+            btnCancel.onclick = () => {
+                document.body.removeChild(modal);
+                resolve({ acao: 'cancelou' });
+            };
+        });
+    },
+
+
+
+
     finalizarVenda: async function() {
+        // Validação inicial (reaproveita seu validarVenda)
         if (!this.validarVenda()) return;
 
-        const valorPagoStr = document.getElementById('valor-pago').value.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
-        const valorPago = parseFloat(valorPagoStr);
+        // Ler valores
+        const rawValorPago = document.getElementById('valor-pago').value || '';
+        const valorPagoStr = rawValorPago.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
+        const valorPago = parseFloat(valorPagoStr) || 0;
+        const valorVenda = Number(this.estado.totalVenda) || 0;
 
-        // CORREÇÃO: Remover IDs específicos e deixar o backend gerar automaticamente
+        console.log('[EfetuarVenda] iniciar finalizarVenda - valorVenda:', valorVenda, 'valorPago (input):', valorPago);
+
+        // Variáveis finais que serão enviadas
+        let valorFinalPago = valorPago;
+        let troco = 0;
+        let trocoFicouComCliente = false;
+
+        // Se houver troco, abrir modal
+        if (valorPago > valorVenda) {
+            troco = +(valorPago - valorVenda).toFixed(2);
+            console.log('[EfetuarVenda] troco detectado:', troco);
+
+            const decisao = await this.mostrarPopupTroco(troco, valorPago, valorVenda);
+            console.log('[EfetuarVenda] decisão do popup:', decisao);
+
+            if (!decisao || decisao.acao === 'cancelou') {
+                console.log('[EfetuarVenda] usuário cancelou a finalização da venda.');
+                return; // não prossegue
+            }
+
+            if (decisao.acao === 'ficou') {
+                trocoFicouComCliente = true;
+                valorFinalPago = valorPago; // mantém o pago original
+                // troco permanece
+            } else if (decisao.acao === 'devolveu') {
+                trocoFicouComCliente = false;
+                valorFinalPago = valorVenda; // ajusta para o valor da venda
+                troco = 0;
+            }
+        } else {
+            // Sem troco
+            troco = 0;
+            trocoFicouComCliente = false;
+            valorFinalPago = valorPago;
+        }
+
+        // DEBUG final antes do envio
+        console.log('[EfetuarVenda] Preparando payload - valorVenda:', valorVenda,
+            'valorFinalPago:', valorFinalPago, 'troco:', troco, 'trocoFicouComCliente:', trocoFicouComCliente);
+
         const vendaCompleta = {
-            valor: this.estado.totalVenda,
+            valor: valorVenda,
             clienteId: parseInt(this.estado.cliente.id),
             loginColaboradorId: 1,
-            valorPago: valorPago,
+            valorPago: Number(valorFinalPago),
             tipoPagamento: document.getElementById('tipo-pagamento').value,
             caixaId: parseInt(this.estado.caixaAberto.idCaixa),
             itensVenda: this.estado.itensSelecionados.map(item => ({
-                // CORREÇÃO: Enviar apenas os dados necessários, sem IDs forçados
                 idItemBazar: parseInt(item.idItemBazar),
                 qtde: parseInt(item.quantidade),
                 valorItem: parseFloat(item.preco)
-                // O backend deve gerar o ID automaticamente usando a sequence
-            }))
+            })),
+            troco: troco,
+            trocoFicouComCliente: trocoFicouComCliente
         };
 
-        console.log('📦 Dados enviados para venda:', vendaCompleta);
-
+        // Rede: mostrar o payload no console e enviar
         try {
-            const response = await fetch('http://localhost:8080/apis/vendabazar/realizar-venda', {
+            console.log('[EfetuarVenda] Enviando payload para /realizar-venda:', vendaCompleta);
+
+            const vendaCriada = await this.fetchJson('http://localhost:8080/apis/vendabazar/realizar-venda', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(vendaCompleta)
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Erro detalhado do backend:', errorText);
-
-                // CORREÇÃO: Tratamento específico para erro de ID
-                if (errorText.includes('idvenda') || errorText.includes('sequence') || errorText.includes('3')) {
-                    this.mostrarAlerta('Erro no sistema de IDs. Contacte o administrador.', 'danger');
-                    // Tentar uma solução alternativa
-                    await this.tentarVendaAlternativa(vendaCompleta);
-                    return;
-                }
-
-                throw new Error(errorText);
-            }
-
-            const vendaCriada = await response.json();
-            this.mostrarAlerta(`Venda #${vendaCriada.id} realizada com sucesso!`, 'success');
+            console.log('[EfetuarVenda] resposta do backend:', vendaCriada);
+            this.notifySuccess('Venda Realizada!', `Venda #${vendaCriada.id} realizada com sucesso!\nTotal: R$ ${valorVenda.toFixed(2)}`);
             this.limparVenda();
 
         } catch (error) {
-            console.error('Erro ao finalizar venda:', error);
-            this.mostrarAlerta(`Erro ao finalizar venda: ${error.message}`, 'danger');
+            console.error('[EfetuarVenda] erro ao finalizar venda:', error);
+            this.notifyError('Erro ao Finalizar Venda', error.message || error);
         }
     },
 
-// Método alternativo para tentar a venda novamente
-    tentarVendaAlternativa: async function(vendaCompleta) {
-        try {
-            console.log('🔄 Tentando método alternativo...');
-
-            // Tentar com um endpoint diferente ou parâmetros diferentes
-            const response = await fetch('http://localhost:8080/apis/vendabazar/realizar-venda-simples', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    // Enviar apenas dados essenciais
-                    valor: vendaCompleta.valor,
-                    clienteId: vendaCompleta.clienteId,
-                    valorPago: vendaCompleta.valorPago,
-                    tipoPagamento: vendaCompleta.tipoPagamento,
-                    caixaId: vendaCompleta.caixaId,
-                    itens: vendaCompleta.itensVenda.map(item => ({
-                        itemId: item.idItemBazar,
-                        quantidade: item.qtde
-                    }))
-                })
-            });
-
-            if (response.ok) {
-                const resultado = await response.json();
-                this.mostrarAlerta(`Venda realizada com sucesso (método alternativo)! ID: ${resultado.id}`, 'success');
-                this.limparVenda();
-            } else {
-                throw new Error('Método alternativo também falhou');
-            }
-        } catch (error) {
-            console.error('Erro no método alternativo:', error);
-            this.mostrarAlerta('Não foi possível realizar a venda. Contacte o administrador do sistema.', 'danger');
-        }
-    },
-
-// Adicione este método para resetar as sequences se necessário
-    resetarSequences: async function() {
-        try {
-            const response = await fetch('http://localhost:8080/apis/vendabazar/reset-sequences', {
-                method: 'POST'
-            });
-
-            if (response.ok) {
-                this.mostrarAlerta('Sequências resetadas com sucesso! Tente novamente.', 'success');
-            }
-        } catch (error) {
-            console.error('Erro ao resetar sequences:', error);
-        }
-    },
 
     validarVenda: function() {
         const errors = [];
@@ -720,7 +967,8 @@ const EfetuarVenda = {
         }
 
         if (errors.length > 0) {
-            this.mostrarAlerta(errors.join('<br>'), 'warning');
+            // Usando alert normal para validações, não o notify
+            alert('Atenção:\n\n' + errors.join('\n'));
             return false;
         }
 
@@ -745,25 +993,9 @@ const EfetuarVenda = {
 
         this.atualizarListaItensSelecionados();
         this.calcularTotal();
-    },
 
-    mostrarAlerta: function(mensagem, tipo) {
-        const alertArea = document.getElementById('alert-area');
-        const alertId = 'alert-' + Date.now();
-
-        alertArea.innerHTML = `
-            <div id="${alertId}" class="alert alert-${tipo} alert-dismissible fade show">
-                ${mensagem}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
-
-        setTimeout(() => {
-            const alert = document.getElementById(alertId);
-            if (alert) {
-                alert.remove();
-            }
-        }, 5000);
+        // Recarregar itens para atualizar estoque
+        this.carregarItensBazar();
     },
 
     setupEventListeners: function() {
@@ -779,9 +1011,21 @@ const EfetuarVenda = {
             const termo = document.getElementById('busca-cliente').value;
             if (termo.length >= 2) {
                 this.buscarClientes();
-            } else {
-                this.mostrarAlerta('Digite pelo menos 2 caracteres para buscar', 'warning');
             }
+        });
+
+        // 🔍 NOVOS EVENT LISTENERS para busca dinâmica de produtos
+        document.getElementById('busca-produto').addEventListener('input', () => {
+            this.buscarProdutosDinamico();
+        });
+
+        document.getElementById('btn-limpar-busca-produto').addEventListener('click', () => {
+            this.limparBuscaProdutos();
+        });
+
+        // Filtro por tipo também atualiza dinamicamente
+        document.getElementById('filtro-tipo-bazar').addEventListener('change', () => {
+            this.aplicarFiltrosEExibir();
         });
 
         document.getElementById('filtro-tipo-bazar').addEventListener('change', () => this.carregarItensBazar());
@@ -798,7 +1042,11 @@ const EfetuarVenda = {
             }
         });
     }
+
+
 };
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const linkEfetuarVenda = document.getElementById('efetuar-venda');

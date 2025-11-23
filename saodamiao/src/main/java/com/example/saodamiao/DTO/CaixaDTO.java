@@ -30,17 +30,9 @@ public class CaixaDTO {
         if (caixa != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
-            if (caixa.getValorAbertura() != null) {
-                this.valorAbertura = caixa.getValorAbertura();
-            } else {
-                this.valorAbertura = 0.0;
-            }
-
-            if (caixa.getValorFechamento() != null) {
-                this.valorFechamento = caixa.getValorFechamento();
-            } else {
-                this.valorFechamento = 0.0;
-            }
+            // Agora valorAbertura e valorFechamento são double, não podem ser null
+            this.valorAbertura = caixa.getValorAbertura();
+            this.valorFechamento = caixa.getValorFechamento();
 
             if (caixa.getDataAbertura() != null) {
                 this.dataAbertura = sdf.format(caixa.getDataAbertura());

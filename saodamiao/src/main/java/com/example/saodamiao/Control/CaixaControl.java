@@ -110,6 +110,8 @@ public class CaixaControl {
                 CaixaModel caixaAberto = dao.buscarCaixaAberto(Singleton.Retorna());
                 if (caixaAberto != null) {
                     CaixaModel caixaFechamento = CaixaModel.criarFechamento(idVoluntario, valorFechamento);
+                    caixaFechamento.setIdCaixa(caixaAberto.getIdCaixa());
+
                     int resultado = dao.fecharCaixaBanco(caixaFechamento, caixaAberto.getIdCaixa(), Singleton.Retorna());
 
                     if (resultado == 1) {

@@ -2,6 +2,9 @@
  * Carregador Dinâmico de Módulos de TipoBazar
  * Injeta conteúdo CRUD no app-content
  */
+
+console.log('Altura da navbar:', document.querySelector('.navbar').offsetHeight + 'px');
+
 class TipoBazarLoader {
     constructor() {
         this.baseURL = 'http://localhost:8080/apis/tipobazar';

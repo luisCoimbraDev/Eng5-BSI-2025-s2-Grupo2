@@ -16,6 +16,10 @@ public class VendaBazar {
     private String tipoPagamento;
     private int caixaId;
 
+    // 🔧 NOVO: Campos para nome e CPF do cliente
+    private String clienteNome;
+    private String clienteCpf;
+
     private VendaBazarDAO vendaBazarDAO;
 
     public VendaBazar() {
