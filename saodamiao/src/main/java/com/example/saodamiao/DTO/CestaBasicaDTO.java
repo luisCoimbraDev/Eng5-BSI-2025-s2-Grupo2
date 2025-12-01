@@ -18,7 +18,13 @@ public class CestaBasicaDTO {
 
     public CestaBasica toCestaBasica() {
         CestaBasica cesta = new CestaBasica();
-        cesta.setTamanho(this.tamanho);
+
+        if (this.tamanho == null || this.tamanho.trim().isEmpty()) {
+            throw new RuntimeException("Tamanho da cesta não pode ser nulo no DTO");
+        }
+
+        cesta.setTamanho(this.tamanho.trim());
+
         if (this.itens != null && !this.itens.isEmpty()) {
             List<ItemCesta> itensModel = new ArrayList<>();
             for (ItemCestaDTO itemDTO : this.itens){
@@ -27,6 +33,7 @@ public class CestaBasicaDTO {
             }
             cesta.setItens(itensModel);
         }
+
         return cesta;
     }
 

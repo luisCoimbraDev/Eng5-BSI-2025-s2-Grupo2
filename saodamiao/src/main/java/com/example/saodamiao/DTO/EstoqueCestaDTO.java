@@ -19,6 +19,25 @@ public class EstoqueCestaDTO {
     private int quantidade;
     private LocalDateTime dataAtualizacao;
 
+//    public static EstoqueCestaDTO toDTO(EstoqueCestaBasica model) {
+//        if (model == null) return null;
+//
+//        EstoqueCestaDTO dto = new EstoqueCestaDTO();
+//        dto.setQuantidade(model.getQtde());
+//        dto.setDataAtualizacao(model.getDt_atualizacao());
+//
+//        CestaBasica cestaModel = new CestaBasica();
+//        CestaBasica cestaInfo = cestaModel.getCestaBasicaDAO().buscarPorId(
+//                model.getIdcestas_basicas(), Singleton.Retorna()
+//        );
+//
+//        if (cestaInfo != null) {
+//            dto.setTamanhoCesta(cestaInfo.getTamanho());
+//        }
+//
+//        return dto;
+//    }
+
     public static EstoqueCestaDTO toDTO(EstoqueCestaBasica model) {
         if (model == null) return null;
 
@@ -33,6 +52,8 @@ public class EstoqueCestaDTO {
 
         if (cestaInfo != null) {
             dto.setTamanhoCesta(cestaInfo.getTamanho());
+        } else {
+            dto.setTamanhoCesta("Cesta ID: " + model.getIdcestas_basicas());
         }
 
         return dto;

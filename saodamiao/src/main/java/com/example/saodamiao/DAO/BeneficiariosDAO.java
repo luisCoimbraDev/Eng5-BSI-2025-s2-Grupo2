@@ -112,4 +112,30 @@ public class BeneficiariosDAO implements IDAO<Beneficiarios> {
         }
         return lista;
     }
+
+    public Beneficiarios pegarBeneficiarioPorId(int id, Conexao conexao) {
+        Beneficiarios beneficiarios = null;
+        String sql = "SELECT * FROM beneficiario WHERE idbeneficiario = '" + id + "'";
+        ResultSet rs = conexao.consultar(sql);
+        try {
+            if (rs.next()) {
+                return new Beneficiarios(
+                        rs.getInt("idbeneficiario"),
+                        rs.getString("cpf"),
+                        rs.getString("nome"),
+                        rs.getString("endereco"),
+                        rs.getString("email"),
+                        rs.getDate("data_cadastro"),
+                        rs.getString("bairro"),
+                        rs.getString("cidade"),
+                        rs.getString("uf"),
+                        rs.getString("cep"),
+                        rs.getString("telefone"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return beneficiarios;
+    }
+
 }

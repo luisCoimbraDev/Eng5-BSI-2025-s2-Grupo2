@@ -20,13 +20,6 @@ public class CestaBasicaControl {
     public ResponseEntity<Object> inserirCesta(@RequestBody CestaBasicaDTO cestaDTO) {
         try {
             CestaBasica cesta = cestaDTO.toCestaBasica();
-            CestaBasica cestaModel = new CestaBasica();
-
-            List<CestaBasica> cestasExistentes = cestaModel.getCestaBasicaDAO().buscarPorTamanho(cestaDTO.getTamanho(), Singleton.Retorna());
-
-            if (!cestasExistentes.isEmpty()) {
-                return ResponseEntity.badRequest().body(new Erro("Já existe uma cesta com o tamanho: " + cestaDTO.getTamanho()));
-            }
 
             if (!Singleton.Retorna().StartTransaction()) {
                 return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
@@ -57,69 +50,199 @@ public class CestaBasicaControl {
         }
     }
 
+//    @PostMapping(value = "/inserir")
+//    public ResponseEntity<Object> inserirCesta(@RequestBody CestaBasicaDTO cestaDTO) {
+//        try {
+//            CestaBasica cesta = cestaDTO.toCestaBasica();
+//            CestaBasica cestaModel = new CestaBasica();
+//
+//            List<CestaBasica> cestasExistentes = cestaModel.getCestaBasicaDAO().buscarPorTamanho(cestaDTO.getTamanho(), Singleton.Retorna());
+//
+//            if (!cestasExistentes.isEmpty()) {
+//                return ResponseEntity.badRequest().body(new Erro("Já existe uma cesta com o tamanho: " + cestaDTO.getTamanho()));
+//            }
+//
+//            if (!Singleton.Retorna().StartTransaction()) {
+//                return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
+//            }
+//
+//            if (!cesta.getCestaBasicaDAO().gravar(cesta, Singleton.Retorna())) {
+//                Singleton.Retorna().Rollback();
+//                return ResponseEntity.badRequest().body(new Erro("Problema ao gravar cesta no banco de dados"));
+//            }
+//
+//            int idCesta = cesta.getCestaBasicaDAO().getUltimoIdInserido(Singleton.Retorna());
+//            cesta.setId(idCesta);
+//
+//            if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
+//                for (ItemCesta item : cesta.getItens()) {
+//                    if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
+//                        Singleton.Retorna().Rollback();
+//                        return ResponseEntity.badRequest().body(new Erro("Problema ao gravar itens da cesta no banco de dados"));
+//                    }
+//                }
+//            }
+//
+//            Singleton.Retorna().Commit();
+//            return ResponseEntity.ok(cestaDTO);
+//        }
+//        catch (Exception e) {
+//            return ResponseEntity.status(500).body(new Erro("Erro ao inserir cesta: " + e.getMessage()));
+//        }
+//    }
+
     @PutMapping(value = "/atualizar")
     public ResponseEntity<Object> atualizarCesta(@RequestBody CestaBasicaRequest cestaRequest) {
-        CestaBasica cesta = cestaRequest.cestaDTO().toCestaBasica();
-        List<CestaBasica> cestasExistentes = cesta.getCestaBasicaDAO().buscarPorTamanho(cestaRequest.tamanhoAtual(), Singleton.Retorna());
-        if (cestasExistentes.isEmpty()) {
-            return ResponseEntity.badRequest().body(new Erro("Cesta não encontrada"));
-        }
-        int idCesta = cestasExistentes.getFirst().getId();
-        cesta.setId(idCesta);
-        if (!Singleton.Retorna().StartTransaction()) {
-            return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
-        }
-        if (!cestaRequest.tamanhoAtual().equals(cestaRequest.cestaDTO().getTamanho())) {
-            if (!cesta.getCestaBasicaDAO().alterar(cesta, idCesta, Singleton.Retorna())) {
-                Singleton.Retorna().Rollback();
-                return ResponseEntity.badRequest().body(new Erro("Erro ao atualizar cesta"));
+        try {
+            CestaBasica cestaNova = cestaRequest.cestaDTO().toCestaBasica();
+            CestaBasica cestaModel = new CestaBasica();
+
+            List<CestaBasica> cestasExistentes = cestaModel.getCestaBasicaDAO()
+                    .buscarPorTamanho(cestaRequest.tamanhoAtual(), Singleton.Retorna());
+
+            if (cestasExistentes.isEmpty()) {
+                return ResponseEntity.badRequest().body(new Erro("Cesta não encontrada"));
             }
-        }
-        ItemCesta itemTemp = new ItemCesta();
-        List<ItemCesta> itensAntigos = itemTemp.getItemCestaDAO().buscarItensCesta(idCesta, Singleton.Retorna());
-        for (ItemCesta itemAntigo : itensAntigos) {
-            if (!itemAntigo.getItemCestaDAO().apagar(itemAntigo, Singleton.Retorna())) {
-                Singleton.Retorna().Rollback();
-                return ResponseEntity.badRequest().body(new Erro("Erro ao remover itens antigos"));
+
+            CestaBasica cestaParaAtualizar = cestasExistentes.getFirst();
+
+            if (!Singleton.Retorna().StartTransaction()) {
+                return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
             }
-        }
-        if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
-            for (ItemCesta item : cesta.getItens()) {
-                if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
+
+            if (!cestaRequest.tamanhoAtual().equals(cestaRequest.cestaDTO().getTamanho())) {
+                cestaParaAtualizar.setTamanho(cestaRequest.cestaDTO().getTamanho());
+                if (!cestaParaAtualizar.getCestaBasicaDAO().alterar(cestaParaAtualizar, cestaParaAtualizar.getId(), Singleton.Retorna())) {
                     Singleton.Retorna().Rollback();
-                    return ResponseEntity.badRequest().body(new Erro("Erro ao adicionar novos itens"));
+                    return ResponseEntity.badRequest().body(new Erro("Erro ao atualizar cesta"));
                 }
             }
+
+            ItemCesta itemTemp = new ItemCesta();
+            List<ItemCesta> itensAntigos = itemTemp.getItemCestaDAO().buscarItensCesta(cestaParaAtualizar.getId(), Singleton.Retorna());
+
+            for (ItemCesta itemAntigo : itensAntigos) {
+                if (!itemAntigo.getItemCestaDAO().apagar(itemAntigo, Singleton.Retorna())) {
+                    Singleton.Retorna().Rollback();
+                    return ResponseEntity.badRequest().body(new Erro("Erro ao remover itens antigos"));
+                }
+            }
+
+            // Adicionar novos itens
+            if (cestaNova.getItens() != null && !cestaNova.getItens().isEmpty()) {
+                for (ItemCesta item : cestaNova.getItens()) {
+                    item.getCesta().setId(cestaParaAtualizar.getId());
+                    if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
+                        Singleton.Retorna().Rollback();
+                        return ResponseEntity.badRequest().body(new Erro("Erro ao adicionar novos itens"));
+                    }
+                }
+            }
+
+            Singleton.Retorna().Commit();
+            return ResponseEntity.ok(cestaRequest);
+
+        } catch (Exception e) {
+            Singleton.Retorna().Rollback();
+            return ResponseEntity.status(500).body(new Erro("Erro ao atualizar cesta: " + e.getMessage()));
         }
-        Singleton.Retorna().Commit();
-        return ResponseEntity.ok(cestaRequest);
     }
+
+//    @PutMapping(value = "/atualizar")
+//    public ResponseEntity<Object> atualizarCesta(@RequestBody CestaBasicaRequest cestaRequest) {
+//        CestaBasica cesta = cestaRequest.cestaDTO().toCestaBasica();
+//        List<CestaBasica> cestasExistentes = cesta.getCestaBasicaDAO().buscarPorTamanho(cestaRequest.tamanhoAtual(), Singleton.Retorna());
+//        if (cestasExistentes.isEmpty()) {
+//            return ResponseEntity.badRequest().body(new Erro("Cesta não encontrada"));
+//        }
+//        int idCesta = cestasExistentes.getFirst().getId();
+//        cesta.setId(idCesta);
+//        if (!Singleton.Retorna().StartTransaction()) {
+//            return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
+//        }
+//        if (!cestaRequest.tamanhoAtual().equals(cestaRequest.cestaDTO().getTamanho())) {
+//            if (!cesta.getCestaBasicaDAO().alterar(cesta, idCesta, Singleton.Retorna())) {
+//                Singleton.Retorna().Rollback();
+//                return ResponseEntity.badRequest().body(new Erro("Erro ao atualizar cesta"));
+//            }
+//        }
+//        ItemCesta itemTemp = new ItemCesta();
+//        List<ItemCesta> itensAntigos = itemTemp.getItemCestaDAO().buscarItensCesta(idCesta, Singleton.Retorna());
+//        for (ItemCesta itemAntigo : itensAntigos) {
+//            if (!itemAntigo.getItemCestaDAO().apagar(itemAntigo, Singleton.Retorna())) {
+//                Singleton.Retorna().Rollback();
+//                return ResponseEntity.badRequest().body(new Erro("Erro ao remover itens antigos"));
+//            }
+//        }
+//        if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
+//            for (ItemCesta item : cesta.getItens()) {
+//                if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
+//                    Singleton.Retorna().Rollback();
+//                    return ResponseEntity.badRequest().body(new Erro("Erro ao adicionar novos itens"));
+//                }
+//            }
+//        }
+//        Singleton.Retorna().Commit();
+//        return ResponseEntity.ok(cestaRequest);
+//    }
 
     @DeleteMapping(value = "/deletar")
     public ResponseEntity<Object> deletarCesta(@RequestBody CestaBasicaDTO cestaDTO) {
-        CestaBasica cesta = cestaDTO.toCestaBasica();
+        try {
+            CestaBasica cestaModel = new CestaBasica();
 
-        List<CestaBasica> cestasExistentes = cesta.getCestaBasicaDAO()
-                .buscarPorTamanho(cestaDTO.getTamanho(), Singleton.Retorna());
+            List<CestaBasica> cestasExistentes = cestaModel.getCestaBasicaDAO()
+                    .buscarPorTamanho(cestaDTO.getTamanho(), Singleton.Retorna());
 
-        if (cestasExistentes.isEmpty()) {
-            return ResponseEntity.badRequest().body(new Erro("Cesta não encontrada"));
-        }
+            if (cestasExistentes.isEmpty()) {
+                return ResponseEntity.badRequest().body(new Erro("Cesta não encontrada"));
+            }
 
-        cesta.setId(cestasExistentes.getFirst().getId());
+            CestaBasica cestaParaExcluir = cestasExistentes.getFirst();
 
-        if (!Singleton.Retorna().StartTransaction()) {
-            return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
-        }
+            if (!Singleton.Retorna().StartTransaction()) {
+                return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
+            }
 
-        if (!cesta.getCestaBasicaDAO().apagar(cesta, Singleton.Retorna())) {
+            if (!cestaParaExcluir.getCestaBasicaDAO().apagar(cestaParaExcluir, Singleton.Retorna())) {
+                Singleton.Retorna().Rollback();
+                return ResponseEntity.badRequest().body(new Erro(Singleton.Retorna().getMensagemErro()));
+            }
+
+            Singleton.Retorna().Commit();
+            return ResponseEntity.ok(cestaDTO);
+
+        } catch (Exception e) {
             Singleton.Retorna().Rollback();
-            return ResponseEntity.badRequest().body(new Erro(Singleton.Retorna().getMensagemErro()));
+            return ResponseEntity.status(500).body(new Erro("Erro ao deletar cesta: " + e.getMessage()));
         }
-
-        Singleton.Retorna().Commit();
-        return ResponseEntity.ok(cestaDTO);
     }
+
+//    @DeleteMapping(value = "/deletar")
+//    public ResponseEntity<Object> deletarCesta(@RequestBody CestaBasicaDTO cestaDTO) {
+//        CestaBasica cesta = cestaDTO.toCestaBasica();
+//
+//        List<CestaBasica> cestasExistentes = cesta.getCestaBasicaDAO()
+//                .buscarPorTamanho(cestaDTO.getTamanho(), Singleton.Retorna());
+//
+//        if (cestasExistentes.isEmpty()) {
+//            return ResponseEntity.badRequest().body(new Erro("Cesta não encontrada"));
+//        }
+//
+//        cesta.setId(cestasExistentes.getFirst().getId());
+//
+//        if (!Singleton.Retorna().StartTransaction()) {
+//            return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
+//        }
+//
+//        if (!cesta.getCestaBasicaDAO().apagar(cesta, Singleton.Retorna())) {
+//            Singleton.Retorna().Rollback();
+//            return ResponseEntity.badRequest().body(new Erro(Singleton.Retorna().getMensagemErro()));
+//        }
+//
+//        Singleton.Retorna().Commit();
+//        return ResponseEntity.ok(cestaDTO);
+//    }
 
     @GetMapping(value = "/lista-tudo")
     public ResponseEntity<Object> getCestas() {

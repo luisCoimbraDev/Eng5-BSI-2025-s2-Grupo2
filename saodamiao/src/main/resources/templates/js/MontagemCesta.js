@@ -3,7 +3,6 @@
     const API = {
         LIST_CESTAS: `${BASE}/apis/cestas/lista-tudo`,
         GET_ALIMENTOS: `${BASE}/apis/alimentos/getall`,
-        CALCULAR_CESTAS: `${BASE}/apis/estoque-cestas/verificar-quantidade`,
         SOLICITAR_MONTAGEM: `${BASE}/apis/estoque-cestas/solicitar-montagem`,
         CONFIRMAR_MONTAGEM: `${BASE}/apis/estoque-cestas/confirmar-montagem`,
         CONSULTAR_ESTOQUE_CESTAS: `${BASE}/apis/estoque-cestas/estoque-cestas`
@@ -184,123 +183,6 @@
     let todasCestasMontagem = [];
     let cestaSelecionada = null;
 
-    async function confirmarMontagemCestas(tamanhoCesta, quantidade) {
-        try {
-            const request = {
-                tamanhoCesta: tamanhoCesta,
-                quantidadeSolicitada: quantidade
-            };
-
-            const response = await fetchJson(API.CONFIRMAR_MONTAGEM, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(request)
-            });
-
-            return response;
-        } catch (err) {
-            throw new Error(`Erro ao confirmar montagem: ${err.message || err}`);
-        }
-    }
-
-    async function calcularCestasMontaveis(tamanhoCesta) {
-        try {
-            const resultadoDiv = document.getElementById("resultado-verificacao");
-            const conteudoDiv = document.getElementById("resultado-verificacao-conteudo");
-
-            resultadoDiv.style.display = 'block';
-            conteudoDiv.innerHTML = `
-            <div class="text-center">
-                <div class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Calculando...</span>
-                </div>
-                <p>Calculando quantas cestas "${tamanhoCesta}" podem ser montadas...</p>
-            </div>
-        `;
-
-            const request = { tamanhoCesta: tamanhoCesta };
-            const response = await fetchJson(API.CALCULAR_CESTAS, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(request)
-            });
-
-            let htmlResultado = '';
-
-            if (response.quantidadeMontavel > 0) {
-                htmlResultado = `
-                <div class="alert alert-success">
-                    <h5><i class="fas fa-check-circle me-2"></i>Cestas Montáveis</h5>
-                    <p class="mb-2"><strong>Cesta:</strong> ${escapeHtml(response.tamanhoCesta)}</p>
-                    <p class="mb-2"><strong>Quantidade máxima:</strong> <span class="badge bg-success fs-6">${response.quantidadeMontavel}</span> cestas</p>
-                    <hr>
-                    <h6>Itens da cesta:</h6>
-                    <ul class="mb-3">
-            `;
-
-                response.itensCesta.forEach(item => {
-                    htmlResultado += `<li>${escapeHtml(item.alimentoNome)}: ${item.quantidade} unidades por cesta</li>`;
-                });
-
-                htmlResultado += `
-                    </ul>
-                    <div class="mt-3">
-                        <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('resultado-verificacao').style.display='none'">
-                            <i class="fas fa-times me-1"></i>Fechar
-                        </button>
-                        <button class="btn btn-success btn-sm ms-2" onclick="abrirModalSolicitacao('${escapeHtml(response.tamanhoCesta)}')">
-                            <i class="fas fa-play me-1"></i>Solicitar Montagem
-                        </button>
-                    </div>
-                </div>
-            `;
-            } else {
-                htmlResultado = `
-                <div class="alert alert-warning">
-                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Estoque Insuficiente</h5>
-                    <p class="mb-2"><strong>Cesta:</strong> ${escapeHtml(response.tamanhoCesta)}</p>
-                    <p class="mb-0">Não é possível montar nenhuma cesta com o estoque atual.</p>
-                    <hr>
-                    <h6>Itens da cesta:</h6>
-                    <ul class="mb-0">
-            `;
-
-                response.itensCesta.forEach(item => {
-                    htmlResultado += `<li>${escapeHtml(item.alimentoNome)}: ${item.quantidade} unidades por cesta</li>`;
-                });
-
-                htmlResultado += `
-                    </ul>
-                    <div class="mt-3">
-                        <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('resultado-verificacao').style.display='none'">
-                            <i class="fas fa-times me-1"></i>Fechar
-                        </button>
-                    </div>
-                </div>
-            `;
-            }
-
-            conteudoDiv.innerHTML = htmlResultado;
-
-        } catch (err) {
-            const resultadoDiv = document.getElementById("resultado-verificacao");
-            const conteudoDiv = document.getElementById("resultado-verificacao-conteudo");
-
-            resultadoDiv.style.display = 'block';
-            conteudoDiv.innerHTML = `
-            <div class="alert alert-danger">
-                <h5><i class="fas fa-times-circle me-2"></i>Erro no Cálculo</h5>
-                <p class="mb-0">Erro ao calcular cestas montáveis: ${escapeHtml((err && err.message) || String(err))}</p>
-            </div>
-            <div class="mt-3">
-                <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('resultado-verificacao').style.display='none'">
-                    <i class="fas fa-times me-1"></i>Fechar
-                </button>
-            </div>
-        `;
-        }
-    }
-
     async function carregarAlimentosFiltroMontagem() {
         const selectFiltro = document.getElementById("filtro-montagem-alimento");
         if (!selectFiltro) return;
@@ -391,32 +273,17 @@
           </td>
           <td>${escapeHtml(itensTxt || "-")}</td>
           <td class="text-end">
-            <div class="btn-group" role="group">
-                <button class="btn btn-sm btn-info btn-calcular-maximo" 
-                        data-tamanho="${encodeURIComponent(cesta.tamanho)}"
-                        title="Calcular quantidade máxima">
-                    <i class="fas fa-calculator me-1"></i>Calcular
-                </button>
-                <button class="btn btn-sm btn-primary btn-solicitar-montagem" 
-                        data-tamanho="${encodeURIComponent(cesta.tamanho)}"
-                        title="Solicitar montagem personalizada">
-                    <i class="fas fa-play me-1"></i>Montar
-                </button>
-            </div>
+            <button class="btn btn-sm btn-primary btn-solicitar-montagem" 
+                    data-tamanho="${encodeURIComponent(cesta.tamanho)}"
+                    title="Solicitar montagem">
+                <i class="fas fa-play me-1"></i>Montar
+            </button>
           </td>
         `;
             tbody.appendChild(tr);
         });
 
-        // Bind dos botões de calcular máximo
-        tbody.querySelectorAll(".btn-calcular-maximo").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                const tamanho = decodeURIComponent(e.currentTarget.dataset.tamanho);
-                calcularCestasMontaveis(tamanho);
-            });
-        });
-
-        // Bind dos botões de solicitar montagem (JÁ EXISTIA)
+        // Bind dos botões de solicitar montagem
         tbody.querySelectorAll(".btn-solicitar-montagem").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 const tamanho = decodeURIComponent(e.currentTarget.dataset.tamanho);
@@ -555,7 +422,7 @@
     async function confirmarMontagem(tamanhoCesta, quantidade) {
         const confirmacao = await swal({
             title: "Confirmar Montagem?",
-            text: `Deseja confirmar a montagem de ${quantidade} cesta(s) "${tamanhoCesta}"?`,
+            text: `Deseja confirmar a montagem de ${quantidade} cesta(s) "${tamanhoCesta}"?\n\nEsta ação debitará os itens do estoque de alimentos.`,
             icon: "warning",
             buttons: ["Cancelar", "Confirmar"],
             dangerMode: true
@@ -564,82 +431,86 @@
         if (!confirmacao) return;
 
         try {
+            const resultadoDiv = document.getElementById("resultado-verificacao");
+            const conteudoDiv = document.getElementById("resultado-verificacao-conteudo");
+
+            // Mostrar loading
+            conteudoDiv.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Processando montagem...</span>
+                </div>
+                <p>Confirmando montagem de ${quantidade} cesta(s) "${tamanhoCesta}"...</p>
+            </div>
+        `;
+            resultadoDiv.style.display = 'block';
+
             const request = {
                 tamanhoCesta: tamanhoCesta,
                 quantidadeSolicitada: quantidade
             };
 
-            console.log("🔍 DEBUG - Enviando para confirmar-montagem:");
-            console.log("URL:", API.CONFIRMAR_MONTAGEM);
-            console.log("Request Body:", JSON.stringify(request, null, 2));
-
-            // Use fetch diretamente para melhor debug
-            const response = await fetch(API.CONFIRMAR_MONTAGEM, {
+            const response = await fetchJson(API.CONFIRMAR_MONTAGEM, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(request)
             });
 
-            console.log("🔍 DEBUG - Status da resposta:", response.status);
-            console.log("🔍 DEBUG - Headers:", Object.fromEntries(response.headers.entries()));
+            // VERIFICAÇÃO CORRIGIDA - o response não tem campo "sucesso"
+            if (response && response.podeMontar !== undefined) {
+                if (response.podeMontar) {
+                    notifySuccess("Sucesso!", `Montagem de ${quantidade} cesta(s) "${tamanhoCesta}" confirmada com sucesso!`);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("🔍 DEBUG - Erro completo:", {
-                    status: response.status,
-                    statusText: response.statusText,
-                    body: errorText
-                });
+                    // Atualizar interface
+                    document.getElementById('resultado-verificacao').style.display = 'none';
 
-                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-                try {
-                    const errorJson = JSON.parse(errorText);
-                    errorMessage = errorJson.mensagem || errorJson.message || errorText;
-                } catch (e) {
-                    errorMessage = errorText || response.statusText;
+                    // Recarregar a lista para atualizar visualização
+                    await listarCestasMontagem();
+
+                    // Fechar modal se estiver aberto
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalSolicitarQuantidade'));
+                    if (modal) modal.hide();
+
+                } else {
+                    // Montagem não foi possível - mostrar detalhes
+                    let mensagemErro = "Não foi possível confirmar a montagem.\n";
+                    if (response.itensFaltantes && response.itensFaltantes.length > 0) {
+                        mensagemErro += "\nItens em falta:\n";
+                        response.itensFaltantes.forEach(item => {
+                            mensagemErro += `• ${item.alimentoNome}: Estoque ${item.estoqueAtual}, Necessário ${item.quantidadeNecessaria}\n`;
+                        });
+                    }
+                    notifyError("Estoque Insuficiente", mensagemErro);
                 }
-
-                throw new Error(errorMessage);
+            } else {
+                // Resposta inesperada
+                notifyError("Erro", "Resposta inesperada do servidor");
             }
-
-            const result = await response.json();
-            console.log("🔍 DEBUG - Sucesso! Response:", result);
-
-            notifySuccess("Sucesso!", `Montagem de ${quantidade} cesta(s) "${tamanhoCesta}" confirmada com sucesso!`);
-
-            // Esconder resultado
-            document.getElementById('resultado-verificacao').style.display = 'none';
-
-            // Recarregar a lista
-            setTimeout(() => {
-                listarCestasMontagem();
-            }, 1000);
 
         } catch (err) {
-            console.error("🔍 DEBUG - Erro capturado:", err);
+            console.error("Erro detalhado:", err);
+            notifyError("Erro na Confirmação", err.message || "Erro ao processar a solicitação");
 
-            // Mensagem mais amigável para estoque insuficiente
-            let mensagemErro = err.message || String(err);
-            if (mensagemErro.includes("estoque") || mensagemErro.includes("milho")) {
-                mensagemErro = "Estoque insuficiente! Verifique se há alimentos suficientes no estoque antes de montar as cestas.";
-            }
-
-            notifyError("Erro na Confirmação", mensagemErro);
+            // Manter o resultado visível para debug
+            const conteudoDiv = document.getElementById("resultado-verificacao-conteudo");
+            conteudoDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-times-circle me-2"></i>Erro na Confirmação</h5>
+                <p class="mb-1"><strong>Detalhes:</strong> ${escapeHtml(err.message || String(err))}</p>
+                <small class="text-muted">Verifique o console para mais informações.</small>
+            </div>
+        `;
         }
     }
 
     // Expor API pública
     window.MontagemCesta = {
         mountPossiveisCestas: mountSolicitarMontagem,
-        confirmarMontagem,
-        calcularCestasMontaveis
+        confirmarMontagem
     };
 
+    // Expor funções globais necessárias
     window.confirmarMontagem = confirmarMontagem;
     window.abrirModalSolicitacao = abrirModalSolicitacao;
-    window.calcularCestasMontaveis = calcularCestasMontaveis;
 
 })();

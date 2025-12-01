@@ -17,58 +17,36 @@ import java.util.List;
 public class EstoqueCestasControl {
 
     @PostMapping(value = "/verificar-quantidade")
-    public ResponseEntity<Object> calcularCestasMontaveis(@RequestBody EstoqueCestaRequest request) {
+    public ResponseEntity<Object> inserirCesta(@RequestBody CestaBasicaDTO cestaDTO) {
         try {
-            EstoqueCestaBasica estoqueModel = new EstoqueCestaBasica();
-            if (estoqueModel.getEstoqueCestaBasicaDAO().estoquePrecisaInicializacao(Singleton.Retorna())) {
-                estoqueModel.getEstoqueCestaBasicaDAO().inicializarEstoqueCestas(Singleton.Retorna());
+            CestaBasica cesta = cestaDTO.toCestaBasica();
+
+            if (!Singleton.Retorna().StartTransaction()) {
+                return ResponseEntity.status(500).body(new Erro(Singleton.Retorna().getMensagemErro()));
             }
 
-            CestaBasica cestaModel = new CestaBasica();
-            List<CestaBasica> cestas = cestaModel.getCestaBasicaDAO().buscarPorTamanho(request.getTamanhoCesta(), Singleton.Retorna());
-
-            if (cestas.isEmpty()) {
-                return ResponseEntity.badRequest().body(new Erro("Cesta não encontrada"));
+            if (!cesta.getCestaBasicaDAO().gravar(cesta, Singleton.Retorna())) {
+                Singleton.Retorna().Rollback();
+                return ResponseEntity.badRequest().body(new Erro("Problema ao gravar cesta no banco de dados"));
             }
 
-            CestaBasica cestaSelecionada = cestas.getFirst();
+            int idCesta = cesta.getCestaBasicaDAO().getUltimoIdInserido(Singleton.Retorna());
+            cesta.setId(idCesta);
 
-            ItemCesta itemModel = new ItemCesta();
-            List<ItemCesta> itensCesta = itemModel.getItemCestaDAO().buscarItensCesta(cestaSelecionada.getId(), Singleton.Retorna());
-
-            if (itensCesta.isEmpty()) {
-                return ResponseEntity.badRequest().body(new Erro("Cesta não possui itens cadastrados"));
-            }
-
-            int maxCestas = Integer.MAX_VALUE;
-
-            for (ItemCesta item : itensCesta) {
-                AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
-                int estoqueDisponivel = alimentoEstoque.getAlimentoEstoqueDAO().getQuantidadeEstoque(
-                        item.getAlimento().getId(), Singleton.Retorna()
-                );
-
-                if (estoqueDisponivel == -1) {
-                    estoqueDisponivel = 0;
+            if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
+                for (ItemCesta item : cesta.getItens()) {
+                    if (!item.getItemCestaDAO().gravar(item, Singleton.Retorna())) {
+                        Singleton.Retorna().Rollback();
+                        return ResponseEntity.badRequest().body(new Erro("Problema ao gravar itens da cesta no banco de dados"));
+                    }
                 }
-
-                int cestasPorItem = estoqueDisponivel / item.getQtde();
-                maxCestas = Math.min(maxCestas, cestasPorItem);
             }
 
-            if (maxCestas == Integer.MAX_VALUE) {
-                maxCestas = 0;
-            }
-
-            CalculoCestaResponse response = CalculoCestaResponse.criarResponse(
-                    cestaSelecionada, maxCestas, itensCesta
-            );
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(new Erro("Erro ao calcular cestas: " + e.getMessage()));
+            Singleton.Retorna().Commit();
+            return ResponseEntity.ok(cestaDTO);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(500).body(new Erro("Erro ao inserir cesta: " + e.getMessage()));
         }
     }
 
@@ -217,6 +195,7 @@ public class EstoqueCestasControl {
 
         } catch (Exception e) {
             Singleton.Retorna().Rollback();
+            System.err.println("ERRO ao confirmar montagem: " + e.getMessage());
             return ResponseEntity.status(500).body(new Erro("Erro ao confirmar montagem: " + e.getMessage()));
         }
     }

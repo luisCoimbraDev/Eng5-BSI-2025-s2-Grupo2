@@ -14,9 +14,36 @@ public class CestaBasicaDAO implements IDAO<CestaBasica>{
 
     public CestaBasicaDAO(){}
 
-
     @Override
     public boolean gravar(CestaBasica entidade, Conexao conexao) {
+        if (entidade.getTamanho() == null || entidade.getTamanho().trim().isEmpty()) {
+            throw new RuntimeException("Tamanho da cesta não pode ser nulo ou vazio");
+        }
+
+        String sqlVerifica = "SELECT 1 FROM tipo_cesta_basica WHERE UPPER(tamanho) = UPPER('#1')";
+        sqlVerifica = sqlVerifica.replace("#1", entidade.getTamanho());
+
+        try {
+            ResultSet rs = conexao.consultar(sqlVerifica);
+            if (rs != null && rs.next()) {
+                rs.close();
+            }
+            if (rs != null) rs.close();
+
+            String tamanhoFormatado = entidade.getTamanho() != null ?
+                    entidade.getTamanho().trim().toUpperCase() :
+                    "INDEFINIDO";
+
+            String SQL = "INSERT INTO tipo_cesta_basica (tamanho) VALUES ('#1')";
+            SQL = SQL.replace("#1", tamanhoFormatado);
+            return conexao.manipular(SQL);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao verificar cesta: " + e.getMessage());
+        }
+    }
+
+    public boolean gravarUnique(CestaBasica entidade, Conexao conexao) {
         String sqlVerifica = "SELECT 1 FROM tipo_cesta_basica WHERE UPPER(tamanho) = UPPER('#1')";
         sqlVerifica = sqlVerifica.replace("#1", entidade.getTamanho());
 

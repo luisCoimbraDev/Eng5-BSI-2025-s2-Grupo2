@@ -47,6 +47,9 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers("/apis/itens-cesta/**").permitAll()
                         .requestMatchers("/apis/alimentos/**").permitAll()
                         .requestMatchers("/apis/tipoalimento/**").permitAll()
+                        .requestMatchers("/apis/doacao-personalizada/**").permitAll()
+                        .requestMatchers("/apis/beneficiarios/**").permitAll()
+                        .requestMatchers("/apis/colaborador/busca/**").permitAll()
                         .requestMatchers("/Parametrizacao/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR

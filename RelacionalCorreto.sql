@@ -15,7 +15,7 @@ drop table if exists colaborador cascade;
 drop table if exists doacao cascade;
 drop table if exists entrada_doacao cascade;
 drop table if exists estoque_alimento cascade;
-drop table if exists estoque_cesta_basica cascade:
+drop table if exists estoque_cesta_basica cascade;
 drop table if exists funcionario cascade;
 drop table if exists gestor cascade;
 drop table if exists inspecao_alimento cascade;
@@ -93,8 +93,7 @@ create table tipo_bazar (
 create table tipo_cesta_basica (
   idcestas_basicas int not null DEFAULT nextval('seq_tipo_cesta_basica'),
   tamanho varchar(20) not null,
-  primary key (idcestas_basicas),
-  unique (tamanho)
+  primary key (idcestas_basicas)
 );
 
 create table permissao (
