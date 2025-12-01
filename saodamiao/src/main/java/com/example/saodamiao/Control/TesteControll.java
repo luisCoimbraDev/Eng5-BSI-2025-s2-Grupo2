@@ -85,4 +85,17 @@ public class TesteControll {
         }
         return ResponseEntity.badRequest().body("erro ao atualizar caixa");
     }
+
+    @PostMapping("/atualizarCaixaSaida")
+    public ResponseEntity atualizarCaixaSaida(@RequestParam int idCaixa, @RequestParam Double valor){
+        CaixaModel caixaModel= new CaixaModel();
+        try{
+            if(caixaModel.atualizarCaixaSaida(valor, idCaixa, Singleton.Retorna())){
+                return ResponseEntity.ok().body("Dinheiro retirado com sucesso");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ResponseEntity.badRequest().body("erro ao tirar dinheiro do caixa");
+    }
 }

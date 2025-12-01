@@ -52,4 +52,10 @@ public class Permissoes {
     public List<String> BuscarPermissoesPorId(int id, Conexao conexao){
         return permissoesDAO.buscarPermissoesPorColaboradorId(id, conexao);
     }
+    public int qtdeDeAdmins(Conexao conexao){
+        return permissoesDAO.qtdeDeAdmins(conexao);
+    }
+    public Boolean verificaAdmin(String userName, Conexao conexao){
+        return permissoesDAO.verificaAdmin(userName, conexao);
+    }
 }

@@ -102,4 +102,47 @@ public class PermissoesDAO {
         String sql = "UPDATE permissao SET ativo = 'N' WHERE tipo_permissao = '"+nomePermissao+"'";
         return conexao.manipular(sql);
     }
+
+    public int qtdeDeAdmins(Conexao conexao){
+        String sql = "SELECT COUNT(DISTINCT l.colaborador_idcolaborador) as total " +
+                "FROM login l " +
+                "INNER JOIN permissao_usuario pu ON l.colaborador_idcolaborador = pu.colaborador_idcolaborador " +
+                "INNER JOIN permissao p ON pu.permissao_idpermissao = p.idpermissao " +
+                "WHERE p.tipo_permissao = 'ROLE_ADMIN' " +
+                "AND p.ativo = 'S' " +
+                "AND l.log_ativo = 'S' " +
+                "AND (pu.data_fim IS NULL OR pu.data_fim > CURRENT_DATE)";
+        try
+        {
+          ResultSet rs = conexao.consultar(sql);
+          if(rs.next())
+          {
+              return rs.getInt("total");
+          }
+          rs.close();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public Boolean verificaAdmin(String userName, Conexao conexao){
+        String sql = "SELECT p.tipo_permissao " +
+                "FROM login l " +
+                "INNER JOIN permissao_usuario pu ON l.colaborador_idcolaborador = pu.colaborador_idcolaborador " +
+                "INNER JOIN permissao p ON pu.permissao_idpermissao = p.idpermissao " +
+                "WHERE l.log_username = '" + userName + "' " +
+                "AND p.tipo_permissao = 'ROLE_ADMIN' " +
+                "AND p.ativo = 'S' " +
+                "AND (pu.data_fim IS NULL OR pu.data_fim > CURRENT_DATE)";
+        try{
+            ResultSet rs = conexao.consultar(sql);
+            return rs.next();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

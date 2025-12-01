@@ -96,5 +96,4 @@ public class LoginDAO {
         }
         return log;
     }
-
 }

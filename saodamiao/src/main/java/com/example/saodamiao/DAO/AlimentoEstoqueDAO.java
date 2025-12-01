@@ -70,15 +70,22 @@ public class AlimentoEstoqueDAO {
             return false;
         }
     }
-    public Boolean AtualizaQtdeSubtrai(long idAlimento, int quantidade,String validade, Conexao conexao){
+    public Boolean AtualizaQtdeSubtrai(long idAlimento, int quantidade, String validade, Conexao conexao){
         try {
-            String sql = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = ESA_QTDE - #1 WHERE alimentos_idAlimentos = #2 AND esa_validade = '#3'";
+            String sql = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = ESA_QTDE - #1 " +
+                    "WHERE alimentos_idAlimentos = #2 " +
+                    "AND esa_validade = '#3' " +
+                    "AND (ESA_QTDE - #1) >= 0";  // ← VALIDAÇÃO DIRETO NO SQL
             sql = sql.replace("#1", String.valueOf(quantidade))
                     .replace("#2", String.valueOf(idAlimento))
                     .replace("#3", validade);
-            return conexao.manipular(sql);
+            System.out.println("SQL: " + sql);
+            boolean resultado = conexao.manipular(sql);
+            System.out.println("Resultado: " + resultado);
+            return resultado;
+
         } catch (Exception e) {
-            System.out.println("Erro em AtualizaQtde: " + e.getMessage());
+            System.out.println("Erro em AtualizaQtdeSubtrai: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

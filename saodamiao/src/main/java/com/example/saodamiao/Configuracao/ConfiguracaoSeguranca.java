@@ -40,6 +40,7 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers(HttpMethod.POST, "/atualizar-estoques/alimentos-subtrai").permitAll()
                         .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens-subtrai").permitAll()
                         .requestMatchers(HttpMethod.POST, "/atualizar-estoques/atualizarCaixa").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/atualizar-estoques/atualizarCaixaSaida").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
 
@@ -71,8 +72,6 @@ public class ConfiguracaoSeguranca {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Em produção, NUNCA use "addAllowedOrigin("*")"
-        // Especifiquem o domínio do front-end: ex: "http://meu-site.com"
         configuration.addAllowedOrigin("*");
         configuration.addAllowedMethod("*"); // Permite POST, GET, PUT, DELETE, etc.
         configuration.addAllowedHeader("*"); // Permite cabeçalhos como Authorization, Content-Type

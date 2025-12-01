@@ -9,7 +9,15 @@ public class ItensBazarDAO {
         return con.manipular(sql);
     }
     public Boolean atualizaEstoqueItemSubtrai(int qtde, int id, Conexao con){
-        String sql = "UPDATE item_bazar SET qtde = qtde - " + qtde + " WHERE iditem_bazar = "+ id;
-        return con.manipular(sql);
+        try {
+            String sql = "UPDATE item_bazar SET qtde = qtde - " + qtde +
+                    " WHERE iditem_bazar = " + id +
+                    " AND (qtde - " + qtde + ") >= 0";
+            boolean resultado = con.manipular(sql);
+            return resultado;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

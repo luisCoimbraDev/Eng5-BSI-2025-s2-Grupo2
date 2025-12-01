@@ -5,6 +5,7 @@ import com.example.saodamiao.Configuracao.TokenControl;
 import com.example.saodamiao.DTO.AutenticacaoDTO;
 import com.example.saodamiao.DTO.LoginResponseDTO;
 import com.example.saodamiao.Model.Login;
+import com.example.saodamiao.Model.Permissoes;
 import com.example.saodamiao.Singleton.Erro;
 import com.example.saodamiao.Singleton.Singleton;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,11 +139,18 @@ public class LoginControl {
     public ResponseEntity MudarParaInativo(@RequestBody String userName){
         login = new Login();
         login = login.buscarLogin(userName, Singleton.Retorna());
+        Permissoes permissoes = new Permissoes();
         if(VerificaAtivo(userName)){
             return ResponseEntity.status(400).body("Nao e possivel desativar o login");
         }
+
+        if(permissoes.verificaAdmin(userName, Singleton.Retorna())){
+            if(permissoes.qtdeDeAdmins(Singleton.Retorna()) <= 1){
+                return ResponseEntity.badRequest().body("tem que existir pelo menos um admin ativo");
+            }
+        }
         login.setLoginAtivo("N");
-        if(login.todosLogins(Singleton.Retorna()).size() > 1  && login.MudarParaInativo(login, Singleton.Retorna())){
+        if(login.MudarParaInativo(login, Singleton.Retorna())){
             return ResponseEntity.ok("Atualizado com sucesso");
         }
         return ResponseEntity.status(500).body("Operacao não realizada");
