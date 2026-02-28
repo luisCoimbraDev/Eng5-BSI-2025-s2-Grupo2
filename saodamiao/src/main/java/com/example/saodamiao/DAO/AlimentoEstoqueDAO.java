@@ -56,6 +56,7 @@ public class AlimentoEstoqueDAO {
         return  conexao.manipular(SQL);
     }
 
+
     public Boolean AtualizaQtdeSoma(long idAlimento, int quantidade,String validade, Conexao conexao){
         try {
             String sql = "UPDATE ESTOQUE_ALIMENTO SET ESA_QTDE = ESA_QTDE + #1 WHERE alimentos_idAlimentos = #2 AND esa_validade = '#3'";
