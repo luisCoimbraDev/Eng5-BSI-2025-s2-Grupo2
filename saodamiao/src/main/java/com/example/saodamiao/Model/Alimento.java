@@ -1,6 +1,7 @@
 package com.example.saodamiao.Model;
 
 import com.example.saodamiao.DAO.AlimentoDAO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 @Data
@@ -8,6 +9,7 @@ public class Alimento {
     private long id;
     private String nome;
     private long tipo_alimento_id;
+    @JsonIgnore
     AlimentoDAO alimentoDAO;
     public Alimento(){
         alimentoDAO = new AlimentoDAO();

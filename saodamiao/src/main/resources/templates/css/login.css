@@ -1,0 +1,38 @@
+
+body {
+    background-color: #5867dd; 
+    min-height: 100vh; 
+}
+
+.login-form {
+    width: 100%;
+    max-width: 420px; 
+}
+
+
+.login-logo {
+    max-width: 180px; 
+}
+
+
+.btn-custom-blue {
+    background-color: #5867dd;
+    border-color: #5867dd;
+    color: #ffffff; 
+    font-weight: 500;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+
+.btn-custom-blue:hover {
+    background-color: #5867dd; 
+    border-color: #5867dd;
+    color: #ffffff;
+}
+
+
+.form-control:focus {
+    border-color: #5867dd;
+    box-shadow: 0 0 0 0.25rem rgba(10, 25, 47, 0.25);
+}
