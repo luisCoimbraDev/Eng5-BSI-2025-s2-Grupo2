@@ -46,6 +46,16 @@ public class AlimentoEstoqueDAO {
         return false;
     }
 
+    public boolean AtualizarInfoEstoque(AlimentoEstoque alimentoEstoque, LocalDate dataAntiga, Conexao conexao) {
+        String SQL = "UPDATE ESTOQUE_ALIMENTO SET ESA_VALIDADE = '#1', ESA_QTDE = #2 WHERE Alimentos_idAlimentos = #3 and ESA_VALIDADE = '#4';";
+        SQL = SQL.replace("#1", ""+alimentoEstoque.getValidade());
+        SQL = SQL.replace("#2", ""+alimentoEstoque.getQuantidade());
+        SQL =  SQL.replace("#3", ""+ alimentoEstoque.getId_alimento());
+        SQL = SQL.replace("#4",""+ dataAntiga);
+
+        return  conexao.manipular(SQL);
+    }
+
     public boolean existeEstoque(AlimentoEstoque entidade, Conexao conexao) {
         String SQL = "select * from ESTOQUE_ALIMENTO where alimentos_idalimentos=#1 and esa_validade ='#2';";
         SQL = SQL.replace("#1", String.valueOf(entidade.getId_alimento()));

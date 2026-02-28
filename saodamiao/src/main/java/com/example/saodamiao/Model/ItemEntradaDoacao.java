@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemEntradaDoacao {
+    private long ite_id;
     private long idEntradaDoacao;
     private long idItemBazar;
     private long idAlimento;
-    private Doacao doacao;
     private int quantidade;
 }

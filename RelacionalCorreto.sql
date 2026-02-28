@@ -215,7 +215,7 @@ create table alimentos (
 );
 
 create table entrada_doacao (
-  end_id int not null,
+  end_id int not null DEFAULT nextval('seq_entrada_doacao'),
   end_data date not null,
   nome_doador varchar(40),
   telefone_doador varchar(40),
@@ -269,10 +269,12 @@ create table gestor (
 );
 
 create table inspecao_alimento (
-  insa_id int not null,
+  
+  insa_id int not null DEFAULT nextval('seq_inspecao_alimento'),
   insa_data date not null,
   insa_obs varchar(100) not null,
   alimentos_idalimentos int not null,
+  ESA_validade date not null,
   login_colaborador_idcolaborador int not null,
   primary key (insa_id),
   constraint fk_inspecao_alimento_alimentos1
@@ -288,7 +290,7 @@ create table inspecao_alimento (
 );
 
 create table item_bazar (
-  iditem_bazar int not null,
+  iditem_bazar int not null DEFAULT nextval('seq_item_bazar'),
   nome varchar(45) not null,
   qtde int not null,
   condicaoitem varchar(40) not null,
@@ -322,10 +324,10 @@ create table inspecao_bazar (
 );
 
 create table item_entrada_doacao (
-  ite_id int not null,
+  ite_id int not null DEFAULT nextval('seq_item_entrada_doacao'),
   entrada_doacao_end_id int not null,
-  item_bazar_iditem_bazar int not null,
-  alimentos_idalimentos int not null,
+  item_bazar_iditem_bazar int,
+  alimentos_idalimentos int,
   ite_qtde int not null,
   primary key (ite_id),
   constraint fk_item_entrada_doacao_item_bazar1
