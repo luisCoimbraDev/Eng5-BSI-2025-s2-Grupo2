@@ -11,7 +11,7 @@ public class Singleton {
     public static Conexao Retorna(){
         if(conexao == null){
             conexao = new Conexao();
-            conexao.conectar("jdbc:postgresql://localhost/", "saodamiao","postgres","postgres123");;
+            conexao.conectar("jdbc:postgresql://localhost:5432/", "meu_banco","root","rootpassword");;
         }
         return conexao;
     }

@@ -41,17 +41,23 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers(HttpMethod.POST, "/atualizar-estoques/itens-subtrai").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/entrar").permitAll()
-
+                        .requestMatchers(HttpMethod.POST, "apis/alimentos/inserir").permitAll()
+                        .requestMatchers(HttpMethod.POST, "apis/alimentos/deletar").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "apis/alimentos/atualizar").permitAll()
+                        .requestMatchers(HttpMethod.GET, "apis/alimentos/getall").permitAll()
+                        .requestMatchers(HttpMethod.GET, "apis/estoque/getall").permitAll()
+                        .requestMatchers(HttpMethod.POST, "apis/estoque/getEstoque").permitAll()
                         .requestMatchers(HttpMethod.POST, "/colaborador/criar").hasAuthority("ROLE_ADMIN") // <-- SINGULAR
                         .requestMatchers(HttpMethod.PUT, "/mudarParaInativo").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/mudarParaAtivo").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/colaborador/pegar-tudo").hasAuthority("ROLE_ADMIN")
-
                         //.requestMatchers(HttpMethod.POST, "/colaborador/buscar-por-cpf/{cpf}").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/permissoes/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/vendas/**").hasAuthority(PermissaoConstantes.ROLE_ADMIN)
                         .requestMatchers("/relatorios/**").hasAnyAuthority(PermissaoConstantes.ROLE_ADMIN, PermissaoConstantes.ROLE_GESTOR)
-
+                        .requestMatchers("/apis/inspecao/**").permitAll()
+                        .requestMatchers("apis/tipoalimento/**").permitAll()
+                        .requestMatchers("apis/alimentos/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
