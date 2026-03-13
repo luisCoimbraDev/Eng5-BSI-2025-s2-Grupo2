@@ -12,6 +12,7 @@
 
     <!-- Fonts and icons -->
     <script src="../js/plugin/webfont/webfont.min.js"></script>
+    <script src="../js/Colaborador.js"></script>
     <script>
         WebFont.load({
             google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -89,6 +90,8 @@
 </head>
 <body>
 <script> document.addEventListener('DOMContentLoaded', carregarParametrizacao); </script>
+<script src="../js/GerenciarPermissoes.js"></script>
+<script src="../js/todosColaboradores.js"></script>
 <div class="wrapper">
     <!-- Sidebar -->
     <div class="sidebar" data-background-color="dark">
@@ -156,8 +159,8 @@
                                     </a>
                                     <div class="collapse" id="pessoas-colaboradores">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="colaboradores/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="colaboradores/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
+                                            <li><a href="#" onclick="return ColaboradorCadastro.mount();"><span class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#" onclick="return InativarUsuario.mount();"><span class="sub-item">Listar / Consultar</span></a></li>
                                             <li><a href="colaboradores/edit.html"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="colaboradores/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
@@ -198,7 +201,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="permissoes/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="permissoes/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="permissoes/edit.html"><span class="sub-item">Editar</span></a></li>
+                                            <li><a href="permissoes/edit.html" onclick="return GerenciarPermissoes.mount();"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="permissoes/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
@@ -217,7 +220,11 @@
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
                                 <li>
-                                    <!-- MUDANÇA 1: passa a abrir via JS -->
+                                    <a href="inspecao_alimento/index.html">
+                                        <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="#" onclick="return PossiveisCestas.mount();">
                                         <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
                                     </a>
@@ -283,10 +290,8 @@
                                     </a>
                                     <div class="collapse" id="cestas-agendamentos">
                                         <ul class="nav nav-collapse subnav">
-                                            <li><a href="agendamentos_entrega/create.html"><span class="sub-item">Cadastrar</span></a></li>
-                                            <li><a href="agendamentos_entrega/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="agendamentos_entrega/edit.html"><span class="sub-item">Editar</span></a></li>
-                                            <li><a href="agendamentos_entrega/delete.html"><span class="sub-item">Excluir</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mount()" class="sub-item">Cadastrar</span></a></li>
+                                            <li><a href="#"><span onclick="return CrudAgendamento.mountList()" class="sub-item">Consultar/ Editar/ Excluir</span></a></li>
                                         </ul>
                                     </div>
                                 </li>
@@ -477,6 +482,9 @@
 <!-- MUDANÇA 2: inclui o script da tela de Possíveis Cestas -->
 <script src="../js/PossiveisCestas.js" defer></script>
 <script defer src="../js/InspecionarAlimento.js"></script>
+<script defer src="../js/EntradaDoacao.js"></script>
+<script defer src="../js/ConsultaDoacao.js"></script>
+<script defer src=" ../js/AgendamentoCestas.js"></script>
 <script defer src="../js/InspecionarBazar.js"></script>
 </body>
 </html>

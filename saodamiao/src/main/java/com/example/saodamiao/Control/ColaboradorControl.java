@@ -1,12 +1,18 @@
 package com.example.saodamiao.Control;
 
 import com.example.saodamiao.Model.Colaborador;
+import com.example.saodamiao.Model.Login;
 import com.example.saodamiao.Model.Voluntarios;
+import com.example.saodamiao.Model.Permissoes;
 import com.example.saodamiao.Singleton.Erro;
 import com.example.saodamiao.Singleton.Singleton;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -14,6 +20,79 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ColaboradorControl {
 
+    Colaborador colaborador;
+
+    //'HASHEADOR' DE SENHAS
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    //============================================
+    // FEITO PELO PEDRO
+    // ===========================================
+    @PostMapping("/criar")
+    public ResponseEntity CriarColaborador(@RequestBody ColaboradorDTO novoColaborador){
+        //log para ver oq está chegando da requisição
+        Colaborador colaborador = new Colaborador();
+        LoginDAO loginDAO = new LoginDAO(); //
+        Conexao conexao = Singleton.Retorna();
+        //String senhaHasheada = passwordEncoder.encode(novoColaborador.getLoginSenha());
+
+        if(novoColaborador.getDtMat() == null) {
+            novoColaborador.setDtMat(LocalDate.now());
+        }
+        if(colaborador.CriarColaborador(novoColaborador, conexao))
+        {
+            int id = colaborador.BuscaPorCpfERetornaId(novoColaborador.getCpf(), Singleton.Retorna());
+            if(id != -1){
+                if(loginDAO.CriarLogin(novoColaborador.getLoginUserName(),id, novoColaborador.getLoginSenha(), "S", conexao)){
+                    return ResponseEntity.ok("Criado com sucesso");
+                }
+            }
+        }
+        return ResponseEntity.status(500).body("falha ao criar usuario");
+    }
+
+    public Colaborador BuscarColaborador(int idColaborador){
+        colaborador = new Colaborador();
+        return colaborador.BuscarColaborador(idColaborador, Singleton.Retorna());
+    }
+
+    @GetMapping("/gerenciar-permissao/{cpf}")
+    public ResponseEntity BuscarColaboradorPorCpf(@PathVariable String cpf){
+        colaborador = new Colaborador();
+        colaborador = colaborador.BuscarPorCpf(cpf, Singleton.Retorna());
+
+        Permissoes permissoesModel = new Permissoes();
+        List<String> permissoes = permissoesModel.BuscarPermissoesPorId(colaborador.getIdColaborador(), Singleton.Retorna());
+
+        // "pacote" SÓ com os dados do colaborador que o front precisa
+        Map<String, Object> colaboradorInfo = new HashMap<>();
+        colaboradorInfo.put("nome", colaborador.getNome());
+        colaboradorInfo.put("email", colaborador.getEmail());
+        colaboradorInfo.put("telefone", colaborador.getTelefone());
+        colaboradorInfo.put("cpf", colaborador.getCpf());
+
+        // "pacote" final que o JavaScript espera
+        Map<String, Object> resposta = new HashMap<>();
+        resposta.put("colaborador", colaboradorInfo);
+        resposta.put("permissoes", permissoes);
+
+        if(colaborador != null){
+          return ResponseEntity.ok().body(resposta);
+        }
+        return ResponseEntity.badRequest().body("erro ao buscar usuario");
+    }
+
+    @GetMapping(value = "/pegar-tudo")
+    public ResponseEntity<Object> pegarTudoComLogin() {
+        Colaborador colaboradorModel = new Colaborador();
+        List<Map<String, Object>> listaCombinada = colaboradorModel.getColaboradorDAO().pegarListaTodaComLogin(Singleton.Retorna());
+        return ResponseEntity.ok(listaCombinada);
+    }
+
+    //============================================
+    // FEITO PELO FELIPE
+    // ===========================================
 
     @PostMapping(value = "cadastro")
     public ResponseEntity<Object> CadastroColaborador(@RequestBody Colaborador colaborador) {

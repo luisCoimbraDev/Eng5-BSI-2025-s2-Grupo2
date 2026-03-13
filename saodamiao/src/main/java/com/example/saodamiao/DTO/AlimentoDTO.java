@@ -20,7 +20,6 @@ public class AlimentoDTO {
     private String nome;
     private String tipo_alimento;
     private int quantidade;
-    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate data_validade;
 
 

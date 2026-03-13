@@ -6,7 +6,9 @@ import com.example.saodamiao.Singleton.Conexao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ColaboradorDAO implements IDAO<Colaborador> {
     @Override
@@ -125,5 +127,35 @@ public class ColaboradorDAO implements IDAO<Colaborador> {
         }
 
         return colaborador;
+    }
+
+
+    public List<Map<String, Object>> pegarListaTodaComLogin(Conexao conexao) {
+        List<Map<String, Object>> lista = new ArrayList<>();
+        String sql = "SELECT c.nome, c.cpf, c.telefone, c.email, l.log_username, l.log_ativo " +
+                "FROM colaborador c " +
+                "JOIN login l ON c.idcolaborador = l.colaborador_idcolaborador";
+        ResultSet rs = null;
+        try {
+            rs = conexao.consultar(sql);
+            if (rs != null) {
+                while (rs.next()) {
+                    Map<String, Object> dados = new HashMap<>();
+                    dados.put("nome", rs.getString("nome"));
+                    dados.put("cpf", rs.getString("cpf"));
+                    dados.put("telefone", rs.getString("telefone"));
+                    dados.put("email", rs.getString("email"));
+                    dados.put("loginUserName", rs.getString("log_username"));
+                    dados.put("loginAtivo", rs.getString("log_ativo"));
+                    lista.add(dados);
+                }
+                rs.close();
+            } else {
+                System.err.println("Erro no DAO: A consulta SQL para pegarListaTodaComLogin falhou e retornou null.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
     }
 }

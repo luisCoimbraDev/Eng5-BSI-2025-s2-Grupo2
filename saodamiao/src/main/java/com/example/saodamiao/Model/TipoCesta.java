@@ -6,17 +6,20 @@ import lombok.Data;
 
 @Data
 public class TipoCesta {
+
     private int id;
     private String tamanho;
     @JsonIgnore
-    private TipoCestaDAO tipoCestaDAO;
+    private TipoCestaDAO tipoCestasDAO;
+
+
+    public TipoCesta() {
+        tipoCestasDAO = new TipoCestaDAO();
+    }
 
     public TipoCesta(int id, String tamanho) {
         this.id = id;
         this.tamanho = tamanho;
-        tipoCestaDAO = new TipoCestaDAO();
-    }
-    public TipoCesta(){
-        tipoCestaDAO = new TipoCestaDAO();
+        tipoCestasDAO = new TipoCestaDAO();
     }
 }
