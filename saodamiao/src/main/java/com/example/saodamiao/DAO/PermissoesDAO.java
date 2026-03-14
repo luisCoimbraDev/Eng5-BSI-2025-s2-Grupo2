@@ -2,9 +2,6 @@ package com.example.saodamiao.DAO;
 
 import com.example.saodamiao.Model.Permissoes;
 import com.example.saodamiao.Singleton.Conexao;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

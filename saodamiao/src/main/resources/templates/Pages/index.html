@@ -201,7 +201,7 @@
                                         <ul class="nav nav-collapse subnav">
                                             <li><a href="permissoes/create.html"><span class="sub-item">Cadastrar</span></a></li>
                                             <li><a href="permissoes/list.html"><span class="sub-item">Listar / Consultar</span></a></li>
-                                            <li><a href="permissoes/edit.html"><span class="sub-item">Editar</span></a></li>
+                                            <li><a href="permissoes/edit.html" onclick="return GerenciarPermissoes.mount();"><span class="sub-item">Editar</span></a></li>
                                             <li><a href="permissoes/delete.html"><span class="sub-item">Excluir</span></a></li>
                                         </ul>
                                     </div>
@@ -219,11 +219,6 @@
                         </a>
                         <div class="collapse" id="cestas-basicas">
                             <ul class="nav nav-collapse">
-                                <li>
-                                    <a href="inspecao_alimento/index.html">
-                                        <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
-                                    </a>
-                                </li>
                                 <li>
                                     <a href="#" onclick="return PossiveisCestas.mount();">
                                         <i class="fas fa-shopping-basket"></i><span class="sub-item">Possiveis Cestas</span>
@@ -347,7 +342,7 @@
                                     </div>
                                 </li>
                                 <li>
-                                    <a href="inspecao_alimento/index.html">
+                                    <a href="#" onclick="return InspecionarBazar.mount();">
                                         <i class="fas fa-search-plus me-2"></i><span class="sub-item">Inspeções de Bazar</span>
                                     </a>
                                 </li>
@@ -362,7 +357,7 @@
                             <p>Entradas de Doações</p>
                             <span class="caret"></span>
                         </a>
-                        <div class="collapse" id = "entradas-doacoes">
+                        <div class="collapse" id="entradas-doacoes">
                             <ul class="nav nav-collapse">
                                 <li><a href="entradas_doacao/alimentos/create.html"><i class="fas fa-apple-alt me-2"></i><span class="sub-item">Doar Alimentos</span></a></li>
                                 <li><a href="entradas_doacao/bazar/create.html"><i class="fas fa-tshirt me-2"></i><span class="sub-item">Doar Itens do Bazar</span></a></li>
@@ -485,5 +480,6 @@
 <script defer src="../js/EntradaDoacao.js"></script>
 <script defer src="../js/ConsultaDoacao.js"></script>
 <script defer src=" ../js/AgendamentoCestas.js"></script>
+<script defer src="../js/InspecionarBazar.js"></script>
 </body>
 </html>

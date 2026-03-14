@@ -4,7 +4,6 @@ import com.example.saodamiao.DAO.PermissoesDAO;
 import com.example.saodamiao.Singleton.Conexao;
 import lombok.Data;
 
-import java.sql.Date;
 import java.util.List;
 
 @Data

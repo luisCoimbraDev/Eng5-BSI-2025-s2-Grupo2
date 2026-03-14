@@ -1,9 +1,5 @@
 package com.example.saodamiao.DTO;
 
-import com.example.saodamiao.Model.Colaborador;
-import com.example.saodamiao.Model.Login;
-import com.example.saodamiao.Singleton.Singleton;
-
 public class AutenticacaoDTO {
     private String senha;
     private String login;

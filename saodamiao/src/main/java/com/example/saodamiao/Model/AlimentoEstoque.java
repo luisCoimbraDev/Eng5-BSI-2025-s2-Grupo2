@@ -1,8 +1,9 @@
 package com.example.saodamiao.Model;
 
 import com.example.saodamiao.DAO.AlimentoEstoqueDAO;
-import com.example.saodamiao.Singleton.Conexao;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
@@ -11,8 +12,8 @@ public class AlimentoEstoque {
     private long id_alimento;
     private LocalDate validade;
     private int quantidade;
-
     private AlimentoEstoqueDAO alimentoEstoqueDAO;
+
     public AlimentoEstoque(){
         alimentoEstoqueDAO = new AlimentoEstoqueDAO();
     }
@@ -29,15 +30,5 @@ public class AlimentoEstoque {
             e.printStackTrace();
             return false;
         }
-    }
-    AlimentoEstoqueDAO alimento;
-    public Boolean atualizarEstoqueSoma(int id_alimento, int quantidade,String validade, Conexao conexao){
-        alimento = new AlimentoEstoqueDAO();
-        return alimento.AtualizaQtdeSoma(id_alimento, quantidade, validade , conexao);
-    }
-
-    public Boolean atualizarEstoqueSubtrai(int id_alimento, int quantidade, String validade, Conexao conexao){
-        alimento = new AlimentoEstoqueDAO();
-        return alimento.AtualizaQtdeSubtrai(id_alimento, quantidade, validade , conexao);
     }
 }

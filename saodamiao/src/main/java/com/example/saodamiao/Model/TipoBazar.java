@@ -1,16 +1,13 @@
 package com.example.saodamiao.Model;
 
-import com.example.saodamiao.DAO.TipoAlimentoDAO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 import com.example.saodamiao.DAO.TipoBazarDAO;
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
+@Data
 public class TipoBazar {
     private int id;
     private String desc;
-
+    @JsonIgnore
     TipoBazarDAO tipoBazarDAO;
 
     public TipoBazar(int id, String desc) {

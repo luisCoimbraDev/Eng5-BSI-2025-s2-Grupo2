@@ -4,6 +4,7 @@ import com.example.saodamiao.DAO.LoginDAO;
 import com.example.saodamiao.DTO.ColaboradorDTO;
 import com.example.saodamiao.Model.Colaborador;
 import com.example.saodamiao.Model.Login;
+import com.example.saodamiao.Model.Voluntarios;
 import com.example.saodamiao.Model.Permissoes;
 import com.example.saodamiao.Singleton.Conexao;
 import com.example.saodamiao.Singleton.Erro;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RestController()
+@RestController
 @RequestMapping("/colaborador")
 @CrossOrigin(origins = "*")
 public class ColaboradorControl {
@@ -155,6 +156,4 @@ public class ColaboradorControl {
         List<Colaborador> list = colaborador.getColaboradorDAO().pegarListaToda(Singleton.Retorna());
         return ResponseEntity.ok(list);
     }
-
-
 }
