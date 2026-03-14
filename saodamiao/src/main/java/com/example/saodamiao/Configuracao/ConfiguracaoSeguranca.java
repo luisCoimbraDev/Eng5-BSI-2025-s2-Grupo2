@@ -58,7 +58,9 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers("/apis/inspecao/**").permitAll()
                         .requestMatchers("apis/tipoalimento/**").permitAll()
                         .requestMatchers("apis/alimentos/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("apis/clientes/**").permitAll()
+                        .requestMatchers("apis/cestas/**").permitAll()
+                        .requestMatchers("apis/inspecao/bazar/**").permitAll()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

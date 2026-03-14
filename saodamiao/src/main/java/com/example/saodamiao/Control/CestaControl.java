@@ -20,8 +20,7 @@ public class CestaControl {
     public ResponseEntity<Object> pegarTipoCesta(@PathVariable String tipocesta)
     {
         TipoCesta encontrada = new TipoCesta();
-        //encontrada = encontrada.getTipoCestasDAO().pegarCesta(tipocesta, Singleton.Retorna());
-        encontrada = null;
+        encontrada = encontrada.getTipoCestasDAO().pegarCesta(tipocesta, Singleton.Retorna());
         if(encontrada == null)
             return ResponseEntity.badRequest().body(new Erro("Cesta não Encontrada!!"));
         ItensCesta itensCesta = new ItensCesta();
