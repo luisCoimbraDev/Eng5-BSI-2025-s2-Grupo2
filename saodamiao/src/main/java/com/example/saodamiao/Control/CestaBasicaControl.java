@@ -3,6 +3,7 @@ package com.example.saodamiao.Control;
 import com.example.saodamiao.DTO.CestaBasicaDTO;
 import com.example.saodamiao.DTO.CestaBasicaRequest;
 import com.example.saodamiao.Model.CestaBasica;
+import com.example.saodamiao.Model.EstoqueCestaBasica;
 import com.example.saodamiao.Model.ItemCesta;
 import com.example.saodamiao.Singleton.Erro;
 import com.example.saodamiao.Singleton.Singleton;
@@ -246,20 +247,37 @@ public class CestaBasicaControl {
 
     @GetMapping(value = "/lista-tudo")
     public ResponseEntity<Object> getCestas() {
-        CestaBasica cesta = new CestaBasica();
-        List<CestaBasica> cestas = cesta.getCestaBasicaDAO().pegarListaToda(Singleton.Retorna());
+        try {
+            CestaBasica cesta = new CestaBasica();
+            List<CestaBasica> cestas = cesta.getCestaBasicaDAO().pegarListaToda(Singleton.Retorna());
 
-        if (cestas.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            if (cestas.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Buscar itens para cada cesta
+            ItemCesta itemCesta = new ItemCesta();
+            for (CestaBasica c : cestas) {
+                List<ItemCesta> itensCesta = itemCesta.getItemCestaDAO().buscarItensCesta(c.getId(), Singleton.Retorna());
+                c.setItens(itensCesta);
+            }
+
+            // Buscar quantidades em estoque para todas as cestas
+            EstoqueCestaBasica estoqueModel = new EstoqueCestaBasica();
+            List<EstoqueCestaBasica> estoques = estoqueModel.getEstoqueCestaBasicaDAO().listarTodos(Singleton.Retorna());
+
+            // Criar mapa de idCesta -> quantidade
+            java.util.Map<Integer, Integer> mapaEstoques = new java.util.HashMap<>();
+            for (EstoqueCestaBasica e : estoques) {
+                mapaEstoques.put(e.getIdcestas_basicas(), e.getQtde());
+            }
+
+            // Usar o novo método do DTO que recebe o mapa de estoques
+            List<CestaBasicaDTO> cestasDTO = CestaBasicaDTO.getListDTO(cestas, mapaEstoques);
+            return ResponseEntity.ok(cestasDTO);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new Erro("Erro ao listar cestas: " + e.getMessage()));
         }
-
-        ItemCesta itemCesta = new ItemCesta();
-        for (CestaBasica c : cestas) {
-            List<ItemCesta> itensCesta = itemCesta.getItemCestaDAO().buscarItensCesta(c.getId(), Singleton.Retorna());
-            c.setItens(itensCesta);
-        }
-
-        List<CestaBasicaDTO> cestasDTO = CestaBasicaDTO.getListDTO(cestas);
-        return ResponseEntity.ok(cestasDTO);
     }
 }

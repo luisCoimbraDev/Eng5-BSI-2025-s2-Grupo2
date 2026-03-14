@@ -15,6 +15,7 @@ import java.util.List;
 public class CestaBasicaDTO {
     private String tamanho;
     private List<ItemCestaDTO> itens = new ArrayList<>();
+    private int quantidadeEstoque; // NOVO CAMPO
 
     public CestaBasica toCestaBasica() {
         CestaBasica cesta = new CestaBasica();
@@ -37,9 +38,11 @@ public class CestaBasicaDTO {
         return cesta;
     }
 
-    public static CestaBasicaDTO toCestaBasicaDTO(CestaBasica cesta) {
+    public static CestaBasicaDTO toCestaBasicaDTO(CestaBasica cesta, int quantidadeEstoque) {
         CestaBasicaDTO dto = new CestaBasicaDTO();
         dto.setTamanho(cesta.getTamanho());
+        dto.setQuantidadeEstoque(quantidadeEstoque); // NOVO CAMPO
+
         if (cesta.getItens() != null && !cesta.getItens().isEmpty()) {
             List<ItemCestaDTO> itensDTO = new ArrayList<>();
             for (ItemCesta item : cesta.getItens()) {
@@ -50,10 +53,11 @@ public class CestaBasicaDTO {
         return dto;
     }
 
-    public static List<CestaBasicaDTO> getListDTO(List<CestaBasica> cestas) {
+    public static List<CestaBasicaDTO> getListDTO(List<CestaBasica> cestas, java.util.Map<Integer, Integer> estoques) {
         List<CestaBasicaDTO> dtos = new ArrayList<>();
         for (CestaBasica cesta : cestas) {
-            dtos.add(toCestaBasicaDTO(cesta));
+            int quantidade = estoques.getOrDefault(cesta.getId(), 0);
+            dtos.add(toCestaBasicaDTO(cesta, quantidade));
         }
         return dtos;
     }

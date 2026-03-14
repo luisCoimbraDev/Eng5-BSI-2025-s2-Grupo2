@@ -59,18 +59,17 @@ public class AgendamentoEntregaDAO implements IDAO<AgendamentoEntregaModel> {
     }
 
     public List<AgendamentoEntregaModel> buscarAgendamentosPendentes(Conexao conexao) {
-        List<AgendamentoEntregaModel> agendamentos = new ArrayList<>();
-        String sql = "SELECT ae.*, d.beneficiario_idbeneficiario, b.nome as beneficiario_nome, " +
-                "tc.tamanho as cesta_tamanho " +
+        // Primeiro: buscar apenas os agendamentos (sem duplicação)
+        String sqlAgendamentos = "SELECT ae.*, b.nome as beneficiario_nome, b.cpf " +
                 "FROM agendamento_entrega ae " +
                 "JOIN doacao d ON ae.doacao_iddoacao = d.iddoacao " +
                 "JOIN beneficiario b ON d.beneficiario_idbeneficiario = b.idbeneficiario " +
-                "LEFT JOIN itens_doacao ido ON d.iddoacao = ido.doacao_iddoacao " +
-                "LEFT JOIN tipo_cesta_basica tc ON ido.tipo_cesta_basica_idcestas_basicas = tc.idcestas_basicas " +
                 "ORDER BY ae.data_entrega ASC";
 
+        List<AgendamentoEntregaModel> agendamentos = new ArrayList<>();
+
         try {
-            ResultSet rs = conexao.consultar(sql);
+            ResultSet rs = conexao.consultar(sqlAgendamentos);
             while (rs.next()) {
                 AgendamentoEntregaModel agendamento = new AgendamentoEntregaModel(
                         rs.getInt("idagendamento_entrega"),
@@ -82,9 +81,14 @@ public class AgendamentoEntregaDAO implements IDAO<AgendamentoEntregaModel> {
                 agendamentos.add(agendamento);
             }
             rs.close();
+
+            // Se precisar dos itens, faça uma segunda consulta separada
+            // (mas isso não é necessário para a listagem de agendamentos)
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return agendamentos;
     }
 

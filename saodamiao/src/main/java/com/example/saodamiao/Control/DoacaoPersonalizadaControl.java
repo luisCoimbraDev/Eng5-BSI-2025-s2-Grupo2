@@ -100,171 +100,89 @@ public class DoacaoPersonalizadaControl {
     @PostMapping(value = "/efetuar-baixa")
     public ResponseEntity<Object> efetuarBaixaAgendamento(@RequestBody BaixaAgendamentoRequestDTO request) {
         try {
+            System.out.println("=== INICIO EFETUAR BAIXA ===");
 
             if (!Singleton.Retorna().StartTransaction()) {
                 return ResponseEntity.status(500).body(new Erro("Erro ao iniciar transação"));
             }
 
-            // 1. BUSCAR AGENDAMENTO POR CPF E DATA
+            // 1. BUSCAR AGENDAMENTO
             AgendamentoEntregaModel agendamento = new AgendamentoEntregaModel();
             agendamento = agendamento.getAgendamentoEntregaDAO()
-                    .buscarPorDados(
-                            request.getCpfBeneficiario(),
-                            request.getDataEntrega(),
-                            Singleton.Retorna()
-                    );
+                    .buscarPorDados(request.getCpfBeneficiario(), request.getDataEntrega(), Singleton.Retorna());
 
             if (agendamento == null) {
-                System.out.println("✗ ERRO: Agendamento não encontrado para CPF: " +
-                        request.getCpfBeneficiario() + " e Data: " + request.getDataEntrega());
                 Singleton.Retorna().Rollback();
                 return ResponseEntity.badRequest().body(new Erro("Agendamento não encontrado"));
             }
 
-            System.out.println("✓ Agendamento encontrado! ID: " + agendamento.getIdagendamento_entrega());
-            System.out.println("Data do agendamento: " + agendamento.getData_entrega());
-
+            // 2. VERIFICAR DATA
             Date hoje = new Date();
-
-            // Converter para comparar apenas datas
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String dataHojeStr = sdf.format(hoje);
-            String dataAgendamentoStr = sdf.format(agendamento.getData_entrega());
-
-            System.out.println("Data hoje: " + dataHojeStr);
-            System.out.println("Data agendamento: " + dataAgendamentoStr);
-
-            // Criar datas sem hora para comparação
-            Date hojeSemHora = sdf.parse(dataHojeStr);
-            Date agendamentoSemHora = sdf.parse(dataAgendamentoStr);
-
-            if (agendamentoSemHora.after(hojeSemHora)) {
-                System.out.println("✗ ERRO: Data do agendamento ainda não chegou. Agendamento: " +
-                        dataAgendamentoStr + ", Hoje: " + dataHojeStr);
+            if (sdf.parse(sdf.format(agendamento.getData_entrega())).after(sdf.parse(sdf.format(hoje)))) {
                 Singleton.Retorna().Rollback();
                 return ResponseEntity.badRequest().body(new Erro("A data do agendamento ainda não chegou"));
             }
 
-            System.out.println("✓ Data do agendamento já passou ou é hoje - pode efetuar baixa");
-
-            // 3. BUSCAR DOAÇÃO ASSOCIADA
+            // 3. BUSCAR DOAÇÃO
             DoacaoModel doacao = new DoacaoModel();
             doacao = doacao.getDoacaoDAO().buscarPorId(agendamento.getDoacao_iddoacao(), Singleton.Retorna());
 
             if (doacao == null) {
-                System.out.println("✗ ERRO: Doação não encontrada para ID: " + agendamento.getDoacao_iddoacao());
                 Singleton.Retorna().Rollback();
                 return ResponseEntity.badRequest().body(new Erro("Doação não encontrada"));
             }
-
-            System.out.println("✓ Doação encontrada! ID: " + doacao.getIddoacao());
-            System.out.println("Descrição da doação: " + doacao.getDescricao());
 
             // 4. BUSCAR ITENS DA DOAÇÃO
             ItensDoacaoModel itensDoacaoModel = new ItensDoacaoModel();
             List<ItensDoacaoModel> itensDoacao = itensDoacaoModel.getItensDoacaoDAO()
                     .buscarPorDoacao(doacao.getIddoacao(), Singleton.Retorna());
 
-            System.out.println("Itens da doação encontrados: " + itensDoacao.size());
-
-            // DEBUG: Mostrar detalhes dos itens
-            for (int i = 0; i < itensDoacao.size(); i++) {
-                ItensDoacaoModel item = itensDoacao.get(i);
-                System.out.println("Item " + i + ": cesta_id=" + item.getTipo_cesta_basica_idcestas_basicas() +
-                        ", bazar_id=" + item.getItem_bazar_iditem_bazar());
-            }
-
-            // 5. VERIFICAR SE TEM CESTA (ignorar itens bazar)
-            Integer idCestaParaBaixa = null;
-            for (ItensDoacaoModel item : itensDoacao) {
-                if (item.getTipo_cesta_basica_idcestas_basicas() != null) {
-                    idCestaParaBaixa = item.getTipo_cesta_basica_idcestas_basicas();
-                    System.out.println("✓ Cesta encontrada para baixa: ID " + idCestaParaBaixa);
-                    break;
-                }
-            }
-
-            if (idCestaParaBaixa == null) {
-                System.out.println("✗ Esta doação não contém cestas (apenas itens bazar ou sem itens)");
-                Singleton.Retorna().Rollback();
-                return ResponseEntity.badRequest().body(new Erro("Esta doação não contém cestas básicas"));
-            }
-
-            // 6. VALIDAR SE É PERSONALIZADA E TEM ITENS
-            if (request.isPersonalizada()) {
-                System.out.println("Baixa solicitada como PERSONALIZADA NA ENTREGA");
-
-                if (request.getItensPersonalizados() == null || request.getItensPersonalizados().isEmpty()) {
-                    System.out.println("✗ ERRO: Baixa personalizada solicitada sem itens");
-                    Singleton.Retorna().Rollback();
-                    return ResponseEntity.badRequest()
-                            .body(new Erro("Para personalizar cesta na entrega, é necessário informar os itens"));
-                }
-
-                System.out.println("Itens personalizados fornecidos: " + request.getItensPersonalizados().size());
-            } else {
-                System.out.println("Baixa solicitada como PADRÃO (sem personalização na entrega)");
-            }
-
-            // 7. PROCESSAR BAIXA NO ESTOQUE - VERSÃO CORRIGIDA
+            // 5. PROCESSAR BAIXA NO ESTOQUE
             boolean sucessoBaixa;
-
             if (request.isPersonalizada()) {
-                // BAIXA PERSONALIZADA NA ENTREGA (decrementa apenas os itens personalizados)
-                System.out.println("Processando baixa PERSONALIZADA na entrega...");
                 sucessoBaixa = processarBaixaPersonalizada(request.getItensPersonalizados());
             } else {
-                // BAIXA PADRÃO - APENAS REGISTRA ENTREGA (NÃO DECREMENTA ESTOQUE - já foi feito na montagem)
-                System.out.println("Processando baixa PADRÃO - apenas registro de entrega");
-                System.out.println("AVISO: Estoque já foi decrementado na montagem da cesta.");
-
-                // Valida se a cesta existe (opcional)
-                CestaBasica cestaModel = new CestaBasica();
-                CestaBasica cesta = cestaModel.getCestaBasicaDAO().buscarPorId(idCestaParaBaixa, Singleton.Retorna());
-
-                if (cesta == null) {
-                    System.out.println("✗ Cesta não encontrada: " + idCestaParaBaixa);
-                    sucessoBaixa = false;
-                } else {
-                    System.out.println("✓ Cesta validada: " + cesta.getTamanho() + " (ID: " + cesta.getId() + ")");
-                    sucessoBaixa = true; // Apenas confirma, SEM alterar estoque
-                }
+                sucessoBaixa = processarBaixaPadrao(itensDoacao);
             }
 
             if (!sucessoBaixa) {
-                System.out.println("✗ ERRO: Falha ao processar baixa");
                 Singleton.Retorna().Rollback();
-                return ResponseEntity.badRequest()
-                        .body(new Erro("Erro ao processar baixa"));
+                return ResponseEntity.badRequest().body(new Erro("Estoque insuficiente"));
             }
 
-            // 8. COMMIT DA TRANSAÇÃO
+            // 6. EXCLUIR ITENS DA DOAÇÃO
+            for (ItensDoacaoModel item : itensDoacao) {
+                if (!item.getItensDoacaoDAO().apagar(item, Singleton.Retorna())) {
+                    Singleton.Retorna().Rollback();
+                    return ResponseEntity.badRequest().body(new Erro("Erro ao excluir itens da doação"));
+                }
+            }
+
+            // 7. EXCLUIR AGENDAMENTO (ANTES DA DOAÇÃO)
+            if (!agendamento.getAgendamentoEntregaDAO().apagar(agendamento, Singleton.Retorna())) {
+                Singleton.Retorna().Rollback();
+                return ResponseEntity.badRequest().body(new Erro("Erro ao excluir agendamento"));
+            }
+
+            // 8. EXCLUIR DOAÇÃO (AGORA PODE, POIS AGENDAMENTO JÁ FOI EXCLUÍDO)
+            if (!doacao.getDoacaoDAO().apagar(doacao, Singleton.Retorna())) {
+                Singleton.Retorna().Rollback();
+                return ResponseEntity.badRequest().body(new Erro("Erro ao excluir doação"));
+            }
+
+            // 9. COMMIT
             Singleton.Retorna().Commit();
-
-            System.out.println("✓ Baixa efetuada com sucesso!");
-            System.out.println("Agendamento ID: " + agendamento.getIdagendamento_entrega());
-            System.out.println("Doação ID: " + doacao.getIddoacao());
-            System.out.println("Cesta ID: " + idCestaParaBaixa);
-            System.out.println("Tipo: " + (request.isPersonalizada() ? "Personalizada na entrega" : "Padrão (sem alterar estoque)"));
-            System.out.println("=== FIM EFETUAR BAIXA ===");
-
-            // 9. RETORNAR DTO SEM IDs
-            String mensagemSucesso = request.isPersonalizada() ?
-                    "Baixa PERSONALIZADA efetuada com sucesso! Itens personalizados foram decrementados do estoque." :
-                    "Baixa PADRÃO efetuada com sucesso! Entrega registrada (estoque já foi decrementado na montagem).";
 
             return ResponseEntity.ok(new DoacaoResponseDTO(
                     true,
-                    mensagemSucesso,
-                    "BAIXA-REF-" + doacao.getIddoacao() + "-" + agendamento.getIdagendamento_entrega(),
+                    "Baixa efetuada com sucesso. Registros excluídos.",
+                    "BAIXA-REF-" + doacao.getIddoacao(),
                     request.isPersonalizada()
             ));
 
         } catch (Exception e) {
-            System.out.println("✗ ERRO EXCEÇÃO: " + e.getMessage());
-            e.printStackTrace();
             Singleton.Retorna().Rollback();
-            System.out.println("=== FIM EFETUAR BAIXA (COM ERRO) ===");
             return ResponseEntity.status(500).body(new Erro("Erro ao efetuar baixa: " + e.getMessage()));
         }
     }
@@ -389,25 +307,44 @@ public class DoacaoPersonalizadaControl {
         }
     }
 
-    private boolean processarBaixaPadrao(Integer idCesta) {
+    private boolean processarBaixaPadrao(List<ItensDoacaoModel> itensDoacao) {
         try {
-            System.out.println("Baixa padrão para cesta ID: " + idCesta);
-            System.out.println("AVISO: Estoque já foi decrementado na montagem. Nenhuma alteração no estoque.");
+            System.out.println("Processando baixa padrão para " + itensDoacao.size() + " itens");
 
-            // Apenas valida se a cesta existe (opcional)
-            CestaBasica cestaModel = new CestaBasica();
-            CestaBasica cesta = cestaModel.getCestaBasicaDAO().buscarPorId(idCesta, Singleton.Retorna());
+            for (ItensDoacaoModel item : itensDoacao) {
+                if (item.getTipo_cesta_basica_idcestas_basicas() != null) {
+                    // É cesta padrão - remover do estoque de cestas
+                    EstoqueCestaBasica estoque = EstoqueCestaBasica.buscarPorIdCesta(
+                            item.getTipo_cesta_basica_idcestas_basicas()
+                    );
 
-            if (cesta == null) {
-                System.out.println("✗ Cesta não encontrada: " + idCesta);
-                return false;
+                    if (estoque != null && estoque.getQtde() >= 1) {
+                        System.out.println("Removendo 1 cesta do tipo ID " +
+                                item.getTipo_cesta_basica_idcestas_basicas() +
+                                " do estoque. Estoque atual: " + estoque.getQtde());
+
+                        if (!estoque.removerQuantidade(1)) {
+                            System.out.println("✗ Falha ao remover cesta do estoque");
+                            return false;
+                        }
+
+                        // Buscar estoque atualizado para log
+                        EstoqueCestaBasica estoqueAtualizado = EstoqueCestaBasica.buscarPorIdCesta(
+                                item.getTipo_cesta_basica_idcestas_basicas()
+                        );
+                        System.out.println("✓ Cesta removida. Novo estoque: " +
+                                (estoqueAtualizado != null ? estoqueAtualizado.getQtde() : "?"));
+                    } else {
+                        System.out.println("✗ Estoque insuficiente para cesta ID " +
+                                item.getTipo_cesta_basica_idcestas_basicas());
+                        return false;
+                    }
+                }
             }
-
-            System.out.println("✓ Cesta validada: " + cesta.getTamanho());
-            return true; // Sempre retorna true se a cesta existir
-
+            return true;
         } catch (Exception e) {
-            System.out.println("Erro em validar cesta: " + e.getMessage());
+            System.out.println("Erro em processarBaixaPadrao: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

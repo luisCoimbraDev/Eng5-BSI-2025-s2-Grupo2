@@ -37,9 +37,23 @@ public class ItensDoacaoDAO implements IDAO<ItensDoacaoModel> {
 
     @Override
     public boolean apagar(ItensDoacaoModel entidade, Conexao conexao) {
-        String sql = "DELETE FROM itens_doacao WHERE doacao_iddoacao = #1";
-        sql = sql.replace("#1", String.valueOf(entidade.getDoacao_iddoacao()));
-        return conexao.manipular(sql);
+        // Usar a PK completa: idoa_id e doacao_iddoacao
+        String sql = "DELETE FROM itens_doacao WHERE idoa_id = #1 AND doacao_iddoacao = #2";
+        sql = sql.replace("#1", String.valueOf(entidade.getIdoa_id()));
+        sql = sql.replace("#2", String.valueOf(entidade.getDoacao_iddoacao()));
+
+        System.out.println("=== DEBUG ItensDoacaoDAO.apagar ===");
+        System.out.println("SQL: " + sql);
+        System.out.println("idoa_id: " + entidade.getIdoa_id());
+        System.out.println("doacao_iddoacao: " + entidade.getDoacao_iddoacao());
+
+        boolean resultado = conexao.manipular(sql);
+        System.out.println("Resultado: " + resultado);
+        if (!resultado) {
+            System.out.println("Erro: " + conexao.getMensagemErro());
+        }
+
+        return resultado;
     }
 
     @Override

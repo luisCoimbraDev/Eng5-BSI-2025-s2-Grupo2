@@ -305,7 +305,7 @@
         const app = document.getElementById("app-content");
         if (!app) return console.error("#app-content não encontrado");
 
-        app.innerHTML = `
+        app.innerHTML = `  
       <section class="container py-4 mt-5 pt-4">
         <div class="row justify-content-center w-100">
           <div class="col-12 col-lg-10">
@@ -323,7 +323,7 @@
                     <label class="form-label">Pesquisar por tamanho</label>
                     <div class="input-group">
                       <span class="input-group-text"><i class="fas fa-search"></i></span>
-                      <input type="text" id="filtro-nome" class="form-control" 
+                      <input type="text" id="filtro-nome" class="form-control"
                              placeholder="Identifique a cesta...">
                     </div>
                   </div>
@@ -345,13 +345,14 @@
                   <table class="table table-hover align-middle">
                     <thead class="table-light">
                       <tr>
-                        <th style="width:20%">Tamanho</th>
-                        <th>Itens</th>
+                        <th style="width:15%">Tamanho</th>
+                        <th style="width:10%">Estoque</th> <!-- NOVA COLUNA -->
+                        <th style="width:55%">Itens</th>
                         <th style="width:20%" class="text-end">Ações</th>
                       </tr>
                     </thead>
                     <tbody id="cestas-tbody">
-                      <tr><td colspan="3" class="text-center">Carregando...</td></tr>
+                      <tr><td colspan="4" class="text-center">Carregando...</td></tr> <!-- Atualizar colspan -->
                     </tbody>
                   </table>
                 </div>
@@ -380,9 +381,9 @@
         }
 
         // Carregar alimentos para o filtro
-        await carregarAlimentosFiltro();
+        carregarAlimentosFiltro();
         document.getElementById("btn-refresh-cestas").addEventListener("click", listCestas);
-        await listCestas();
+        listCestas();
     }
 
     // Variável global para armazenar todas as cestas
@@ -445,9 +446,9 @@
         if (!tbody) return;
 
         if (cestas.length === 0) {
-            tbody.innerHTML = `
+            tbody.innerHTML = `  
             <tr>
-                <td colspan="3" class="text-center text-muted py-4">
+                <td colspan="4" class="text-center text-muted py-4">
                     <i class="fas fa-search fa-2x mb-2 d-block"></i>
                     Nenhuma cesta encontrada com os filtros aplicados
                 </td>
@@ -460,14 +461,22 @@
         cestas.forEach((cesta) => {
             const tr = document.createElement("tr");
             const itensTxt = (cesta.itens || []).map(it => `${it.alimentoNome} (${it.quantidade})`).join(", ");
-            tr.innerHTML = `
+
+            tr.innerHTML = `  
           <td>
             <strong>${escapeHtml(String(cesta.tamanho))}</strong>
           </td>
+          <td>
+            ${cesta.quantidadeEstoque || 0} <!-- APENAS O NÚMERO, SEM BADGE -->
+          </td>
           <td>${escapeHtml(itensTxt || "-")}</td>
           <td class="text-end">
-            <button class="btn btn-sm btn-warning me-1 btn-edit" data-tamanho="${encodeURIComponent(cesta.tamanho)}">Editar</button>
-            <button class="btn btn-sm btn-danger btn-delete" data-tamanho="${encodeURIComponent(cesta.tamanho)}">Excluir</button>
+            <button class="btn btn-sm btn-warning me-1 btn-edit" data-tamanho="${encodeURIComponent(cesta.tamanho)}">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button class="btn btn-sm btn-danger btn-delete" data-tamanho="${encodeURIComponent(cesta.tamanho)}">
+              <i class="fas fa-trash"></i> Excluir
+            </button>
           </td>
         `;
             tbody.appendChild(tr);
@@ -519,7 +528,7 @@
         const tbody = document.getElementById("cestas-tbody");
         if (!tbody) return;
 
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center">Carregando...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center">Carregando...</td></tr>`;
 
         try {
             const cestasDTO = await fetchJson(API.LIST_CESTAS);

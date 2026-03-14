@@ -554,19 +554,18 @@
     }
 
     function selecionarAgendamentoParaBaixa(cpfBeneficiario, dataEntrega, info, descricao) {
-        // DEBUG: Mostrar dados recebidos
-        console.log('=== Dados do agendamento selecionado ===');
-        console.log('CPF:', cpfBeneficiario);
-        console.log('Data:', dataEntrega);
-        console.log('Info:', info);
-        console.log('Descrição:', descricao);
+        console.log('=== Dados recebidos no selecionarAgendamentoParaBaixa ===');
+        console.log('cpfBeneficiario:', cpfBeneficiario);
+        console.log('dataEntrega:', dataEntrega);
+        console.log('descricao:', descricao);
 
-        // Armazenar dados para usar na baixa
         window.agendamentoSelecionado = {
             cpfBeneficiario: cpfBeneficiario,
             dataEntrega: dataEntrega,
-            descricao: descricao || '' // Apenas para referência, não usado na busca
+            descricao: descricao || ''
         };
+
+        console.log('window.agendamentoSelecionado após atribuição:', window.agendamentoSelecionado);
 
         // Formatar o texto de exibição
         let infoFormatada = info;
@@ -679,7 +678,6 @@
     async function efetuarBaixa(e) {
         e.preventDefault();
 
-        // Verificar se há agendamento selecionado
         if (!window.agendamentoSelecionado) {
             notifyError('Erro', 'Nenhum agendamento selecionado');
             return;
@@ -702,31 +700,38 @@
             }
         }
 
-        // Preparar request
         const request = {
             cpfBeneficiario: cpfBeneficiario,
             dataEntrega: dataEntrega,
+            descricao: descricao || '',
             personalizada: personalizada,
             itensPersonalizados: itensPersonalizados
         };
 
-        console.log('Enviando para baixa:', request);
-
         try {
-            const response = await fetchJson(API.EFETUAR_BAIXA, {
+            const response = await fetch(API.EFETUAR_BAIXA, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(request)
             });
 
-            if (response && response.sucesso !== undefined) {
-                if (response.sucesso) {
-                    notifySuccess('Sucesso!', response.mensagem || 'Baixa efetuada com sucesso');
+            const data = await response.json();
+
+            if (!response.ok) {
+                // TRATAMENTO ESPECÍFICO PARA ERRO DE DATA FUTURA
+                if (data.mensagem && data.mensagem.includes("A data do agendamento ainda não chegou")) {
+                    notifyError('Data Futura', '❌ Esta doação só poderá ser entregue na data agendada.');
                 } else {
-                    notifyError('Erro!', response.mensagem || 'Erro ao efetuar baixa');
+                    // Outros erros
+                    notifyError('Erro', data.mensagem || 'Erro ao efetuar baixa');
                 }
+                return;
+            }
+
+            // Sucesso
+            if (data && data.sucesso) {
+                notifySuccess('Sucesso!', data.mensagem || 'Baixa efetuada com sucesso');
             } else {
-                // Resposta inesperada
                 notifySuccess('Sucesso!', 'Baixa efetuada com sucesso');
             }
 
@@ -736,11 +741,7 @@
             document.getElementById('baixa-itens-personalizados-list').innerHTML = '';
             document.getElementById('baixa-personalizada').checked = false;
             document.getElementById('secao-baixa-personalizada').style.display = 'none';
-
-            // Limpar agendamento selecionado
             window.agendamentoSelecionado = null;
-
-            // Recarregar lista
             carregarAgendamentosParaBaixa();
 
         } catch (error) {
