@@ -1,4 +1,3 @@
-// DoacaoPersonalizada.js - VERSÃO COMPLETA ATUALIZADA
 (function () {
     const BASE = "http://localhost:8080";
     const API = {
@@ -10,12 +9,10 @@
         GET_CESTAS: `${BASE}/apis/cestas/lista-tudo`
     };
 
-    // Estado para filtros
-    let filtroAtual = 'todos'; // 'todos', 'hoje', 'atrasadas', 'especifica'
+    let filtroAtual = 'todos';
     let dataEspecifica = '';
     let todosAgendamentos = [];
 
-    // Utilidades
     function notifySuccess(title, text) {
         if (typeof swal === "function") swal(title, text, "success");
         else alert(`${title}\n\n${text}`);
@@ -53,26 +50,21 @@
             .replace(/'/g, "&#039;");
     }
 
-    // ==================== FUNÇÕES DE DATA ====================
 
-    // Converte QUALQUER data para formato YYYY-MM-DD (padrão do input date)
     function formatarParaYYYYMMDD(dataString) {
         if (!dataString) return '';
 
         try {
             let data;
 
-            // Se já está no formato YYYY-MM-DD
             if (/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
                 return dataString;
             }
 
-            // Tenta parsear como Date
             data = new Date(dataString);
 
-            // Verifica se é uma data válida
             if (isNaN(data.getTime())) {
-                // Tenta parsear formato brasileiro DD/MM/YYYY
+
                 const partes = dataString.split(/[/-]/);
                 if (partes.length === 3) {
                     const dia = partes[0].padStart(2, '0');
@@ -84,7 +76,6 @@
                 return '';
             }
 
-            // Formata para YYYY-MM-DD
             const ano = data.getFullYear();
             const mes = String(data.getMonth() + 1).padStart(2, '0');
             const dia = String(data.getDate()).padStart(2, '0');
@@ -97,7 +88,6 @@
         }
     }
 
-    // Converte para formato de exibição DD/MM/YYYY
     function formatarParaExibicao(dataString) {
         const dataFormatada = formatarParaYYYYMMDD(dataString);
         if (!dataFormatada) return 'Data inválida';
@@ -106,7 +96,6 @@
         return `${dia}/${mes}/${ano}`;
     }
 
-    // Obtém data atual no formato YYYY-MM-DD
     function getDataAtual() {
         const hoje = new Date();
         const ano = hoje.getFullYear();
@@ -115,23 +104,19 @@
         return `${ano}-${mes}-${dia}`;
     }
 
-    // Verifica se data é anterior a hoje (apenas data)
     function verificarSeAtrasada(dataString) {
         const dataAgendamento = formatarParaYYYYMMDD(dataString);
         const dataHoje = getDataAtual();
 
-        // Compara strings YYYY-MM-DD (ordem lexicográfica funciona)
         return dataAgendamento < dataHoje;
     }
 
-    // Verifica se data é igual a hoje (apenas data)
     function verificarSeHoje(dataString) {
         const dataAgendamento = formatarParaYYYYMMDD(dataString);
         const dataHoje = getDataAtual();
         return dataAgendamento === dataHoje;
     }
 
-    // TELA PRINCIPAL
     function mountMainMenu() {
         const app = document.getElementById("app-content");
         app.innerHTML = `    
@@ -159,7 +144,6 @@
         `;
     }
 
-    // TELA DE EFETUAR BAIXA
     function mountEfetuarBaixa() {
         const app = document.getElementById("app-content");
         app.innerHTML = `    
@@ -201,7 +185,6 @@
                                     </div>    
                                 </div>    
                                 
-                                <!-- Contador de Resultados -->    
                                 <div class="alert alert-info mb-3">    
                                     <div class="d-flex justify-content-between align-items-center">    
                                         <span id="contador-agendamentos">Carregando...</span>    
@@ -211,7 +194,6 @@
                                     </div>    
                                 </div>    
 
-                                <!-- Agendamentos -->    
                                 <div class="mb-4">    
                                     <div class="table-responsive">    
                                         <table class="table table-hover">    
@@ -231,7 +213,6 @@
                                     </div>    
                                 </div>    
 
-                                <!-- Formulário de Baixa -->    
                                 <div id="form-baixa-container" style="display: none;">    
                                     <hr>    
                                     <h5 class="mb-3">Registrar Baixa</h5>    
@@ -259,7 +240,6 @@
                                             </div>    
                                         </div>    
 
-                                        <!-- Seção de Personalização na Baixa -->    
                                         <div id="secao-baixa-personalizada" style="display: none;">    
                                             <div class="mb-3">    
                                                 <label class="form-label">Itens da Cesta Personalizada</label>    
@@ -299,14 +279,13 @@
     }
 
     function setupEfetuarBaixaEvents() {
-        // Filtro de período
+
         const filtroPeriodo = document.getElementById('filtro-periodo');
         const containerDataEspecifica = document.getElementById('container-data-especifica');
         const dataEspecificaInput = document.getElementById('data-especifica');
         const btnAplicarFiltro = document.getElementById('btn-aplicar-filtro');
         const btnRecarregar = document.getElementById('btn-recargar');
 
-        // Mostrar/ocultar campo de data específica
         filtroPeriodo.addEventListener('change', function() {
             if (this.value === 'especifica') {
                 containerDataEspecifica.style.display = 'block';
@@ -317,12 +296,10 @@
             }
         });
 
-        // Atualizar data específica quando mudar
         dataEspecificaInput.addEventListener('change', function() {
             dataEspecifica = this.value;
         });
 
-        // Aplicar filtro
         btnAplicarFiltro.addEventListener('click', function() {
             filtroAtual = filtroPeriodo.value;
             if (filtroAtual === 'especifica') {
@@ -331,12 +308,10 @@
             aplicarFiltroAgendamentos();
         });
 
-        // Recarregar dados
         btnRecarregar.addEventListener('click', function() {
             carregarAgendamentosParaBaixa();
         });
 
-        // Toggle personalização na baixa
         document.getElementById('baixa-personalizada').addEventListener('change', function(e) {
             document.getElementById('secao-baixa-personalizada').style.display =
                 e.target.checked ? 'block' : 'none';
@@ -346,10 +321,8 @@
             }
         });
 
-        // Adicionar item personalizado na baixa
         document.getElementById('btn-baixa-add-personalizado').addEventListener('click', adicionarItemBaixaPersonalizado);
 
-        // Remover item personalizado na baixa
         document.getElementById('baixa-itens-personalizados-list').addEventListener('click', function(e) {
             if (e.target.classList.contains('btn-remover-item-baixa')) {
                 e.target.closest('li').remove();
@@ -357,7 +330,6 @@
             }
         });
 
-        // Cancelar baixa
         document.getElementById('btn-cancelar-baixa').addEventListener('click', function() {
             document.getElementById('form-baixa-container').style.display = 'none';
             document.getElementById('form-efetuar-baixa').reset();
@@ -365,11 +337,9 @@
             document.getElementById('baixa-personalizada').checked = false;
             document.getElementById('secao-baixa-personalizada').style.display = 'none';
 
-            // Limpar seleção
             window.agendamentoSelecionado = null;
         });
 
-        // Submit da baixa
         document.getElementById('form-efetuar-baixa').addEventListener('submit', efetuarBaixa);
     }
 
@@ -383,10 +353,8 @@
         try {
             const agendamentos = await fetchJson(API.AGENDAMENTOS_PENDENTES);
 
-            // Armazenar todos os agendamentos
             todosAgendamentos = agendamentos || [];
 
-            // Aplicar filtro inicial (todos)
             aplicarFiltroAgendamentos();
 
         } catch (error) {
@@ -433,18 +401,15 @@
 
             case 'todos':
             default:
-                // Mantém todos
                 break;
         }
 
-        // Ordenar por data (mais antigas primeiro)
         agendamentosFiltrados.sort((a, b) => {
             const dataA = formatarParaYYYYMMDD(a.dataEntrega);
             const dataB = formatarParaYYYYMMDD(b.dataEntrega);
             return dataA.localeCompare(dataB);
         });
 
-        // Atualizar tabela
         tbody.innerHTML = '';
 
         if (agendamentosFiltrados.length === 0) {
@@ -467,30 +432,24 @@
             return;
         }
 
-        // Contadores para estatísticas
         let totalHoje = 0;
         let totalAtrasadas = 0;
 
         agendamentosFiltrados.forEach(agendamento => {
-            // Verificar status
             const estaAtrasada = verificarSeAtrasada(agendamento.dataEntrega);
             const eHoje = verificarSeHoje(agendamento.dataEntrega);
 
-            // Atualizar contadores
             if (eHoje) totalHoje++;
             if (estaAtrasada) totalAtrasadas++;
 
             const tr = document.createElement('tr');
 
-            // Aplicar classe para atrasadas (APENAS se não for hoje)
             if (estaAtrasada && !eHoje) {
                 tr.classList.add('table-danger');
             }
 
-            // Formatar data para exibição
             const dataExibicao = formatarParaExibicao(agendamento.dataEntrega);
 
-            // Criar string de info para o botão
             const infoString = `${escapeHtml(agendamento.beneficiarioNome || 'N/A')} - ${dataExibicao}`;
 
             tr.innerHTML = `    
@@ -511,11 +470,9 @@
             tbody.appendChild(tr);
         });
 
-        // Atualizar contador
         const totalFiltrado = agendamentosFiltrados.length;
         let textoContador = `${totalFiltrado} agendamento(s) encontrado(s)`;
 
-        // Adicionar estatísticas se mostrar todos
         if (filtroAtual === 'todos') {
             if (totalAtrasadas > 0) {
                 textoContador += ` | ${totalAtrasadas} atrasado(s)`;
@@ -527,7 +484,6 @@
 
         contador.textContent = textoContador;
 
-        // Bind dos botões de seleção
         tbody.querySelectorAll('.btn-selecionar-baixa').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const info = e.target.dataset.info;
@@ -535,10 +491,8 @@
                 const dataEntrega = e.target.dataset.data;
                 const descricao = e.target.dataset.descricao;
 
-                // Formatar data para YYYY-MM-DD (padrão do back-end)
                 const dataFormatada = formatarParaYYYYMMDD(dataEntrega);
 
-                // Limpar CPF (remover pontuação)
                 const cpfLimpo = cpf ? cpf.replace(/\D/g, '') : '';
 
                 console.log('Dados para baixa:', {
@@ -567,7 +521,6 @@
 
         console.log('window.agendamentoSelecionado após atribuição:', window.agendamentoSelecionado);
 
-        // Formatar o texto de exibição
         let infoFormatada = info;
         if (descricao && descricao.trim() !== '') {
             infoFormatada = info + ' | ' + descricao;
@@ -576,13 +529,11 @@
         document.getElementById('info-agendamento').textContent = infoFormatada;
         document.getElementById('form-baixa-container').style.display = 'block';
 
-        // Resetar opção de personalização
         document.getElementById('baixa-personalizada').checked = false;
         document.getElementById('secao-baixa-personalizada').style.display = 'none';
         document.getElementById('baixa-itens-personalizados-list').innerHTML = '';
         atualizarVisibilidadeListaBaixaPersonalizada();
 
-        // Limpar mensagens de erro anteriores
         const form = document.getElementById('form-efetuar-baixa');
         if (form) {
             form.classList.remove('was-validated');
@@ -590,7 +541,6 @@
             invalidElements.forEach(el => el.classList.remove('is-invalid'));
         }
 
-        // Scroll para o formulário
         document.getElementById('form-baixa-container').scrollIntoView({
             behavior: 'smooth',
             block: 'start'
@@ -630,13 +580,11 @@
             return;
         }
 
-        // Verificar se já existe
         const itemExistente = Array.from(lista.children).find(li =>
             li.dataset.alimento === alimento
         );
 
         if (itemExistente) {
-            // Atualizar quantidade
             const novaQtde = parseInt(itemExistente.dataset.quantidade) + quantidade;
             itemExistente.dataset.quantidade = novaQtde;
             itemExistente.innerHTML = `    
@@ -644,7 +592,6 @@
                 <button type="button" class="btn btn-sm btn-danger btn-remover-item-baixa">Remover</button>    
             `;
         } else {
-            // Adicionar novo item
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
             li.dataset.alimento = alimento;
@@ -656,11 +603,9 @@
             lista.appendChild(li);
         }
 
-        // Limpar campos
         inputQtde.value = '1';
         select.value = '';
 
-        // Atualizar visibilidade
         atualizarVisibilidadeListaBaixaPersonalizada();
     }
 
@@ -718,7 +663,6 @@
             const data = await response.json();
 
             if (!response.ok) {
-                // TRATAMENTO ESPECÍFICO PARA ERRO DE DATA FUTURA
                 if (data.mensagem && data.mensagem.includes("A data do agendamento ainda não chegou")) {
                     notifyError('Data Futura', '❌ Esta doação só poderá ser entregue na data agendada.');
                 } else {
@@ -728,14 +672,12 @@
                 return;
             }
 
-            // Sucesso
             if (data && data.sucesso) {
                 notifySuccess('Sucesso!', data.mensagem || 'Baixa efetuada com sucesso');
             } else {
                 notifySuccess('Sucesso!', 'Baixa efetuada com sucesso');
             }
 
-            // Limpar e recarregar
             document.getElementById('form-baixa-container').style.display = 'none';
             document.getElementById('form-efetuar-baixa').reset();
             document.getElementById('baixa-itens-personalizados-list').innerHTML = '';
@@ -750,7 +692,6 @@
         }
     }
 
-    // API PÚBLICA
     window.DoacaoPersonalizada = {
         mount: mountMainMenu,
         mountMainMenu,

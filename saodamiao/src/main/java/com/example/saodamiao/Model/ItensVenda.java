@@ -10,9 +10,16 @@ public class ItensVenda {
     private int valorItem;
 
     private ItensVendaDAO item;
+    public ItensVenda(int idItemVenda, int qtde){
+
+    }
+
+    public ItensVenda(){}
+
     public int getValorItem() {
         return valorItem;
     }
+
 
     public void setValorItem(int valorItem) {
         this.valorItem = valorItem;

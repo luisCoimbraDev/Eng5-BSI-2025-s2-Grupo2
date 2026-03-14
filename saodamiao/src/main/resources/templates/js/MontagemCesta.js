@@ -8,7 +8,6 @@
         CONSULTAR_ESTOQUE_CESTAS: `${BASE}/apis/estoque-cestas/estoque-cestas`
     };
 
-    // Utilidades
     function notifySuccess(title, text) {
         if (typeof swal === "function") swal(title, text, "success");
         else alert(`${title}\n\n${text}`);
@@ -101,7 +100,6 @@
                   </table>
                 </div>
 
-                <!-- Modal para solicitar quantidade -->
                 <div class="modal fade" id="modalSolicitarQuantidade" tabindex="-1" aria-hidden="true">
                   <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
@@ -128,7 +126,6 @@
                   </div>
                 </div>
 
-                <!-- Resultado da verificação -->
                 <div id="resultado-verificacao" class="mt-4" style="display: none;">
                   <div class="card border-primary">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -149,7 +146,6 @@
       </section>
     `;
 
-        // Configurar event listeners
         const filtroNome = document.getElementById("filtro-montagem-nome");
         const filtroAlimento = document.getElementById("filtro-montagem-alimento");
         const btnLimparFiltros = document.getElementById("btn-limpar-filtros-montagem");
@@ -171,7 +167,6 @@
             btnRefresh.addEventListener("click", () => listarCestasMontagem());
         }
 
-        // Configurar modal
         const modal = new bootstrap.Modal(document.getElementById('modalSolicitarQuantidade'));
         document.getElementById('btn-confirmar-solicitacao').addEventListener('click', solicitarMontagem);
 
@@ -179,7 +174,6 @@
         listarCestasMontagem();
     }
 
-    // Variável global para armazenar cestas
     let todasCestasMontagem = [];
     let cestaSelecionada = null;
 
@@ -283,7 +277,6 @@
             tbody.appendChild(tr);
         });
 
-        // Bind dos botões de solicitar montagem
         tbody.querySelectorAll(".btn-solicitar-montagem").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 const tamanho = decodeURIComponent(e.currentTarget.dataset.tamanho);
@@ -335,7 +328,6 @@
             const resultadoDiv = document.getElementById("resultado-verificacao");
             const conteudoDiv = document.getElementById("resultado-verificacao-conteudo");
 
-            // Fechar modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalSolicitarQuantidade'));
             modal.hide();
 
@@ -434,7 +426,6 @@
             const resultadoDiv = document.getElementById("resultado-verificacao");
             const conteudoDiv = document.getElementById("resultado-verificacao-conteudo");
 
-            // Mostrar loading
             conteudoDiv.innerHTML = `
             <div class="text-center">
                 <div class="spinner-border text-primary mb-3" role="status">
@@ -456,23 +447,18 @@
                 body: JSON.stringify(request)
             });
 
-            // VERIFICAÇÃO CORRIGIDA - o response não tem campo "sucesso"
             if (response && response.podeMontar !== undefined) {
                 if (response.podeMontar) {
                     notifySuccess("Sucesso!", `Montagem de ${quantidade} cesta(s) "${tamanhoCesta}" confirmada com sucesso!`);
 
-                    // Atualizar interface
                     document.getElementById('resultado-verificacao').style.display = 'none';
 
-                    // Recarregar a lista para atualizar visualização
                     await listarCestasMontagem();
 
-                    // Fechar modal se estiver aberto
                     const modal = bootstrap.Modal.getInstance(document.getElementById('modalSolicitarQuantidade'));
                     if (modal) modal.hide();
 
                 } else {
-                    // Montagem não foi possível - mostrar detalhes
                     let mensagemErro = "Não foi possível confirmar a montagem.\n";
                     if (response.itensFaltantes && response.itensFaltantes.length > 0) {
                         mensagemErro += "\nItens em falta:\n";
@@ -483,7 +469,6 @@
                     notifyError("Estoque Insuficiente", mensagemErro);
                 }
             } else {
-                // Resposta inesperada
                 notifyError("Erro", "Resposta inesperada do servidor");
             }
 
@@ -491,7 +476,6 @@
             console.error("Erro detalhado:", err);
             notifyError("Erro na Confirmação", err.message || "Erro ao processar a solicitação");
 
-            // Manter o resultado visível para debug
             const conteudoDiv = document.getElementById("resultado-verificacao-conteudo");
             conteudoDiv.innerHTML = `
             <div class="alert alert-danger">
@@ -503,13 +487,11 @@
         }
     }
 
-    // Expor API pública
     window.MontagemCesta = {
         mountPossiveisCestas: mountSolicitarMontagem,
         confirmarMontagem
     };
 
-    // Expor funções globais necessárias
     window.confirmarMontagem = confirmarMontagem;
     window.abrirModalSolicitacao = abrirModalSolicitacao;
 

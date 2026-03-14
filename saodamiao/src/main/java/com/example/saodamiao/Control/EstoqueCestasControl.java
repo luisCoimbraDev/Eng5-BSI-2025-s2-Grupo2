@@ -195,7 +195,6 @@ public class EstoqueCestasControl {
 
         } catch (Exception e) {
             Singleton.Retorna().Rollback();
-            System.err.println("ERRO ao confirmar montagem: " + e.getMessage());
             return ResponseEntity.status(500).body(new Erro("Erro ao confirmar montagem: " + e.getMessage()));
         }
     }
@@ -216,7 +215,6 @@ public class EstoqueCestasControl {
             return ResponseEntity.ok(estoqueDTOs);
 
         } catch (Exception e) {
-            System.err.println("ERRO ao consultar estoque de cestas: " + e.getMessage());
             return ResponseEntity.status(500).body(new Erro("Erro ao consultar estoque: " + e.getMessage()));
         }
     }

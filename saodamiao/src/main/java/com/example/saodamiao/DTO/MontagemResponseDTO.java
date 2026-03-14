@@ -13,6 +13,6 @@ public class MontagemResponseDTO {
     private String tamanhoCesta;
     private int quantidadeSolicitada;
     private boolean podeMontar;
-    private List<ItemFaltanteDTO> itensFaltantes; // Esta deve vir antes da mensagem
+    private List<ItemFaltanteDTO> itensFaltantes;
     private String mensagem;
 }

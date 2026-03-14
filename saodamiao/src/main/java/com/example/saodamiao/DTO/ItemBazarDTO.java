@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemCestaRequest {
-    private String tamanhoCesta;
-    private ItemCestaDTO itemDTO;
+public class ItemBazarDTO {
+    private String nomeItem;
+    private int qtd;
+    private String condicao;
+    private double valor;
+    private long idTipoBazar;
 }

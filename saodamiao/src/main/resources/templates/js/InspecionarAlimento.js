@@ -2,49 +2,124 @@ document.addEventListener('DOMContentLoaded', () => {
     const view = document.getElementById('app-content');
     const link = document.getElementById('inspecao-alimento');
 
-    // ---------------------- Estado e utilitários ----------------------
+    // ====================== Config ======================
     const TAM_PAG = 5;
+    const HIST_PAG = 5;
+    const NOME_COLABORADOR_PADRAO = 'Luis';
+
+    // ====================== Helpers SWEETALERT (sem Swal.fire) ======================
+    const hasSwal = () => typeof window.swal === 'function';
+
+    // "Toast" simples: abre e fecha sozinho
+    const sToast = (type, title, timer = 1500) => {
+        if (hasSwal()) {
+            try {
+                swal({ title, text: '', type });
+                if (timer) setTimeout(() => { try { swal.close(); } catch(_){} }, timer);
+            } catch {
+                console[type === 'error' ? 'error' : 'log'](title);
+            }
+        } else {
+            console[type === 'error' ? 'error' : 'log'](title);
+        }
+    };
+
+    const sOk = (title, text = '') => {
+        if (hasSwal()) swal(title, text, 'success');
+        else alert(`${title}\n${text}`);
+    };
+
+    const sErr = (title, text = '') => {
+        if (hasSwal()) swal(title, text, 'error');
+        else alert(`Erro: ${title}\n${text}`);
+    };
+
+    // ====================== Estado ======================
     const estado = {
         todos: [],
         dados: [],
         pagina_atual: 0,
         qtd_max_pag: 0,
         filtro: '',
-        sort: { campo: 'nome', dir: 'asc' } // default
-    };
-    let alimentoAtual = null; // item selecionado para inspeção
-
-    const normalizar = (s) => (s ?? '')
-        .toString()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '');
-
-    const debounce = (fn, ms = 250) => {
-        let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+        sort: { campo: 'nome', dir: 'asc' }
     };
 
-    const isISODate = (str) => typeof str === 'string' && /^\d{4}-\d{2}-\d{2}/.test(str);
+    const estadoHist = {
+        todos: [],
+        dados: [],
+        pagina: 0,
+        qtd_max_pag: 0,
+        filtro: ''
+    };
+
+    let alimentoAtual = null; // item selecionado para inspeção/alteração
+
+    // ====================== Utils de String/Data (sem fuso!) ======================
+    const normalizar = (s) => (s ?? '').toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    const debounce = (fn, ms = 250) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
+
+    // "yyyy-mm-dd"?
+    const isYMD = (str) => typeof str === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(str);
+
+    // ymd -> "dd/mm/yyyy" (sem Date)
+    const ymdToBR = (ymd) => {
+        if (!isYMD(ymd)) return String(ymd ?? '');
+        const [y,m,d] = ymd.split('-');
+        return `${d}/${m}/${y}`;
+    };
+
+    // ymd -> número yyyymmdd para ordenar/comparar
+    const ymdToNum = (ymd) => {
+        if (!isYMD(ymd)) return -Infinity;
+        return Number(ymd.replaceAll('-', '')) || -Infinity;
+    };
+
+    // BR format inteligente (aceita Date ou yyyy-mm-dd; evita Date.parse de string ISO)
     const formatarDataBR = (valor) => {
         if (!valor) return '';
-        try {
-            if (valor instanceof Date) return valor.toLocaleDateString('pt-BR');
-            if (isISODate(valor)) {
-                const d = new Date(valor);
-                if (!isNaN(d)) return d.toLocaleDateString('pt-BR');
-            }
-            const m = String(valor).match(/^(\d{4})-(\d{2})-(\d{2})/);
-            if (m) return `${m[3]}/${m[2]}/${m[1]}`;
-            return String(valor);
-        } catch { return String(valor); }
+        if (isYMD(valor)) return ymdToBR(valor);
+        if (valor instanceof Date && !isNaN(valor)) return valor.toLocaleDateString('pt-BR');
+        const m = String(valor).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+        return String(valor);
     };
-    // yyyy-dd-mm (conforme pedido)
+
+    // yyyy-dd-mm (UI) a partir de Date local
     const formatDateYDM = (d) => {
         const pad = (n) => String(n).padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getDate())}-${pad(d.getMonth() + 1)}`;
     };
 
-    // ---------------------- Template da tela ----------------------
+    // Para inputs e backend: se já for "yyyy-mm-dd", devolve como está; se for Date, formata local sem UTC
+    const toInputDate = (v) => {
+        if (isYMD(v)) return v;
+        if (v instanceof Date && !isNaN(v)) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${v.getFullYear()}-${pad(v.getMonth()+1)}-${pad(v.getDate())}`;
+        }
+        return '';
+    };
+    const todayInputDate = () => toInputDate(new Date());
+
+    // Converte "yyyy-dd-mm" (UI) -> "yyyy-mm-dd" (backend)
+    function ydmToIsoYmd(str) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(str || ''));
+        if (!m) return '';
+        const [_, y, dd, mm] = m; // vindo como yyyy-dd-mm
+        return `${y}-${mm}-${dd}`;
+    }
+
+    const eqItem = (a, b) => normalizar(a?.nome) === normalizar(b?.nome) &&
+        normalizar(a?.tipo_alimento) === normalizar(b?.tipo_alimento);
+
+    function atualizarItemEmEstado(alvo, novo) {
+        const i1 = estado.todos.findIndex(x => eqItem(x, alvo));
+        if (i1 >= 0) estado.todos[i1] = { ...estado.todos[i1], ...novo };
+        const i2 = estado.dados.findIndex(x => eqItem(x, alvo));
+        if (i2 >= 0) estado.dados[i2] = { ...estado.dados[i2], ...novo };
+    }
+
+    // ====================== Templates ======================
     const telaInspecao = `
 <section class="container py-4 min-vh-100 d-flex align-items-center">
   <div class="row justify-content-center w-100">
@@ -57,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="card-body">
-          <!-- Filtros e ordenação -->
           <form id="form-inspecao" class="row g-3 align-items-end">
             <div class="col-12 col-lg-6">
               <label for="filtro-inspecao" class="form-label">Filtrar (nome ou tipo)</label>
@@ -93,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </form>
 
-          <!-- Tabela -->
           <div class="table-responsive mt-3">
             <table class="table table-hover table-striped align-middle mb-0" id="tabela-inspecao">
               <thead class="table-light sticky-top">
@@ -131,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </table>
           </div>
 
-          <!-- Paginação -->
           <div id="paginacao-inspecao" class="d-flex justify-content-between align-items-center mt-3">
             <small class="text-body-secondary" id="qtd-pagina-inspecao">Página 1 de 1</small>
             <ul class="pagination pagination-sm mb-0">
@@ -151,14 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
 </section>
 `;
 
-    // ---------------------- Modal de Inspeção (tabs) ----------------------
     const modalInspecaoHTML = `
 <div class="modal fade" id="modal-inspecao" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="bi bi-clipboard2-pulse me-2"></i>Inspeção: <span id="insp-nome" class="fw-semibold"></span>
+          <i class="bi bi-clipboard2-pulse me-2"></i>Alimento: <span id="insp-nome" class="fw-semibold"></span>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
@@ -166,8 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="modal-body">
         <ul class="nav nav-tabs" id="insp-tabs" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="tab-nova-tab" data-bs-toggle="tab" data-bs-target="#tab-nova" type="button" role="tab" aria-controls="tab-nova" aria-selected="true">
-              Nova inspeção
+            <button class="nav-link active" id="tab-alt-tab" data-bs-toggle="tab" data-bs-target="#tab-alterar" type="button" role="tab" aria-controls="tab-alterar" aria-selected="true">
+              Alterar
             </button>
           </li>
           <li class="nav-item" role="presentation">
@@ -178,42 +249,92 @@ document.addEventListener('DOMContentLoaded', () => {
         </ul>
 
         <div class="tab-content pt-3">
-          <!-- Nova inspeção -->
-          <div class="tab-pane fade show active" id="tab-nova" role="tabpanel" aria-labelledby="tab-nova-tab">
-            <form id="form-nova-insp" novalidate>
+          <!-- Alterar (ativa) -->
+          <div class="tab-pane fade show active" id="tab-alterar" role="tabpanel" aria-labelledby="tab-alt-tab">
+            <form id="form-alt-item" novalidate>
               <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="alt-nome">Nome do alimento</label>
+                  <input id="alt-nome" class="form-control" type="text" readonly>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="alt-tipo">Tipo do alimento</label>
+                  <input id="alt-tipo" class="form-control" type="text" readonly>
+                </div>
+
                 <div class="col-12 col-md-4">
-                  <label for="insp-data" class="form-label">Data</label>
-                  <input type="text" id="insp-data" class="form-control" readonly>
+                  <label class="form-label" for="alt-quantidade">Quantidade<span style="color: red;">*</span></label>
+                  <input id="alt-quantidade" class="form-control" type="number" min="1" step="1" required>
+                  <div class="form-text">Quantidade deve ser &gt; 0.</div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label" for="alt-validade">Validade<span style="color: red;">*</span></label>
+                  <input id="alt-validade" class="form-control" type="date" required>
+                  <div class="form-text">Não pode ser menor que hoje.</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label" for="alt-data">Data do registro</label>
+                  <input id="alt-data" class="form-control" type="text" readonly>
                   <div class="form-text">Formato: yyyy-dd-mm</div>
                 </div>
+
                 <div class="col-12">
-                  <label for="insp-obs" class="form-label">Observação</label>
-                  <textarea id="insp-obs" class="form-control" maxlength="100" rows="3" placeholder="Até 100 caracteres"></textarea>
-                  <div class="form-text"><span id="insp-obs-count">0</span>/100</div>
+                  <label class="form-label" for="alt-obs">Observação<span style="color: red;">*</span></label>
+                  <textarea id="alt-obs" class="form-control" maxlength="100" rows="3" placeholder="Até 100 caracteres"></textarea>
+                  <div class="form-text"><span id="alt-obs-count">0</span>/100</div>
                 </div>
               </div>
+
               <div class="mt-3 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Gravar</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat me-1"></i>Atualizar</button>
               </div>
             </form>
           </div>
 
           <!-- Histórico -->
           <div class="tab-pane fade" id="tab-historico" role="tabpanel" aria-labelledby="tab-hist-tab">
+            <form class="row g-2 align-items-end mb-2">
+              <div class="col-12 col-md-8">
+                <label for="hist-filtro" class="form-label">Filtrar (data, observação ou colaborador)</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="text" id="hist-filtro" class="form-control" placeholder="Digite para filtrar…">
+                </div>
+              </div>
+              <div class="col-12 col-md-4 d-grid d-md-flex gap-2">
+                <button type="button" id="hist-limpar" class="btn btn-outline-secondary">
+                  <i class="bi bi-eraser me-1"></i>Limpar filtro
+                </button>
+              </div>
+            </form>
+
             <div class="table-responsive">
-              <table class="table table-sm table-striped align-middle mb-0">
+              <table class="table table-sm table-striped align-middle mb-0" id="tabela-historico">
                 <thead class="table-light">
                   <tr>
-                    <th style="width:30%">Data</th>
-                    <th>Observação</th>
+                    <th style="width:25%">Data</th>
+                    <th style="width:55%">Observação</th>
+                    <th style="width:20%">Colaborador (User)</th>
                   </tr>
                 </thead>
                 <tbody id="tbody-historico">
-                  <tr><td colspan="2" class="text-center py-4 text-body-secondary">Sem registros.</td></tr>
+                  <tr><td colspan="3" class="text-center py-4 text-body-secondary">Sem registros.</td></tr>
                 </tbody>
               </table>
+            </div>
+
+            <div id="hist-paginacao" class="d-flex justify-content-between align-items-center mt-2">
+              <small class="text-body-secondary" id="hist-qtd-pagina">Página 1 de 1</small>
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled">
+                  <button class="page-link" id="hist-prev" type="button">Anterior</button>
+                </li>
+                <li class="page-item disabled">
+                  <button class="page-link" id="hist-next" type="button">Próxima</button>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -227,7 +348,26 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>`;
 
-    // ---------------------- APIs ----------------------
+    // Mini-modal para exibir Observação do histórico
+    const miniObsModalHTML = `
+<div class="modal fade" id="modal-obs" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title"><i class="bi bi-chat-left-text me-2"></i>Observação</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <p id="mini-obs-text" class="mb-0"></p>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+    // ====================== APIs ======================
     async function carregarEstoque() {
         const resp = await fetch('http://localhost:8080/apis/estoque/getall');
         if (!resp.ok) throw new Error(await resp.text());
@@ -241,40 +381,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
-    // >>> Ajuste estes endpoints conforme seu backend <<<
-    async function listarInspecoesAPI(nomeAlimento) {
-        try {
-            const resp = await fetch('http://localhost:8080/apis/inspecao/listar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: nomeAlimento
-            });
-            if (!resp.ok) throw new Error(await resp.text());
-            const lista = await resp.json();
-            // esperado: [{data:"2025-07-11", observacao:"..."}, ...]
-            return Array.isArray(lista) ? lista : [];
-        } catch (e) {
-            console.warn('Falha ao listar inspeções:', e);
-            return [];
-        }
+    // PUT Atualizar via "inspecao/alimento/atualizar"
+    async function atualizarInspecaoAPI(payload) {
+        const resp = await fetch('http://localhost:8080/apis/inspecao/alimento/atualizar', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        return await resp.json().catch(() => payload);
     }
 
-    async function gravarInspecaoAPI({ nome, data, observacao }) {
-        try {
-            const resp = await fetch('http://localhost:8080/apis/inspecao/gravar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, data, observacao })
-            });
-            if (!resp.ok) throw new Error(await resp.text());
-            return await resp.json().catch(() => ({ ok: true }));
-        } catch (e) {
-            console.error('Falha ao gravar inspeção:', e);
-            throw e;
-        }
-    }
-
-    // ---------------------- Render e lógica da listagem ----------------------
+    // ====================== Lista Principal (render) ======================
     function aplicarFiltroOrdenacao() {
         const base = estado.todos || [];
         const txt = normalizar(estado.filtro);
@@ -290,8 +408,8 @@ document.addEventListener('DOMContentLoaded', () => {
             arr.sort((a, b) => {
                 let va = a?.[campo], vb = b?.[campo];
                 if (campo === 'validade') {
-                    const ta = Date.parse(va) || 0;
-                    const tb = Date.parse(vb) || 0;
+                    const ta = ymdToNum(va);
+                    const tb = ymdToNum(vb);
                     if (ta < tb) return dir === 'asc' ? -1 : 1;
                     if (ta > tb) return dir === 'asc' ? 1 : -1;
                     return 0;
@@ -343,7 +461,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 tdQtd.className = 'text-end';
                 tdQtd.textContent = item.quantidade ?? ''; tr.appendChild(tdQtd);
 
-                // Ações: botão lupa (abre modal)
                 const tdAcoes = document.createElement('td');
                 tdAcoes.className = 'text-end';
                 const btnVer = document.createElement('button');
@@ -383,8 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!ic) return;
             const ativo = estado.sort.campo === th.dataset.sort;
             ic.className = 'small text-secondary sort-indicator bi ' + (
-                ativo ? (estado.sort.dir === 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill')
-                    : 'bi-arrow-down-up'
+                ativo ? (estado.sort.dir === 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-arrow-down-up'
             );
         });
     }
@@ -472,75 +588,267 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ---------------------- Modal: montagem e handlers ----------------------
+    // ====================== Modal / Handlers ======================
     function ensureModalInspecaoInDOM() {
-        if (!document.getElementById('modal-inspecao')) {
-            document.body.insertAdjacentHTML('beforeend', modalInspecaoHTML);
-        }
+        if (!document.getElementById('modal-inspecao')) document.body.insertAdjacentHTML('beforeend', modalInspecaoHTML);
+        if (!document.getElementById('modal-obs')) document.body.insertAdjacentHTML('beforeend', miniObsModalHTML);
     }
 
     function bindModalHandlers() {
-        const txtObs = document.getElementById('insp-obs');
-        const cnt = document.getElementById('insp-obs-count');
-        const form = document.getElementById('form-nova-insp');
-
-        if (txtObs && !txtObs.dataset.ready) {
-            txtObs.dataset.ready = '1';
-            txtObs.addEventListener('input', () => {
-                const len = (txtObs.value || '').length;
-                if (cnt) cnt.textContent = String(len);
+        // Alterar — contador de caracteres e submit
+        const altObs = document.getElementById('alt-obs');
+        const altCnt = document.getElementById('alt-obs-count');
+        if (altObs && !altObs.dataset.ready) {
+            altObs.dataset.ready = '1';
+            altObs.addEventListener('input', () => {
+                const len = (altObs.value || '').length;
+                if (altCnt) altCnt.textContent = String(len);
             });
         }
 
-        if (form && !form.dataset.ready) {
-            form.dataset.ready = '1';
-            form.addEventListener('submit', async (e) => {
+        const formAlt = document.getElementById('form-alt-item');
+        if (formAlt && !formAlt.dataset.ready) {
+            formAlt.dataset.ready = '1';
+            formAlt.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!alimentoAtual) return;
 
-                const data = document.getElementById('insp-data')?.value || formatDateYDM(new Date());
-                const observacao = (document.getElementById('insp-obs')?.value || '').trim();
+                const nome = alimentoAtual.nome;
+                const tipo_alimento = alimentoAtual.tipo_alimento;
+                const quantidade = parseInt(document.getElementById('alt-quantidade').value, 10);
+                const validadeNova = document.getElementById('alt-validade').value; // yyyy-mm-dd
+                const dataUI = document.getElementById('alt-data').value || formatDateYDM(new Date()); // yyyy-dd-mm
+                const observacao = (document.getElementById('alt-obs').value || '').trim();
 
-                if (observacao.length > 100) {
-                    alert('Observação deve ter no máximo 100 caracteres.');
-                    return;
+                if (Number.isNaN(quantidade) || quantidade <= 0) return sErr('Quantidade inválida', 'A quantidade deve ser maior que 0.');
+
+                const todayYmd = todayInputDate(); // yyyy-mm-dd
+                if (!isYMD(validadeNova) || ymdToNum(validadeNova) < ymdToNum(todayYmd)) {
+                    return sErr('Validade inválida', 'A validade não pode ser menor que hoje.');
                 }
+                if (observacao.length > 100) return sErr('Observação muito longa', 'Use no máximo 100 caracteres.');
+
+                const validadeAntiga = toInputDate(alimentoAtual.validade) || ''; // yyyy-mm-dd
+
+                const payload = {
+                    nomealimento: nome,
+                    tipoAlimento: tipo_alimento,
+                    quantidade: quantidade,
+                    datavalidade: validadeNova,
+                    datavalidadeantiga: validadeAntiga,
+                    dataInspecao: ydmToIsoYmd(dataUI), // yyyy-mm-dd
+                    observacao: observacao,
+                    nomeColaborador: NOME_COLABORADOR_PADRAO
+                };
 
                 try {
-                    await gravarInspecaoAPI({ nome: alimentoAtual.nome, data, observacao });
-                    // após gravar, ativa a guia Histórico e recarrega
-                    const tabHistBtn = document.getElementById('tab-hist-tab');
-                    if (tabHistBtn) new bootstrap.Tab(tabHistBtn).show();
-                    await carregarHistoricoNoModal(alimentoAtual.nome);
-                    // limpa observação e reseta contador
-                    const obsEl = document.getElementById('insp-obs');
-                    if (obsEl) obsEl.value = '';
-                    if (cnt) cnt.textContent = '0';
+                    await atualizarInspecaoAPI(payload);
+
+                    // Sucesso VISÍVEL (e sem "Histórico carregado" depois)
+                    sOk('Alimento atualizado!', '');
+
+                    const novosDados = { quantidade, validade: validadeNova };
+                    atualizarItemEmEstado(alimentoAtual, novosDados);
+                    alimentoAtual = { ...alimentoAtual, ...novosDados };
+                    aplicarFiltroOrdenacao();
+
+                    await carregarHistoricoNoModal(nome, validadeNova);
                 } catch (err) {
-                    alert(`Falha ao gravar inspeção: ${err.message || err}`);
+                    sErr('Falha ao atualizar', String(err?.message || err));
                 }
+            });
+        }
+
+        // Ao abrir a aba Alterar, preencher dados
+        const tabAltBtn = document.getElementById('tab-alt-tab');
+        if (tabAltBtn && !tabAltBtn.dataset.ready) {
+            tabAltBtn.dataset.ready = '1';
+            tabAltBtn.addEventListener('shown.bs.tab', () => {
+                preencherAbaAlterar();
+            });
+        }
+
+        // Listeners do histórico (filtro, paginação, click na linha)
+        setupHistoricoListeners();
+    }
+
+    function preencherAbaAlterar() {
+        if (!alimentoAtual) return;
+
+        const nomeEl = document.getElementById('alt-nome');
+        const tipoEl = document.getElementById('alt-tipo');
+        const qtdEl = document.getElementById('alt-quantidade');
+        const valEl = document.getElementById('alt-validade');
+        const dataEl = document.getElementById('alt-data');
+        const obsEl = document.getElementById('alt-obs');
+        const cnt = document.getElementById('alt-obs-count');
+
+        if (nomeEl) nomeEl.value = alimentoAtual.nome || '';
+        if (tipoEl) tipoEl.value = alimentoAtual.tipo_alimento || '';
+        if (qtdEl) qtdEl.value = (alimentoAtual.quantidade ?? '').toString();
+
+        if (valEl) {
+            valEl.min = todayInputDate(); // yyyy-mm-dd
+            const v = toInputDate(alimentoAtual.validade); // já é yyyy-mm-dd sem fuso
+            valEl.value = v && v < valEl.min ? valEl.min : v;
+        }
+
+        if (dataEl) dataEl.value = formatDateYDM(new Date()); // yyyy-dd-mm
+        if (obsEl) obsEl.value = '';
+        if (cnt) cnt.textContent = '0';
+    }
+
+    // ====================== Histórico: filtro/paginação ======================
+    function aplicarFiltroHistorico() {
+        const base = estadoHist.todos || [];
+        const txt = normalizar(estadoHist.filtro);
+
+        let arr = !txt ? base.slice() : base.filter(it => {
+            const d = normalizar(formatarDataBR(it.datainspecao));
+            const o = normalizar(it.observacao);
+            const c = normalizar(it.colaborador);
+            return d.includes(txt) || o.includes(txt) || c.includes(txt);
+        });
+
+        estadoHist.dados = arr;
+        estadoHist.qtd_max_pag = Math.ceil(arr.length / HIST_PAG) || 1;
+        if (estadoHist.pagina > estadoHist.qtd_max_pag - 1) estadoHist.pagina = 0;
+
+        carregarPaginaHistorico();
+    }
+
+    function carregarPaginaHistorico() {
+        const tbody = document.getElementById('tbody-historico');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const inicio = estadoHist.pagina * HIST_PAG;
+        const fim = inicio + HIST_PAG;
+        const pagina = estadoHist.dados.slice(inicio, fim);
+
+        if (!pagina.length) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-body-secondary">Sem registros.</td></tr>`;
+        } else {
+            for (const it of pagina) {
+                const tr = document.createElement('tr');
+                tr.dataset.obs = it.observacao || '';
+                tr.style.cursor = 'pointer';
+
+                const tdD = document.createElement('td');
+                tdD.textContent = formatarDataBR(it.datainspecao) || '';
+                tr.appendChild(tdD);
+
+                const tdO = document.createElement('td');
+                tdO.textContent = it.observacao || '';
+                tr.appendChild(tdO);
+
+                const tdU = document.createElement('td');
+                tdU.textContent = it.colaborador || '';
+                tr.appendChild(tdU);
+
+                tbody.appendChild(tr);
+            }
+        }
+
+        const lbl = document.getElementById('hist-qtd-pagina');
+        if (lbl) lbl.textContent = `Página ${estadoHist.pagina + 1} de ${Math.max(estadoHist.qtd_max_pag, 1)}`;
+
+        const prevItem = document.getElementById('hist-prev')?.closest('.page-item');
+        const nextItem = document.getElementById('hist-next')?.closest('.page-item');
+        if (prevItem) prevItem.classList.toggle('disabled', estadoHist.pagina === 0);
+        if (nextItem) nextItem.classList.toggle('disabled', estadoHist.pagina >= estadoHist.qtd_max_pag - 1);
+    }
+
+    function setupHistoricoListeners() {
+        const filtro = document.getElementById('hist-filtro');
+        const limpar = document.getElementById('hist-limpar');
+        const prev = document.getElementById('hist-prev');
+        const next = document.getElementById('hist-next');
+        const tbody = document.getElementById('tbody-historico');
+
+        if (filtro && !filtro.dataset.ready) {
+            filtro.dataset.ready = '1';
+            filtro.addEventListener('input', debounce(e => {
+                estadoHist.filtro = e.target.value || '';
+                estadoHist.pagina = 0;
+                aplicarFiltroHistorico();
+            }, 200));
+        }
+
+        if (limpar && !limpar.dataset.ready) {
+            limpar.dataset.ready = '1';
+            limpar.addEventListener('click', () => {
+                if (filtro) filtro.value = '';
+                estadoHist.filtro = '';
+                estadoHist.pagina = 0;
+                aplicarFiltroHistorico();
+            });
+        }
+
+        if (prev && !prev.dataset.ready) {
+            prev.dataset.ready = '1';
+            prev.addEventListener('click', () => {
+                if (estadoHist.pagina > 0) {
+                    estadoHist.pagina--;
+                    carregarPaginaHistorico();
+                }
+            });
+        }
+
+        if (next && !next.dataset.ready) {
+            next.dataset.ready = '1';
+            next.addEventListener('click', () => {
+                if (estadoHist.pagina + 1 < estadoHist.qtd_max_pag) {
+                    estadoHist.pagina++;
+                    carregarPaginaHistorico();
+                }
+            });
+        }
+
+        if (tbody && !tbody.dataset.ready) {
+            tbody.dataset.ready = '1';
+            tbody.addEventListener('click', (e) => {
+                const tr = e.target.closest('tr[data-obs]');
+                if (!tr) return;
+                const txt = tr.dataset.obs || '';
+                const box = document.getElementById('mini-obs-text');
+                if (box) box.textContent = txt;
+                const mm = document.getElementById('modal-obs');
+                if (mm) bootstrap.Modal.getOrCreateInstance(mm).show();
             });
         }
     }
 
-    async function carregarHistoricoNoModal(nomeAlimento) {
+    async function carregarHistoricoNoModal(nomeAlimento, dataValidadeYmd) {
         const tbody = document.getElementById('tbody-historico');
         if (!tbody) return;
-        tbody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-body-secondary">Carregando…</td></tr>`;
-        const lista = await listarInspecoesAPI(nomeAlimento);
-        if (!lista.length) {
-            tbody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-body-secondary">Sem registros.</td></tr>`;
-            return;
-        }
-        tbody.innerHTML = '';
-        for (const it of lista) {
-            const tr = document.createElement('tr');
-            const tdD = document.createElement('td');
-            const tdO = document.createElement('td');
-            tdD.textContent = formatarDataBR(it?.data) || '';
-            tdO.textContent = it?.observacao || '';
-            tr.appendChild(tdD); tr.appendChild(tdO);
-            tbody.appendChild(tr);
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-body-secondary">Carregando…</td></tr>`;
+
+        try {
+            // endpoint espera { nomeAlimento, dataValidade } e retorna [{ observacao, datainspecao, colaborador }]
+            const payload = { nomeAlimento, dataValidade: dataValidadeYmd };
+            const resp = await fetch('http://localhost:8080/apis/inspecao/alimento/historico', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) return
+            const lista = await resp.json();
+
+            const mapped = (Array.isArray(lista) ? lista : []).map(it => ({
+                observacao: it?.observacao ?? '',
+                datainspecao: it?.datainspecao ?? it?.dataInspecao ?? '',
+                colaborador: it?.colaborador ?? ''
+            }));
+
+            estadoHist.todos = mapped;
+            estadoHist.filtro = '';
+            estadoHist.pagina = 0;
+            aplicarFiltroHistorico();
+            // sem swal/sToast de sucesso aqui
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger">Erro ao carregar histórico</td></tr>`;
+            sErr('Falha ao carregar histórico', String(err?.message || err));
         }
     }
 
@@ -548,26 +856,25 @@ document.addEventListener('DOMContentLoaded', () => {
         alimentoAtual = item;
         ensureModalInspecaoInDOM();
 
-        // Preenche cabeçalho e campos
         const el = document.getElementById('modal-inspecao');
         document.getElementById('insp-nome').textContent = item?.nome || '';
-        document.getElementById('insp-data').value = formatDateYDM(new Date());
-        const obsEl = document.getElementById('insp-obs');
-        const cnt = document.getElementById('insp-obs-count');
-        if (obsEl) obsEl.value = '';
-        if (cnt) cnt.textContent = '0';
 
         bindModalHandlers();
-        // Carrega histórico na aba 2
-        await carregarHistoricoNoModal(item?.nome || '');
+
+        const dataValidadeYmd = toInputDate(item?.validade); // yyyy-mm-dd
+        await carregarHistoricoNoModal(item?.nome || '', dataValidadeYmd);
+        preencherAbaAlterar();
+
+        // Garante "Alterar" ativa
+        const tabAltBtn = document.getElementById('tab-alt-tab');
+        if (tabAltBtn) new bootstrap.Tab(tabAltBtn).show();
 
         bootstrap.Modal.getOrCreateInstance(el).show();
     }
 
-    // ---------------------- Tela: montagem ----------------------
+    // ====================== Tela: montagem ======================
     async function montarTelaInspecao() {
         view.innerHTML = telaInspecao;
-        // injeta o modal no DOM (uma vez)
         ensureModalInspecaoInDOM();
 
         const corpo = document.getElementById('lista-inspecao');
@@ -578,6 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
             estado.filtro = '';
             estado.pagina_atual = 0;
             aplicarFiltroOrdenacao();
+            sToast('success', 'Estoque carregado');
         } catch (err) {
             console.error(err);
             if (corpo) {
@@ -585,13 +893,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 tr.innerHTML = `<td colspan="5" class="text-center py-4">Erro ao carregar: ${err.message || err}</td>`;
                 corpo.appendChild(tr);
             }
+            // sem swal de erro aqui
         }
 
         setupListeners();
         atualizarIndicadoresOrdenacao();
     }
 
-    // ---------------------- Navegação ----------------------
+    // ====================== Navegação ======================
     if (link) {
         link.addEventListener('click', (e) => {
             e.preventDefault();

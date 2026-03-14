@@ -72,7 +72,7 @@ public class EstoqueCestaBasica {
             if (!estoqueCestaBasicaDAO.estoqueExiste(this.idcestas_basicas, Singleton.Retorna())) {
                 return estoqueCestaBasicaDAO.inserir(this, Singleton.Retorna());
             }
-            return true; // Já existe
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;

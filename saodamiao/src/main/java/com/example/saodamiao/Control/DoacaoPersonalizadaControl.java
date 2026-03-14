@@ -17,8 +17,6 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class DoacaoPersonalizadaControl {
 
-    // ========== ENDPOINTS PÚBLICOS ==========
-
     @PostMapping(value = "/criar-doacao")
     public ResponseEntity<Object> criarDoacaoComAgendamento(@RequestBody DoacaoRequestDTO request) {
         try {
@@ -26,7 +24,6 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.status(500).body(new Erro("Erro ao iniciar transação"));
             }
 
-            // 1. VALIDAR BENEFICIÁRIO
             Beneficiarios beneficiario = new Beneficiarios();
             beneficiario = beneficiario.getBeneficiariosDAO()
                     .pegarBeneficiario(request.getCpfBeneficiario(), Singleton.Retorna());
@@ -36,7 +33,6 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.badRequest().body(new Erro("Beneficiário não encontrado"));
             }
 
-            // 2. VALIDAR COLABORADOR
             Colaborador colaborador = new Colaborador();
             colaborador = colaborador.getColaboradorDAO()
                     .existeColaborador(request.getIdColaborador(), Singleton.Retorna());
@@ -46,7 +42,6 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.badRequest().body(new Erro("Colaborador não encontrado"));
             }
 
-            // 3. CRIAR DOAÇÃO
             DoacaoModel doacao = request.toDoacaoModel(beneficiario.getIdbeneficiario());
 
             if (!doacao.getDoacaoDAO().gravar(doacao, Singleton.Retorna())) {
@@ -54,11 +49,9 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.badRequest().body(new Erro("Erro ao criar doação"));
             }
 
-            // 4. OBTER ID DA DOAÇÃO CRIADA
             int idDoacao = doacao.getDoacaoDAO().getUltimoIdInserido(Singleton.Retorna());
             doacao.setIddoacao(idDoacao);
 
-            // 5. PROCESSAR ITENS DA DOAÇÃO
             if (request.isPersonalizada()) {
                 if (!processarDoacaoPersonalizada(doacao, request.getItensPersonalizados())) {
                     Singleton.Retorna().Rollback();
@@ -71,7 +64,6 @@ public class DoacaoPersonalizadaControl {
                 }
             }
 
-            // 6. CRIAR AGENDAMENTO
             AgendamentoEntregaModel agendamento = request.toAgendamentoEntregaModel(idDoacao);
 
             if (!agendamento.getAgendamentoEntregaDAO().gravar(agendamento, Singleton.Retorna())) {
@@ -81,7 +73,6 @@ public class DoacaoPersonalizadaControl {
 
             Singleton.Retorna().Commit();
 
-            // 7. RETORNAR DTO SEM IDs
             DoacaoResponseDTO response = new DoacaoResponseDTO(
                     true,
                     "Doação criada com sucesso" + (request.isPersonalizada() ? " (cesta personalizada)" : ""),
@@ -100,13 +91,11 @@ public class DoacaoPersonalizadaControl {
     @PostMapping(value = "/efetuar-baixa")
     public ResponseEntity<Object> efetuarBaixaAgendamento(@RequestBody BaixaAgendamentoRequestDTO request) {
         try {
-            System.out.println("=== INICIO EFETUAR BAIXA ===");
 
             if (!Singleton.Retorna().StartTransaction()) {
                 return ResponseEntity.status(500).body(new Erro("Erro ao iniciar transação"));
             }
 
-            // 1. BUSCAR AGENDAMENTO
             AgendamentoEntregaModel agendamento = new AgendamentoEntregaModel();
             agendamento = agendamento.getAgendamentoEntregaDAO()
                     .buscarPorDados(request.getCpfBeneficiario(), request.getDataEntrega(), Singleton.Retorna());
@@ -116,7 +105,6 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.badRequest().body(new Erro("Agendamento não encontrado"));
             }
 
-            // 2. VERIFICAR DATA
             Date hoje = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             if (sdf.parse(sdf.format(agendamento.getData_entrega())).after(sdf.parse(sdf.format(hoje)))) {
@@ -124,7 +112,6 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.badRequest().body(new Erro("A data do agendamento ainda não chegou"));
             }
 
-            // 3. BUSCAR DOAÇÃO
             DoacaoModel doacao = new DoacaoModel();
             doacao = doacao.getDoacaoDAO().buscarPorId(agendamento.getDoacao_iddoacao(), Singleton.Retorna());
 
@@ -133,12 +120,10 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.badRequest().body(new Erro("Doação não encontrada"));
             }
 
-            // 4. BUSCAR ITENS DA DOAÇÃO
             ItensDoacaoModel itensDoacaoModel = new ItensDoacaoModel();
             List<ItensDoacaoModel> itensDoacao = itensDoacaoModel.getItensDoacaoDAO()
                     .buscarPorDoacao(doacao.getIddoacao(), Singleton.Retorna());
 
-            // 5. PROCESSAR BAIXA NO ESTOQUE
             boolean sucessoBaixa;
             if (request.isPersonalizada()) {
                 sucessoBaixa = processarBaixaPersonalizada(request.getItensPersonalizados());
@@ -151,7 +136,6 @@ public class DoacaoPersonalizadaControl {
                 return ResponseEntity.badRequest().body(new Erro("Estoque insuficiente"));
             }
 
-            // 6. EXCLUIR ITENS DA DOAÇÃO
             for (ItensDoacaoModel item : itensDoacao) {
                 if (!item.getItensDoacaoDAO().apagar(item, Singleton.Retorna())) {
                     Singleton.Retorna().Rollback();
@@ -159,19 +143,16 @@ public class DoacaoPersonalizadaControl {
                 }
             }
 
-            // 7. EXCLUIR AGENDAMENTO (ANTES DA DOAÇÃO)
             if (!agendamento.getAgendamentoEntregaDAO().apagar(agendamento, Singleton.Retorna())) {
                 Singleton.Retorna().Rollback();
                 return ResponseEntity.badRequest().body(new Erro("Erro ao excluir agendamento"));
             }
 
-            // 8. EXCLUIR DOAÇÃO (AGORA PODE, POIS AGENDAMENTO JÁ FOI EXCLUÍDO)
             if (!doacao.getDoacaoDAO().apagar(doacao, Singleton.Retorna())) {
                 Singleton.Retorna().Rollback();
                 return ResponseEntity.badRequest().body(new Erro("Erro ao excluir doação"));
             }
 
-            // 9. COMMIT
             Singleton.Retorna().Commit();
 
             return ResponseEntity.ok(new DoacaoResponseDTO(
@@ -194,24 +175,19 @@ public class DoacaoPersonalizadaControl {
             List<AgendamentoEntregaModel> agendamentos = agendamentoModel.getAgendamentoEntregaDAO()
                     .buscarAgendamentosPendentes(Singleton.Retorna());
 
-            // Converter para DTO SEM IDs
             List<AgendamentoResponseDTO> response = new ArrayList<>();
 
             for (AgendamentoEntregaModel agendamento : agendamentos) {
-                // Buscar informações da doação
                 DoacaoModel doacao = new DoacaoModel();
                 doacao = doacao.getDoacaoDAO().buscarPorId(agendamento.getDoacao_iddoacao(), Singleton.Retorna());
 
                 if (doacao != null) {
-                    // Buscar beneficiário
                     Beneficiarios beneficiario = new Beneficiarios();
                     beneficiario = beneficiario.getBeneficiariosDAO()
                             .pegarBeneficiarioPorId(doacao.getBeneficiario_idbeneficiario(), Singleton.Retorna());
 
-                    // A DESCRIÇÃO da doação é o que vai para o front-end
                     String descricaoDoacao = doacao.getDescricao() != null ? doacao.getDescricao() : "";
 
-                    // Criar DTO
                     AgendamentoResponseDTO dto = new AgendamentoResponseDTO(
                             agendamento.getData_entrega(),
                             beneficiario != null ? beneficiario.getNome() : "N/A",
@@ -235,14 +211,11 @@ public class DoacaoPersonalizadaControl {
             DoacaoModel doacaoModel = new DoacaoModel();
             List<DoacaoModel> doacoes = doacaoModel.getDoacaoDAO().pegarListaToda(Singleton.Retorna());
 
-            // Converter para DTOs sem IDs se necessário
             return ResponseEntity.ok(doacoes);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(new Erro("Erro ao buscar histórico: " + e.getMessage()));
         }
     }
-
-    // ========== MÉTODOS AUXILIARES PRIVADOS ==========
 
     private boolean processarDoacaoCestaPadrao(DoacaoModel doacao, String tamanhoCesta) {
         try {
@@ -251,12 +224,10 @@ public class DoacaoPersonalizadaControl {
                     .buscarPorTamanho(tamanhoCesta, Singleton.Retorna());
 
             if (cestas.isEmpty()) {
-                System.out.println("✗ Cesta não encontrada: " + tamanhoCesta);
                 return false;
             }
 
-            CestaBasica cesta = cestas.get(0);
-            System.out.println("✓ Cesta encontrada: " + cesta.getTamanho() + " (ID: " + cesta.getId() + ")");
+            CestaBasica cesta = cestas.getFirst();
 
             ItensDoacaoModel itemDoacao = new ItensDoacaoModel();
             itemDoacao.setDoacao_iddoacao(doacao.getIddoacao());
@@ -266,7 +237,6 @@ public class DoacaoPersonalizadaControl {
             return itemDoacao.getItensDoacaoDAO().gravar(itemDoacao, Singleton.Retorna());
 
         } catch (Exception e) {
-            System.out.println("Erro em processarDoacaoCestaPadrao: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -275,23 +245,18 @@ public class DoacaoPersonalizadaControl {
     private boolean processarDoacaoPersonalizada(DoacaoModel doacao, List<ItemPersonalizadoDTO> itensPersonalizados) {
         try {
             if (itensPersonalizados == null || itensPersonalizados.isEmpty()) {
-                System.out.println("✗ Lista de itens personalizados vazia");
                 return false;
             }
 
-            // Para cesta personalizada, também precisa de uma cesta base
             CestaBasica cestaModel = new CestaBasica();
             List<CestaBasica> cestas = cestaModel.getCestaBasicaDAO()
                     .pegarListaToda(Singleton.Retorna());
 
             if (cestas.isEmpty()) {
-                System.out.println("✗ Nenhuma cesta disponível para usar como base");
                 return false;
             }
 
-            // Usar a primeira cesta como referência
-            CestaBasica cestaBase = cestas.get(0);
-            System.out.println("Usando cesta base para personalizada: " + cestaBase.getTamanho());
+            CestaBasica cestaBase = cestas.getFirst();
 
             ItensDoacaoModel itemDoacao = new ItensDoacaoModel();
             itemDoacao.setDoacao_iddoacao(doacao.getIddoacao());
@@ -301,7 +266,6 @@ public class DoacaoPersonalizadaControl {
             return itemDoacao.getItensDoacaoDAO().gravar(itemDoacao, Singleton.Retorna());
 
         } catch (Exception e) {
-            System.out.println("Erro em processarDoacaoPersonalizada: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -309,41 +273,29 @@ public class DoacaoPersonalizadaControl {
 
     private boolean processarBaixaPadrao(List<ItensDoacaoModel> itensDoacao) {
         try {
-            System.out.println("Processando baixa padrão para " + itensDoacao.size() + " itens");
 
             for (ItensDoacaoModel item : itensDoacao) {
                 if (item.getTipo_cesta_basica_idcestas_basicas() != null) {
-                    // É cesta padrão - remover do estoque de cestas
                     EstoqueCestaBasica estoque = EstoqueCestaBasica.buscarPorIdCesta(
                             item.getTipo_cesta_basica_idcestas_basicas()
                     );
 
                     if (estoque != null && estoque.getQtde() >= 1) {
-                        System.out.println("Removendo 1 cesta do tipo ID " +
-                                item.getTipo_cesta_basica_idcestas_basicas() +
-                                " do estoque. Estoque atual: " + estoque.getQtde());
 
                         if (!estoque.removerQuantidade(1)) {
-                            System.out.println("✗ Falha ao remover cesta do estoque");
                             return false;
                         }
 
-                        // Buscar estoque atualizado para log
                         EstoqueCestaBasica estoqueAtualizado = EstoqueCestaBasica.buscarPorIdCesta(
                                 item.getTipo_cesta_basica_idcestas_basicas()
                         );
-                        System.out.println("✓ Cesta removida. Novo estoque: " +
-                                (estoqueAtualizado != null ? estoqueAtualizado.getQtde() : "?"));
                     } else {
-                        System.out.println("✗ Estoque insuficiente para cesta ID " +
-                                item.getTipo_cesta_basica_idcestas_basicas());
                         return false;
                     }
                 }
             }
             return true;
         } catch (Exception e) {
-            System.out.println("Erro em processarBaixaPadrao: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -351,31 +303,23 @@ public class DoacaoPersonalizadaControl {
 
     private boolean processarBaixaPersonalizada(List<ItemPersonalizadoDTO> itensPersonalizados) {
         try {
-            System.out.println("Processando baixa personalizada para " + itensPersonalizados.size() + " itens");
 
             AlimentoEstoque alimentoEstoque = new AlimentoEstoque();
 
             for (ItemPersonalizadoDTO itemPersonalizado : itensPersonalizados) {
-                System.out.println("Processando item: " + itemPersonalizado.getAlimentoNome() +
-                        " x" + itemPersonalizado.getQuantidade());
 
                 Alimento alimento = new Alimento();
                 alimento = alimento.getAlimentoDAO()
                         .ResgatarAlimento(itemPersonalizado.getAlimentoNome(), Singleton.Retorna());
 
                 if (alimento == null) {
-                    System.out.println("✗ Alimento não encontrado: " + itemPersonalizado.getAlimentoNome());
                     return false;
                 }
 
                 int estoqueAtual = alimentoEstoque.getAlimentoEstoqueDAO()
                         .getQuantidadeEstoque(alimento.getId(), Singleton.Retorna());
 
-                System.out.println("Estoque atual do " + itemPersonalizado.getAlimentoNome() +
-                        ": " + estoqueAtual + ", necessário: " + itemPersonalizado.getQuantidade());
-
                 if (estoqueAtual < itemPersonalizado.getQuantidade()) {
-                    System.out.println("✗ Estoque insuficiente para " + itemPersonalizado.getAlimentoNome());
                     return false;
                 }
 
@@ -384,16 +328,13 @@ public class DoacaoPersonalizadaControl {
                         itemPersonalizado.getQuantidade(),
                         Singleton.Retorna()
                 )) {
-                    System.out.println("✗ Falha ao atualizar estoque FIFO para " + itemPersonalizado.getAlimentoNome());
                     return false;
                 }
 
-                System.out.println("✓ Item " + itemPersonalizado.getAlimentoNome() + " processado com sucesso");
             }
 
             return true;
         } catch (Exception e) {
-            System.out.println("Erro em processarBaixaPersonalizada: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

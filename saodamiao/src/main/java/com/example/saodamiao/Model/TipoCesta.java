@@ -9,8 +9,11 @@ public class TipoCesta {
 
     private int id;
     private String tamanho;
+
     @JsonIgnore
     private TipoCestasDAO tipoCestasDAO;
+
+
     public TipoCesta() {
         tipoCestasDAO = new TipoCestasDAO();
     }

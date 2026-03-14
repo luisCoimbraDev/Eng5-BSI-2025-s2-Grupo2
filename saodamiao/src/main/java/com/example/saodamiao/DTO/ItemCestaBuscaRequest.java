@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemCestaBuscaRequest {
-    private String tamanhoCesta;  // "P", "M", "G" - usamos o tamanho como identificador
+    private String tamanhoCesta;
 }

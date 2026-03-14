@@ -100,7 +100,6 @@
       </section>
     `;
 
-        // bind events
         const form = document.getElementById("form-cesta");
         const selectAlim = document.getElementById("cesta-alimento-select");
         const btnAdd = document.getElementById("cesta-add-item");
@@ -109,33 +108,26 @@
         const msgVazio = document.getElementById("cesta-itens-vazio");
         const msgObrigatorio = document.getElementById("cesta-itens-obrigatorio");
 
-        // carregar alimentos
         loadAlimentosIntoSelect(selectAlim);
 
-        // Função para atualizar a visibilidade da mensagem de lista vazia
         function atualizarVisibilidadeLista() {
             const temItens = lista.children.length > 0;
 
-            // Mostrar/ocultar mensagem de lista vazia
             if (msgVazio) {
                 msgVazio.style.display = temItens ? 'none' : 'block';
             }
 
-            // Mostrar/ocultar mensagem de obrigatoriedade (vermelha)
             if (msgObrigatorio) {
                 msgObrigatorio.style.display = temItens ? 'none' : 'block';
             }
 
-            // Aplicar/remover destaque visual na seção
             if (containerItens) {
                 containerItens.classList.toggle('secao-itens-vazia', !temItens);
             }
         }
 
-        // Inicializar visibilidade
         atualizarVisibilidadeLista();
 
-        // clicar em item remove (delegation)
         lista.addEventListener("click", (ev) => {
             const li = ev.target.closest("li");
             if (!li) return;
@@ -151,7 +143,6 @@
             const inputQtde = document.getElementById("cesta-alimento-qtde");
             const qt = parseInt(inputQtde.value, 10);
 
-            // Validação dos campos
             if (!nome) {
                 notifyError("Atenção", "Selecione um alimento.");
                 selectAlim.classList.add('is-invalid');
@@ -168,7 +159,6 @@
                 inputQtde.classList.remove('is-invalid');
             }
 
-            // evita duplicar mesmo alimento — soma quantidades se já existir
             const existing = Array.from(lista.children).find(li => li.dataset.alimentoNome === nome);
             if (existing) {
                 const newQt = parseInt(existing.dataset.qtde, 10) + qt;
@@ -186,10 +176,9 @@
                 lista.appendChild(li);
             }
 
-            // limpar campos
             inputQtde.value = "";
             selectAlim.value = "";
-            atualizarVisibilidadeLista(); // Atualiza a visibilidade das mensagens
+            atualizarVisibilidadeLista();
         });
 
         async function verificarTamanhoExistente(tamanho) {
@@ -222,7 +211,6 @@
                 quantidade: Number(li.dataset.qtde)
             }));
 
-            // Validação customizada
             let isValid = true;
 
             if (!tamanho) {
@@ -266,13 +254,11 @@
             }
         });
 
-        // Reset do formulário
         form.addEventListener("reset", () => {
             setTimeout(() => {
                 lista.innerHTML = "";
                 atualizarVisibilidadeLista();
                 form.classList.remove("was-validated");
-                // Remove classes de inválido
                 document.querySelectorAll('.is-invalid').forEach(el => {
                     el.classList.remove('is-invalid');
                 });
@@ -281,7 +267,6 @@
         });
     }
 
-    // helper: carrega alimentos para selects
     async function loadAlimentosIntoSelect(selectElem) {
         if (!selectElem) return;
         selectElem.innerHTML = `<option value="">Carregando alimentos...</option>`;
@@ -300,7 +285,6 @@
         }
     }
 
-    // LISTAGEM (apresentação comum para listar / editar / deletar)
     async function mountList() {
         const app = document.getElementById("app-content");
         if (!app) return console.error("#app-content não encontrado");
@@ -346,13 +330,13 @@
                     <thead class="table-light">
                       <tr>
                         <th style="width:15%">Tamanho</th>
-                        <th style="width:10%">Estoque</th> <!-- NOVA COLUNA -->
+                        <th style="width:10%">Estoque</th>
                         <th style="width:55%">Itens</th>
                         <th style="width:20%" class="text-end">Ações</th>
                       </tr>
                     </thead>
                     <tbody id="cestas-tbody">
-                      <tr><td colspan="4" class="text-center">Carregando...</td></tr> <!-- Atualizar colspan -->
+                      <tr><td colspan="4" class="text-center">Carregando...</td></tr> 
                     </tbody>
                   </table>
                 </div>
@@ -363,7 +347,6 @@
       </section>
     `;
 
-        // Configurar event listeners para os filtros
         const filtroNome = document.getElementById("filtro-nome");
         const filtroAlimento = document.getElementById("filtro-alimento");
         const btnLimparFiltros = document.getElementById("btn-limpar-filtros");
@@ -380,16 +363,13 @@
             btnLimparFiltros.addEventListener("click", limparFiltros);
         }
 
-        // Carregar alimentos para o filtro
         carregarAlimentosFiltro();
         document.getElementById("btn-refresh-cestas").addEventListener("click", listCestas);
         listCestas();
     }
 
-    // Variável global para armazenar todas as cestas
     let todasCestas = [];
 
-// Carregar alimentos para o filtro
     async function carregarAlimentosFiltro() {
         const selectFiltro = document.getElementById("filtro-alimento");
         if (!selectFiltro) return;
@@ -408,7 +388,6 @@
         }
     }
 
-    // Função principal de filtragem com debounce
     function filtrarCestas() {
         // Usar debounce para melhor performance
         clearTimeout(window.filtroTimeout);
@@ -418,29 +397,24 @@
 
             let cestasFiltradas = [...todasCestas];
 
-            // Aplicar filtro por nome (busca em tempo real)
             if (filtroNome) {
                 cestasFiltradas = cestasFiltradas.filter(cesta =>
                     cesta.tamanho.toLowerCase().includes(filtroNome)
                 );
             }
 
-            // Aplicar filtro por alimento
             if (filtroAlimento) {
                 cestasFiltradas = cestasFiltradas.filter(cesta =>
                     cesta.itens.some(item => item.alimentoNome === filtroAlimento)
                 );
             }
 
-            // Atualizar a tabela com os resultados filtrados
             atualizarTabelaCestas(cestasFiltradas);
 
-            // Atualizar contador
             atualizarContador(cestasFiltradas.length);
-        }, 300); // 300ms de delay
+        }, 300);
     }
 
-// Atualizar tabela com cestas filtradas
     function atualizarTabelaCestas(cestas) {
         const tbody = document.getElementById("cestas-tbody");
         if (!tbody) return;
@@ -482,7 +456,6 @@
             tbody.appendChild(tr);
         });
 
-        // Re-bind dos botões de ação
         tbody.querySelectorAll(".btn-edit").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 const tamanho = decodeURIComponent(e.currentTarget.dataset.tamanho);
@@ -497,7 +470,6 @@
         });
     }
 
-// Atualizar contador de resultados
     function atualizarContador(total) {
         const contador = document.getElementById("contador-cestas");
         if (contador) {
@@ -513,7 +485,6 @@
         }
     }
 
-    // Limpar todos os filtros
     function limparFiltros() {
         const filtroNome = document.getElementById("filtro-nome");
         const filtroAlimento = document.getElementById("filtro-alimento");
@@ -533,7 +504,6 @@
         try {
             const cestasDTO = await fetchJson(API.LIST_CESTAS);
 
-            // Armazenar todas as cestas na variável global
             todasCestas = cestasDTO || [];
 
             if (todasCestas.length === 0) {
@@ -542,7 +512,6 @@
                 return;
             }
 
-            // Aplicar filtros (vai mostrar todas inicialmente)
             filtrarCestas();
 
         } catch (err) {
@@ -551,7 +520,6 @@
         }
     }
 
-    // abre a UI de edição pré-carregada com a cesta selecionada
     async function openEditFor(tamanho) {
         try {
             const cestasDTO = await fetchJson(API.LIST_CESTAS);
@@ -616,7 +584,6 @@
         </section>
       `;
 
-            // Preenche valores
             document.getElementById("edit-cesta-tamanho").value = cesta.tamanho;
 
             const lista = document.getElementById("edit-cesta-itens-list");
@@ -636,26 +603,20 @@
                 lista.appendChild(li);
             });
 
-            // Função para atualizar validação visual
             function atualizarValidacaoEdicao() {
                 const temItens = lista.children.length > 0;
 
-                // Mostrar/ocultar mensagem de obrigatoriedade
                 if (msgObrigatorio) {
                     msgObrigatorio.style.display = temItens ? 'none' : 'block';
                 }
 
-                // Aplicar/remover destaque visual
                 containerItens.classList.toggle('secao-itens-vazia', !temItens);
             }
 
-            // Inicialmente, como já tem itens, a mensagem deve estar oculta
             atualizarValidacaoEdicao();
 
-            // Carregar alimentos no select
             await loadAlimentosIntoSelect(document.getElementById("edit-cesta-alimento-select"));
 
-            // Evento para adicionar item
             document.getElementById("edit-cesta-add-item").addEventListener("click", () => {
                 const sel = document.getElementById("edit-cesta-alimento-select");
                 const nome = sel.value;
@@ -663,7 +624,6 @@
                 const inputQtde = document.getElementById("edit-cesta-alimento-qtde");
                 const qt = parseInt(inputQtde.value, 10);
 
-                // Validação
                 if (!nome) {
                     notifyError("Atenção", "Selecione um alimento.");
                     sel.classList.add('is-invalid');
@@ -702,7 +662,7 @@
 
                 inputQtde.value = "";
                 sel.value = "";
-                atualizarValidacaoEdicao(); // Atualiza a visibilidade
+                atualizarValidacaoEdicao();
             });
 
             // Evento de remoção para itens
@@ -711,22 +671,21 @@
                 if (!li) return;
                 if (confirm(`Remover ${li.dataset.alimentoNome}?`)) {
                     li.remove();
-                    atualizarValidacaoEdicao(); // Atualiza a visibilidade
+                    atualizarValidacaoEdicao();
                 }
             });
 
-            // Evento de cancelar
             document.getElementById("edit-cancel").addEventListener("click", () => {
-                // Usar o método mountList do objeto global CestaBasica
+
                 if (window.CestaBasica && window.CestaBasica.mountList) {
                     window.CestaBasica.mountList();
                 } else {
-                    // Fallback: recarregar a página ou mostrar mensagem
+
                     notifyError("Erro", "Não foi possível voltar para a listagem. Recarregue a página.");
                 }
             });
 
-            // Evento de submit do formulário
+
             document.getElementById("form-edit-cesta").addEventListener("submit", async (ev) => {
                 ev.preventDefault();
                 ev.currentTarget.classList.add("was-validated");
@@ -737,7 +696,6 @@
                     quantidade: Number(li.dataset.qtde)
                 }));
 
-                // Validação customizada
                 let isValid = true;
 
                 if (!novoTamanho) {
@@ -779,7 +737,6 @@
 
                     notifySuccess("Sucesso", "Cesta atualizada com sucesso!");
 
-                    // Voltar para a listagem após sucesso
                     if (window.CestaBasica && window.CestaBasica.mountList) {
                         window.CestaBasica.mountList();
                     }
@@ -794,7 +751,6 @@
         }
     }
 
-    // confirmação e exclusão via DELETE (body CestaBasicaDTO)
     async function confirmAndDelete(tamanho) {
         const ok = (typeof swal === "function")
             ? await swal({ title: "Confirma exclusão?", text: `Excluir cesta "${tamanho}"?`, icon: "warning", buttons: true, dangerMode: true })
@@ -804,7 +760,7 @@
 
         const payload = {
             tamanho: tamanho,
-            itens: [] // lista vazia, já que só precisa do tamanho para identificar
+            itens: []
         };
 
         try {
@@ -820,11 +776,9 @@
         }
     }
 
-    // mountEdit e mountDelete: ambos mostram a lista (com botões)
     function mountEdit() { mountList(); }
     function mountDelete() { mountList(); }
 
-    // expose public API
     window.CestaBasica = {
         mountCreate,
         mountList,
@@ -832,7 +786,6 @@
         mountDelete
     };
 
-    // small helpers
     function escapeHtml(str) {
         return String(str)
             .replace(/&/g, "&amp;")
@@ -842,13 +795,12 @@
             .replace(/'/g, "&#039;");
     }
 
-    // common fetchJson wrapper (redeclare here to use above)
     async function fetchJson(url, opts = {}) {
         try {
             const resp = await fetch(url, opts);
             const text = await resp.text().catch(()=>null);
             if (!resp.ok) {
-                // tenta parsear JSON erro
+
                 try {
                     const j = text ? JSON.parse(text) : null;
                     throw new Error((j && (j.mensagem || j.message)) || text || `HTTP ${resp.status}`);
@@ -863,5 +815,4 @@
         }
     }
 
-    // initial auto-mount: nada (we expose mounts only)
 })();
