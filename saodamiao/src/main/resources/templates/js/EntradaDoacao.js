@@ -717,9 +717,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let i = 0; i < carrinho.length; i++) {
                     const item = carrinho[i];
 
-                    // URL muda conforme o tipo: alimento -> /alimento/gravar ; itemBazar -> /bazar/gravar
-                    const rota = item.tipo === 'alimento' ? 'alimento' : 'bazar';
-                    const url = `http://localhost:8080/apis/entrada-doacao/${rota}/gravar`;
+                    // URL agora é única, o backend trata pelo Strategy
+                    const url = `http://localhost:8080/apis/entrada-doacao/gravar`;
 
                     // progresso
                     btnEnviarCarrinho.innerHTML = `
@@ -727,11 +726,17 @@ document.addEventListener('DOMContentLoaded', () => {
             Enviando ${i + 1}/${total}...
           `;
 
+                        // Prepara o DoacaoCreateDTO com ambos os campos (um deles nulo)
+                        const doacaoCreateDTO = {
+                            doacaoAlimentoDTO: item.tipo === 'alimento' ? item.payload : null,
+                            doacaoBazarDTO: item.tipo === 'itemBazar' ? item.payload : null
+                        };
+
                     try {
                         const r = await fetch(url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(item.payload),
+                            body: JSON.stringify(doacaoCreateDTO),
                         });
 
                         if (!r.ok) {

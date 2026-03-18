@@ -58,6 +58,8 @@ public class ConfiguracaoSeguranca {
                         .requestMatchers("/apis/inspecao/**").permitAll()
                         .requestMatchers("apis/tipoalimento/**").permitAll()
                         .requestMatchers("apis/alimentos/**").permitAll()
+                        .requestMatchers("apis/entrada-doacao/**").permitAll()
+                        .requestMatchers("apis/tipobazar/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
